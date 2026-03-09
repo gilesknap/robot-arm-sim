@@ -1,0 +1,177 @@
+part_name: A2
+source_file: stl_files/A2.stl
+format: binary_stl
+geometry:
+  vertex_count: 12833
+  face_count: 25497
+  bounding_box:
+    min:
+    - -40.05064392089844
+    - -51.437259674072266
+    - -31.942670822143555
+    max:
+    - 31.931188583374023
+    - 49.93950653076172
+    - 162.54656982421875
+    extents:
+    - 71.98183250427246
+    - 101.37676620483398
+    - 194.4892406463623
+  volume_mm3: 0.0
+  surface_area_mm2: 63752.66175968788
+  center_of_mass:
+  - -5.90815496557888
+  - -0.043792456781221845
+  - 51.5785721673409
+  is_watertight: false
+inertia:
+  principal_moments:
+  - 719950263.3258238
+  - 1628856875.3453047
+  - 1959881189.8930597
+  principal_axes:
+  - - 0.0229951380930751
+    - -0.00011919620070144354
+    - -0.9997355697464937
+  - - 0.00012580471846565863
+    - 0.9999999853197791
+    - -0.00011633406432376425
+  - - -0.9997355689367331
+    - 0.00012309633401800732
+    - -0.02299515275094583
+features:
+  flat_faces:
+  - description: "Large flat face on front, area 4978.0 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 1.0
+    - 0.0
+    area_mm2: 4977.97
+    centroid:
+    - -4.8871
+    - 49.9395
+    - 108.4166
+  - description: "Large flat face on back, area 4815.9 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - -1.0
+    - -0.0
+    area_mm2: 4815.94
+    centroid:
+    - -5.7751
+    - -49.9724
+    - 104.1993
+  - description: "Large flat face on front, area 4318.5 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - 1.0
+    - -0.0
+    area_mm2: 4318.46
+    centroid:
+    - -5.7491
+    - -32.0605
+    - 123.694
+  - description: "Large flat face on back, area 4318.5 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - -1.0
+    - 0.0
+    area_mm2: 4318.46
+    centroid:
+    - -4.8102
+    - 31.9395
+    - 123.3721
+  - description: "Large flat face on right, area 4171.0 mm\xB2, likely mating surface"
+    normal:
+    - 0.9745
+    - 0.0
+    - 0.2245
+    area_mm2: 4170.97
+    centroid:
+    - 23.8003
+    - -0.0605
+    - 38.9938
+  - description: "Large flat face on front, area 3673.3 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 1.0
+    - 0.0
+    area_mm2: 3673.26
+    centroid:
+    - -5.0313
+    - 31.9395
+    - 23.0377
+  - description: "Large flat face on back, area 3553.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - -1.0
+    - -0.0
+    area_mm2: 3553.15
+    centroid:
+    - -2.7642
+    - -32.0605
+    - 19.5673
+  - description: "Large flat face on left, area 2489.6 mm\xB2, likely mating surface"
+    normal:
+    - -1.0
+    - 0.0
+    - 0.0005
+    area_mm2: 2489.63
+    centroid:
+    - -40.0401
+    - -0.0605
+    - 58.9294
+  - description: "Large flat face on left, area 2181.3 mm\xB2, likely mating surface"
+    normal:
+    - -0.9745
+    - -0.0
+    - -0.2245
+    area_mm2: 2181.26
+    centroid:
+    - -35.0763
+    - -0.0605
+    - 9.4782
+  - description: "Large flat face on top, area 2100.9 mm\xB2, likely mating surface"
+    normal:
+    - 0.0005
+    - 0.0
+    - 1.0
+    area_mm2: 2100.93
+    centroid:
+    - -11.6167
+    - -0.0605
+    - 80.0614
+  cylindrical_surfaces:
+  - description: Cylindrical surface along X axis, radius 67.2 mm, length 71.2 mm
+    axis:
+    - 1
+    - 0
+    - 0
+    radius_mm: 67.21
+    length_mm: 71.15
+    center:
+    - -4.5882
+    - 1.0811
+    - 77.8341
+    concave: false
+  - description: Cylindrical surface along Z axis, radius 47.5 mm, length 193.9 mm
+    axis:
+    - 0
+    - 0
+    - 1
+    radius_mm: 47.52
+    length_mm: 193.92
+    center:
+    - -4.8241
+    - 0.7064
+    - 78.0681
+    concave: false
+  holes: []
+text_description: "Part 'A2' from stl_files/A2.stl.\nBounding box: 72.0 x 101.4 x 194.5 mm.\nNon-watertight mesh (volume not\
+  \ computed).\nSurface area: 63752.7 mm\xB2.\nMesh complexity: 12833 vertices, 25497 faces.\nHas 10 significant flat face(s).\n\
+  Has 2 cylindrical surface(s)."
+renders:
+- renders/A2_front.png
+- renders/A2_side.png
+- renders/A2_top.png
+- renders/A2_iso.png

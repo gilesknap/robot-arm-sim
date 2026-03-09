@@ -1,0 +1,175 @@
+part_name: A3_4
+source_file: stl_files/A3_4.stl
+format: binary_stl
+geometry:
+  vertex_count: 32936
+  face_count: 65852
+  bounding_box:
+    min:
+    - -27.753206253051758
+    - -31.976804733276367
+    - -40.05630111694336
+    max:
+    - 62.14213180541992
+    - 36.0232048034668
+    - 61.10723114013672
+    extents:
+    - 89.89533805847168
+    - 68.00000953674316
+    - 101.16353225708008
+  volume_mm3: 374043.24833175546
+  surface_area_mm2: 34520.73404642682
+  center_of_mass:
+  - 9.381177261459051
+  - -0.1938682136105734
+  - 13.85584390798155
+  is_watertight: true
+inertia:
+  principal_moments:
+  - 241694279.97963113
+  - 411356871.2771204
+  - 467354152.2562889
+  principal_axes:
+  - - 0.5080240937512484
+    - 0.01722030012181197
+    - 0.8611707040023703
+  - - 0.8612591880492132
+    - -0.024090920325062326
+    - -0.5075945611988982
+  - - -0.012005464132354426
+    - -0.9995614482469832
+    - 0.027069909666648462
+features:
+  flat_faces:
+  - description: "Large flat face on left, area 3240.7 mm\xB2, likely mating surface"
+    normal:
+    - -1.0
+    - 0.0
+    - -0.0061
+    area_mm2: 3240.69
+    centroid:
+    - -27.4919
+    - -0.9035
+    - 2.1895
+  - description: "Large flat face on front, area 2803.4 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 1.0
+    - 0.0
+    area_mm2: 2803.44
+    centroid:
+    - 24.5875
+    - 22.5232
+    - 35.9904
+  - description: "Large flat face on back, area 2681.7 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - -1.0
+    - -0.0
+    area_mm2: 2681.67
+    centroid:
+    - 23.8024
+    - -22.4768
+    - 35.117
+  - description: "Large flat face on top, area 2670.6 mm\xB2, likely mating surface"
+    normal:
+    - -0.0061
+    - 0.0
+    - 1.0
+    area_mm2: 2670.59
+    centroid:
+    - 22.0599
+    - 0.0232
+    - 60.8975
+  - description: "Large flat face on back, area 1790.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - -1.0
+    - -0.0
+    area_mm2: 1790.05
+    centroid:
+    - 0.0385
+    - -31.4768
+    - 0.2819
+  - description: "Large flat face on front, area 1193.8 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 1.0
+    - -0.0
+    area_mm2: 1193.81
+    centroid:
+    - 0.5281
+    - 31.5232
+    - 1.9454
+  - description: "Large flat face on right, area 1185.5 mm\xB2, likely mating surface"
+    normal:
+    - 1.0
+    - -0.0
+    - 0.0061
+    area_mm2: 1185.5
+    centroid:
+    - 27.5449
+    - -0.7511
+    - -3.7056
+  - description: "Large flat face on bottom, area 1140.9 mm\xB2, likely mating surface"
+    normal:
+    - 0.4364
+    - 0.0
+    - -0.8997
+    area_mm2: 1140.93
+    centroid:
+    - 45.3587
+    - 0.0232
+    - 8.5813
+  - description: "Large flat face on bottom, area 1098.0 mm\xB2, likely mating surface"
+    normal:
+    - 0.0061
+    - -0.0
+    - -1.0
+    area_mm2: 1098.01
+    centroid:
+    - 0.2644
+    - -12.5482
+    - -39.9866
+  - description: "Large flat face on right, area 865.8 mm\xB2, likely mating surface"
+    normal:
+    - 1.0
+    - -0.0
+    - 0.0061
+    area_mm2: 865.81
+    centroid:
+    - 60.809
+    - -3.4121
+    - 35.2995
+  - description: "Large flat face on front, area 864.9 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 1.0
+    - 0.0
+    area_mm2: 864.94
+    centroid:
+    - 0.0285
+    - 32.0232
+    - 0.2223
+  cylindrical_surfaces:
+  - description: Cylindrical surface along Z axis, radius 38.3 mm, length 100.9 mm
+    axis:
+    - 0
+    - 0
+    - 1
+    radius_mm: 38.32
+    length_mm: 100.88
+    center:
+    - 14.6549
+    - -2.5439
+    - 21.6239
+    concave: false
+  holes: []
+text_description: "Part 'A3_4' from stl_files/A3_4.stl.\nBounding box: 89.9 x 68.0 x 101.2 mm.\nWatertight solid, volume 374043.2\
+  \ mm\xB3.\nSurface area: 34520.7 mm\xB2.\nMesh complexity: 32936 vertices, 65852 faces.\nHas 11 significant flat face(s).\n\
+  Has 1 cylindrical surface(s)."
+renders:
+- renders/A3_4_front.png
+- renders/A3_4_side.png
+- renders/A3_4_top.png
+- renders/A3_4_iso.png
