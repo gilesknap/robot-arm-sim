@@ -1,6 +1,29 @@
 part_name: A2
 source_file: stl_files/A2.stl
 format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - 0.186
+  - -0.776
+  - -31.943
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 35.6
+  method: cross_section
+- end: distal
+  position:
+  - -1.959
+  - -46.502
+  - 162.547
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 20.0
+  method: cross_section
 geometry:
   vertex_count: 12833
   face_count: 25497

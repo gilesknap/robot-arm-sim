@@ -1,106 +1,117 @@
 # Assembly Reasoning Skill
 
-Infer robot arm assembly from analyzed STL parts and generate a valid URDF file.
+Infer robot arm kinematic chain from analyzed STL parts and generate a `chain.yaml` for automated URDF generation.
 
 ## When to Use
 
-Use this skill when the user asks to generate a URDF for a robot arm from analyzed STL parts. The `robot-arm-sim analyze` command should have been run first, producing YAML files in `<robot_dir>/analysis/`.
+Use this skill when the user asks to generate a URDF for a robot arm from analyzed STL parts. The `robot-arm-sim analyze` command should have been run first, producing YAML files (including connection_points data) in `<robot_dir>/analysis/`.
+
+## Architecture
+
+```
+analyze → [connection points] → skill writes chain.yaml → generate → URDF → simulate
+               (exact math)        (topology only)         (exact math)
+```
+
+The skill writes a `chain.yaml` describing the kinematic chain topology (part order, joint types, axes, limits). The `robot-arm-sim generate` command computes exact transforms from mesh connection points and produces the URDF.
+
+**The skill does NOT write raw URDF XML or guess xyz/rpy offsets.**
 
 ## Inputs
 
 - `<robot_dir>/analysis/summary.yaml` — overview of all parts with assembly hints
-- `<robot_dir>/analysis/<part>.yaml` — detailed analysis per part (geometry, features, text description)
+- `<robot_dir>/analysis/<part>.yaml` — detailed analysis per part (geometry, features, connection_points)
 - `<robot_dir>/stl_files/` — original STL mesh files
 
 ## Steps
 
 1. **Read summary.yaml** to get the part list, role hints, and assembly hints.
 
-2. **Read each part YAML** to understand geometry, features (flat faces, cylindrical surfaces, holes), and text descriptions.
+2. **Read each part YAML**, paying special attention to `connection_points` data which gives precise bore/shaft center positions and axes for each part end.
 
 3. **Infer the kinematic chain:**
    - Parts named sequentially (A0, A1, A2, ...) form a serial chain from base to end-effector.
    - Combined parts (e.g., A3_4) span multiple joints.
-   - The largest part with a flat bottom face is likely the base.
+   - Connection point axes tell you the joint axis direction at each interface.
 
-4. **Identify mating features between adjacent parts:**
-   - Concentric cylindrical surfaces at part interfaces → revolute joint axes
-   - Coplanar flat faces → mating surfaces that define joint origins
-   - Matching hole patterns → bolt connections (fixed joints)
+4. **Search for manufacturer specifications:**
+   - Search for the robot name + "specifications" or "datasheet"
+   - Get joint limits, link lengths (DH parameters), weight, payload specs
+   - Cross-validate connection point distances against manufacturer data
 
-5. **Determine joint parameters:**
-   - Joint type: `revolute` for rotary joints, `fixed` for rigid connections
-   - Joint axis: from the cylindrical feature direction at the interface
-   - Joint origin: position where parts connect, in the parent link's frame
-   - Joint limits: use typical robot arm ranges (±175° for base, ±120° for elbows, etc.)
+5. **Write `chain.yaml`** with this format:
 
-6. **If analysis data is insufficient**, use WebSearch to find manufacturer specifications:
-   - Search for the robot name (from the folder name) + "specifications" or "datasheet"
-   - Look for joint limits, link lengths, weight, payload specs
-   - Cross-validate geometric analysis against manufacturer data
+```yaml
+robot_name: Robot-Name
+dh_params:  # from manufacturer specs (mm)
+  d1: 135
+  a2: 135
+  # etc.
+links:
+  - name: base_link
+    mesh: A0
+    # Optional overrides (usually not needed):
+    # visual_xyz: [0, 0, 0]    # explicit visual origin offset (meters)
+    # visual_rpy: [0, 0, 0]    # mesh rotation to align with link frame
+  - name: link_1
+    mesh: A1
+  - name: link_2
+    mesh: A2
+    visual_rpy: [0, -1.5708, 0]  # if STL extends along X but should point up (Z)
+  # For virtual links (no mesh):
+  - name: link_4
+    mesh: null
+joints:
+  - name: joint_1
+    type: revolute
+    parent: base_link
+    child: link_1
+    axis: [0, 0, 1]
+    limits: [-3.054, 3.054]
+    # Optional: explicit origin override (meters) if auto-detection is wrong
+    # origin: [0, 0, 0.093]
+  # ... etc for all joints
+```
 
-7. **Generate URDF** with:
-   - One `<link>` per part, referencing STL mesh with `scale="0.001 0.001 0.001"` (mm→m)
-   - One `<joint>` between each adjacent pair
-   - Proper `<origin>` transforms placing each link correctly
-   - `<limit>` elements on revolute joints
+### Key decisions for chain.yaml:
 
-8. **If a `verify_kinematics.py` script exists** in the robot directory, run it after
-   generating the URDF to verify zero-config joint positions match expected values.
-   If the script doesn't exist, create one (see the Meca500-R3 example for a template).
+- **Joint axes:** Determined from connection_points axis data. J1/J4/J6 (roll) → `[0,0,1]`; J2/J3/J5 (pitch) → `[0,1,0]`.
+- **visual_rpy:** Only needed when STL coordinate frame doesn't match the link frame convention (Z-up). Parts extending along STL +X that should point up: `[0, -1.5708, 0]`.
+- **Joint limits:** From manufacturer specs, in radians.
+- **origin overrides:** Only use when connection point auto-detection gives wrong results. Prefer fixing the detection instead.
+
+6. **Run the generate command:**
+
+```bash
+uv run robot-arm-sim generate <robot_dir> <robot_dir>/chain.yaml
+```
+
+7. **Run verification:**
+
+```bash
+uv run python <robot_dir>/verify_kinematics.py
+```
+
+Or with JSON output for programmatic checking:
+
+```bash
+uv run python <robot_dir>/verify_kinematics.py --json
+```
+
+8. **If validation fails**, adjust `chain.yaml` (add origin overrides, fix visual_rpy, etc.) and regenerate. Do NOT edit the URDF directly.
 
 ## Output
 
-Write the URDF to `<robot_dir>/robot.urdf`.
+- `<robot_dir>/chain.yaml` — kinematic chain specification
+- `<robot_dir>/robot.urdf` — generated automatically by `robot-arm-sim generate`
 
 ## URDF Frame Conventions
 
-**CRITICAL:** Keep all link frames with Z pointing up at zero config. Do NOT add DH-style
-frame rotations (like α rotations) at joint origins — these cause confusing coordinate
-mismatches between joint xyz offsets and the expected robot geometry.
+**CRITICAL:** Keep all link frames with Z pointing up at zero config. Do NOT add DH-style frame rotations.
 
 - **Joint axes:** J1/J4/J6 (roll) → axis Z `(0,0,1)`; J2/J3/J5 (pitch) → axis Y `(0,1,0)`
-- **Joint origins:** Pure translations — no rpy needed for serial arm joints
-- **Mesh rotations:** Only in `<visual><origin rpy="..."/>` to align STL coords with link frame
-  - Parts modeled with Z up: `rpy="0 0 0"` (no rotation)
-  - Parts extending along STL +X that should point up: `rpy="0 -1.5708 0"` (maps X→Z)
-  - Parts extending along STL +X that should point down: `rpy="0 1.5708 0"` (maps X→−Z)
-
-Always verify the kinematic chain by computing zero-config world positions and checking
-they match the manufacturer's link lengths (d1, a2, d4, d6, etc.).
-
-## URDF Template
-
-```xml
-<?xml version="1.0"?>
-<robot name="ROBOT_NAME">
-  <link name="base_link">
-    <visual>
-      <geometry>
-        <mesh filename="stl_files/A0.stl" scale="0.001 0.001 0.001"/>
-      </geometry>
-    </visual>
-  </link>
-
-  <joint name="joint_1" type="revolute">
-    <parent link="base_link"/>
-    <child link="link_1"/>
-    <origin xyz="0 0 0.1" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="-3.054" upper="3.054" effort="100" velocity="1"/>
-  </joint>
-
-  <link name="link_1">
-    <visual>
-      <geometry>
-        <mesh filename="stl_files/A1.stl" scale="0.001 0.001 0.001"/>
-      </geometry>
-    </visual>
-  </link>
-
-  <!-- Continue for all joints and links... -->
-</robot>
-```
+- **Joint origins:** Computed automatically from connection points — pure translations, no rpy
+- **Mesh rotations:** Only in visual_rpy in chain.yaml, to align STL coords with link frame
 
 ## Validation
 
@@ -108,12 +119,4 @@ After generating the URDF, validate it:
 - All links referenced by joints must exist
 - All STL file paths must resolve relative to the robot directory
 - The kinematic tree must have exactly one root
-- XML must be well-formed
-
-Use the validation utility:
-```python
-from robot_arm_sim.simulate.urdf_loader import validate_urdf
-errors = validate_urdf(robot_dir)
-```
-
-If there are errors, fix them and regenerate.
+- Zero-config joint positions match manufacturer's link lengths within 2mm

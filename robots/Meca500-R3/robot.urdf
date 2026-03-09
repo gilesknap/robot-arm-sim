@@ -1,139 +1,93 @@
 <?xml version="1.0"?>
-<!--
-  Meca500-R3 URDF
-  Generated from STL analysis + manufacturer specifications.
-  Link lengths from user manual Figure 3: d1=135mm, a2=135mm, a3=38mm, d4=120mm, d6=70mm.
-  Joint limits from user manual Table 1.
-  STL meshes in mm, scaled 0.001 to meters.
-
-  All link frames have Z pointing up at zero config (no DH frame rotations).
-  Joint axes: J1,J4,J6 about Z (roll); J2,J3,J5 about Y (pitch).
-
-  Zero-config joint positions (mm from base origin):
-    J1: (0, 0, 93)   J2: (0, 0, 135)   J3: (0, 0, 270)
-    J4: (38, 0, 390)  J5: (38, 0, 390)  J6: (38, 0, 460)
--->
 <robot name="Meca500-R3">
-
-  <!-- Base link (A0): fixed to table, Z up -->
   <link name="base_link">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A0.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
   </link>
-
-  <!-- Joint 1: Base rotation about Z. Located at top of A0 (z=93mm). -->
-  <joint name="joint_1" type="revolute">
-    <parent link="base_link"/>
-    <child link="link_1"/>
-    <origin xyz="0 0 0.093" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="-3.0543" upper="3.0543" effort="100" velocity="2.618"/>
-  </joint>
-
-  <!-- Link 1 (A1): Shoulder housing. Rotates with J1. -->
   <link name="link_1">
     <visual>
-      <origin xyz="0 0 -0.001" rpy="0 0 0"/>
+      <origin xyz="0.000415 0.002514 -0.001030" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
   </link>
-
-  <!-- Joint 2: Shoulder pitch about Y. 42mm above J1 (total 135mm from base). -->
-  <joint name="joint_2" type="revolute">
-    <parent link="link_1"/>
-    <child link="link_2"/>
-    <origin xyz="0 0 0.042" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit lower="-1.2217" upper="1.5708" effort="100" velocity="2.618"/>
-  </joint>
-
-  <!-- Link 2 (A2): Upper arm, extends along Z. 135mm from J2 to J3. -->
   <link name="link_2">
     <visual>
-      <origin xyz="0 0 0.032" rpy="0 0 0"/>
+      <origin xyz="-0.000186 0.000776 0.031943" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
   </link>
-
-  <!-- Joint 3: Elbow pitch about Y. 135mm above J2.
-       No frame rotation — all frames keep Z up at zero config. -->
-  <joint name="joint_3" type="revolute">
-    <parent link="link_2"/>
-    <child link="link_3"/>
-    <origin xyz="0 0 0.135" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit lower="-2.3562" upper="1.2217" effort="100" velocity="3.1416"/>
-  </joint>
-
-  <!-- Link 3 (A3_4): Forearm, combined part spanning J3-J4.
-       L-shaped mesh with Z up in STL coords; offset to center J3 bore at origin. -->
   <link name="link_3">
     <visual>
-      <origin xyz="0 0 0.017" rpy="0 0 0"/>
+      <origin xyz="-0.000491 0.011082 0.040056" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A3_4.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
   </link>
-
-  <!-- Joint 4: Forearm roll about Z. 38mm lateral offset (a3), 120mm up (d4). -->
-  <joint name="joint_4" type="revolute">
-    <parent link="link_3"/>
-    <child link="link_4"/>
-    <origin xyz="0.038 0 0.120" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="-2.9671" upper="2.9671" effort="100" velocity="5.2360"/>
-  </joint>
-
-  <!-- Link 4: Virtual link at wrist (no mesh, J4 rotation point). -->
   <link name="link_4"/>
-
-  <!-- Joint 5: Wrist pitch about Y. Wrist axes intersect at this point. -->
-  <joint name="joint_5" type="revolute">
-    <parent link="link_4"/>
-    <child link="link_5"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit lower="-2.0071" upper="2.0071" effort="100" velocity="5.2360"/>
-  </joint>
-
-  <!-- Link 5 (A5): Wrist link. Mesh extends along +X in STL coords;
-       rotated -90° about Y to align STL X with link Z (up). -->
   <link name="link_5">
     <visual>
-      <origin xyz="0 0 0" rpy="0 -1.5708 0"/>
+      <origin xyz="0.000093 0.004871 -0.000005" rpy="0 -1.570800 0"/>
       <geometry>
         <mesh filename="stl_files/A5.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
   </link>
-
-  <!-- Joint 6: Flange roll about Z. 70mm above wrist center (d6). -->
-  <joint name="joint_6" type="revolute">
-    <parent link="link_5"/>
-    <child link="link_6"/>
-    <origin xyz="0 0 0.070" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="-3.1416" upper="3.1416" effort="100" velocity="8.7266"/>
-  </joint>
-
-  <!-- Link 6 (A6): End-effector / flange. Mesh extends along +X in STL;
-       rotated +90° about Y so tool connector points outward (+Z). -->
   <link name="link_6">
     <visual>
-      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="0.000302 0.002715 0.022035" rpy="0 -1.570800 0"/>
       <geometry>
         <mesh filename="stl_files/A6.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
   </link>
-
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link_1"/>
+    <origin xyz="0 0 0.093000" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.054" upper="3.054" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_2" type="revolute">
+    <parent link="link_1"/>
+    <child link="link_2"/>
+    <origin xyz="0 0 0.042000" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.2217" upper="1.5708" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_3" type="revolute">
+    <parent link="link_2"/>
+    <child link="link_3"/>
+    <origin xyz="0 0 0.135000" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.3562" upper="1.2217" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_4" type="revolute">
+    <parent link="link_3"/>
+    <child link="link_4"/>
+    <origin xyz="0.038000 0 0.120000" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.9671" upper="2.9671" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_5" type="revolute">
+    <parent link="link_4"/>
+    <child link="link_5"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.0071" upper="2.0071" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_6" type="revolute">
+    <parent link="link_5"/>
+    <child link="link_6"/>
+    <origin xyz="0 0 0.070000" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.1416" upper="3.1416" effort="100" velocity="1"/>
+  </joint>
 </robot>

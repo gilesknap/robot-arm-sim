@@ -1,6 +1,29 @@
 part_name: A1
 source_file: stl_files/A1.stl
 format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - -0.415
+  - -2.514
+  - 1.03
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 20.0
+  method: cross_section
+- end: distal
+  position:
+  - -0.286
+  - 45.229
+  - 77.53
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 20.0
+  method: cross_section
 geometry:
   vertex_count: 10043
   face_count: 19941

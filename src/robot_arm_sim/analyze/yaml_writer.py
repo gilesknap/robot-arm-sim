@@ -7,7 +7,7 @@ from typing import Any
 
 import yaml
 
-from robot_arm_sim.models.part import GeometricFeature, PartAnalysis
+from robot_arm_sim.models.part import ConnectionPoint, GeometricFeature, PartAnalysis
 
 
 def write_part_yaml(analysis: PartAnalysis, output_path: Path) -> None:
@@ -67,10 +67,13 @@ def _part_to_dict(analysis: PartAnalysis) -> dict[str, Any]:
         elif f.kind == "hole":
             features_dict["holes"].append(fd)
 
+    conn_points = [_connection_point_to_dict(cp) for cp in analysis.connection_points]
+
     return {
         "part_name": analysis.part_name,
         "source_file": analysis.source_file,
         "format": analysis.format,
+        "connection_points": conn_points,
         "geometry": {
             "vertex_count": analysis.vertex_count,
             "face_count": analysis.face_count,
@@ -91,6 +94,17 @@ def _part_to_dict(analysis: PartAnalysis) -> dict[str, Any]:
         "features": features_dict,
         "text_description": analysis.text_description,
         "renders": analysis.render_paths,
+    }
+
+
+def _connection_point_to_dict(cp: ConnectionPoint) -> dict[str, Any]:
+    """Convert a ConnectionPoint to a dict."""
+    return {
+        "end": cp.end,
+        "position": [float(v) for v in cp.position],
+        "axis": [float(v) for v in cp.axis],
+        "radius_mm": float(cp.radius_mm),
+        "method": cp.method,
     }
 
 

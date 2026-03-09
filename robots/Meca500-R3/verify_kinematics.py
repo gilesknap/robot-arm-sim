@@ -13,6 +13,8 @@ Also analyzes STL bounding boxes and cross-sections to help determine
 correct visual origin offsets for each mesh.
 """
 
+import argparse
+import json
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -66,7 +68,7 @@ def parse_xyz(s: str) -> list[float]:
     return [float(v) for v in s.split()]
 
 
-def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None):
+def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None, quiet: bool = False):
     """Parse URDF and compute forward kinematics."""
     if joint_angles is None:
         joint_angles = {}
@@ -74,9 +76,10 @@ def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None):
     tree = ET.parse(urdf_path)
     root = tree.getroot()
     robot_name = root.get("name", "unknown")
-    print(f"Robot: {robot_name}")
-    print(f"URDF:  {urdf_path}")
-    print()
+    if not quiet:
+        print(f"Robot: {robot_name}")
+        print(f"URDF:  {urdf_path}")
+        print()
 
     # Parse joints
     joints = []
@@ -117,8 +120,10 @@ def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None):
     transforms[root_link] = np.eye(4)
 
     config_label = "zero config" if not joint_angles else f"config {joint_angles}"
-    print(f"=== Joint positions ({config_label}) ===")
+    if not quiet:
+        print(f"=== Joint positions ({config_label}) ===")
 
+    joint_positions = {}
     for joint in joints:
         parent_tf = transforms.get(joint["parent"], np.eye(4))
         xyz = joint["xyz"]
@@ -133,16 +138,51 @@ def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None):
 
         # World position of this joint
         world_pos = (parent_tf @ origin_tf)[:3, 3] * 1000  # mm
+        joint_positions[joint["name"]] = world_pos.tolist()
         # Child frame axes in world
-        child_x = child_tf[:3, 0]
         child_z = child_tf[:3, 2]
-        print(f"  {joint['name']:10s} → {joint['child']:10s}  "
-              f"pos=({world_pos[0]:7.1f}, {world_pos[1]:7.1f}, {world_pos[2]:7.1f})mm  "
-              f"axis={joint['axis']}  "
-              f"frame_Z=({child_z[0]:+.2f}, {child_z[1]:+.2f}, {child_z[2]:+.2f})")
+        if not quiet:
+            print(f"  {joint['name']:10s} → {joint['child']:10s}  "
+                  f"pos=({world_pos[0]:7.1f}, {world_pos[1]:7.1f}, {world_pos[2]:7.1f})mm  "
+                  f"axis={joint['axis']}  "
+                  f"frame_Z=({child_z[0]:+.2f}, {child_z[1]:+.2f}, {child_z[2]:+.2f})")
 
-    print()
-    return transforms, links, joints
+    if not quiet:
+        print()
+    return transforms, links, joints, joint_positions
+
+
+# Expected positions from Meca500 specs (mm)
+# Expected zero-config positions from Meca500 DH params:
+# d1=135 (J2 height), a2=135 (upper arm), a3=38 (X offset),
+# d4=120 (forearm Z), d6=70 (wrist Z). J1 at base top (93mm).
+EXPECTED_POSITIONS = {
+    "joint_1": [0.0, 0.0, 93.0],
+    "joint_2": [0.0, 0.0, 135.0],
+    "joint_3": [0.0, 0.0, 270.0],
+    "joint_4": [38.0, 0.0, 390.0],
+    "joint_5": [38.0, 0.0, 390.0],
+    "joint_6": [38.0, 0.0, 460.0],
+}
+
+
+def validate_against_expected(joint_positions: dict, tolerance_mm: float = 5.0) -> list[dict]:
+    """Compare computed positions against expected, return per-joint results."""
+    results = []
+    for name, expected in EXPECTED_POSITIONS.items():
+        actual = joint_positions.get(name)
+        if actual is None:
+            results.append({"joint": name, "pass": False, "error_mm": None, "reason": "missing"})
+            continue
+        error = np.linalg.norm(np.array(actual) - np.array(expected))
+        results.append({
+            "joint": name,
+            "pass": bool(error <= tolerance_mm),
+            "expected_mm": expected,
+            "actual_mm": [round(v, 1) for v in actual],
+            "error_mm": round(float(error), 2),
+        })
+    return results
 
 
 # ---------- STL analysis ----------
@@ -192,16 +232,50 @@ def analyze_stl(stl_dir: Path):
 # ---------- main ----------
 
 def main():
+    parser = argparse.ArgumentParser(description="Verify URDF kinematics")
+    parser.add_argument("--json", action="store_true", help="Output structured JSON results")
+    parser.add_argument("--tolerance", type=float, default=5.0, help="Tolerance in mm (default: 5)")
+    args = parser.parse_args()
+
     robot_dir = Path(__file__).parent
     urdf_path = robot_dir / "robot.urdf"
     stl_dir = robot_dir / "stl_files"
 
     if not urdf_path.exists():
-        print(f"Error: {urdf_path} not found")
+        if args.json:
+            print(json.dumps({"error": f"{urdf_path} not found"}))
+        else:
+            print(f"Error: {urdf_path} not found")
         sys.exit(1)
 
-    # Verify at zero config
-    transforms, links, joints = verify_urdf(urdf_path)
+    if args.json:
+        # JSON mode: quiet FK, structured output
+        _, _, _, joint_positions = verify_urdf(urdf_path, quiet=True)
+        results = validate_against_expected(joint_positions, args.tolerance)
+        all_pass = all(r["pass"] for r in results)
+        output = {
+            "urdf": str(urdf_path),
+            "tolerance_mm": args.tolerance,
+            "all_pass": all_pass,
+            "joints": results,
+        }
+        print(json.dumps(output, indent=2))
+        sys.exit(0 if all_pass else 1)
+
+    # Human-readable mode
+    transforms, links, joints, joint_positions = verify_urdf(urdf_path)
+
+    # Validate against expected
+    results = validate_against_expected(joint_positions, args.tolerance)
+    print(f"=== Validation (tolerance={args.tolerance}mm) ===")
+    for r in results:
+        status = "PASS" if r["pass"] else "FAIL"
+        if r["error_mm"] is not None:
+            print(f"  {r['joint']:10s}: {status}  error={r['error_mm']:.1f}mm  "
+                  f"expected={r['expected_mm']}  actual={r['actual_mm']}")
+        else:
+            print(f"  {r['joint']:10s}: {status}  ({r['reason']})")
+    print()
 
     # Also verify at a test pose
     test_angles = {"joint_2": 0.5, "joint_3": -0.5}
@@ -211,15 +285,6 @@ def main():
     # STL analysis
     if stl_dir.exists():
         analyze_stl(stl_dir)
-
-    print("\n=== Expected joint positions (from Meca500 specs) ===")
-    print("  Zero config (straight up):")
-    print("    J1: (  0.0,   0.0,  93.0)mm")
-    print("    J2: (  0.0,   0.0, 135.0)mm")
-    print("    J3: (  0.0,   0.0, 270.0)mm")
-    print("    J4: ( 38.0,   0.0, 390.0)mm")
-    print("    J5: ( 38.0,   0.0, 390.0)mm")
-    print("    J6: ( 38.0,   0.0, 460.0)mm")
 
 
 if __name__ == "__main__":

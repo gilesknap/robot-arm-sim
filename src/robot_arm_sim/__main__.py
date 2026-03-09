@@ -55,6 +55,41 @@ def analyze(
 
 
 @app.command()
+def generate(
+    robot_dir: Path = typer.Argument(
+        ...,
+        help="Path to robot directory (must contain analysis/).",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+    chain_file: Path = typer.Argument(
+        ...,
+        help="Path to chain.yaml kinematic chain specification.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+    ),
+    output: Path = typer.Option(
+        None,
+        help="Output URDF path (default: <robot_dir>/robot.urdf).",
+    ),
+) -> None:
+    """Generate URDF from kinematic chain spec + analysis data."""
+    from .analyze.urdf_generator import generate_urdf
+
+    analysis_dir = robot_dir / "analysis"
+    stl_dir = robot_dir / "stl_files"
+    output_path = output or (robot_dir / "robot.urdf")
+
+    typer.echo(f"Generating URDF from {chain_file}...")
+    messages = generate_urdf(chain_file, analysis_dir, stl_dir, output_path)
+    for msg in messages:
+        typer.echo(msg)
+    typer.echo("Done.")
+
+
+@app.command()
 def simulate(
     robot_dir: Path = typer.Argument(
         ...,

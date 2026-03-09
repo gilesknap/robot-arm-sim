@@ -1,6 +1,18 @@
 part_name: A0
 source_file: stl_files/A0.stl
 format: binary_stl
+connection_points:
+- end: distal
+  position:
+  - 0.048
+  - 0.096
+  - 93.037
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 38.0
+  method: cross_section
 geometry:
   vertex_count: 24840
   face_count: 49664

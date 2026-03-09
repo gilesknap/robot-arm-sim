@@ -9,6 +9,7 @@ import trimesh
 
 from robot_arm_sim.models.part import PartAnalysis
 
+from .connections import detect_connection_points
 from .features import detect_features
 from .parsers import get_parser
 from .renderer import render_views
@@ -54,6 +55,17 @@ def run_analysis(robot_dir: Path) -> None:
         mesh = trimesh.load(stl_file, force="mesh")
         features = detect_features(mesh)
         analysis.features = features
+
+        # Detect connection points
+        print(f"  Detecting connection points for {stl_file.name}...")
+        conn_points = detect_connection_points(mesh, features, analysis.part_name)
+        analysis.connection_points = conn_points
+        if conn_points:
+            for cp in conn_points:
+                print(
+                    f"    {cp.end}: pos={cp.position} "
+                    f"axis={cp.axis} r={cp.radius_mm}mm ({cp.method})"
+                )
 
         # Generate text description
         analysis.text_description = _generate_text_description(analysis)
