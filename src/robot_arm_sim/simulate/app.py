@@ -53,16 +53,31 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
 
     ui.label(f"Robot: {robot.name}").classes("text-h4")
 
-    with ui.row().classes("w-full h-screen"):
+    # Map joint names to descriptive labels using child link / part names
+    joint_labels: dict[str, str] = {}
+    for joint in chain:
+        child_link = robot.get_link(joint.child)
+        if child_link and child_link.mesh_path:
+            part = Path(child_link.mesh_path).stem  # e.g. "A1", "A3_4"
+            joint_labels[joint.name] = f"{part} ({joint.name})"
+        else:
+            # Virtual link — use parent part name
+            parent_link = robot.get_link(joint.parent)
+            if parent_link and parent_link.mesh_path:
+                part = Path(parent_link.mesh_path).stem
+                joint_labels[joint.name] = f"{part} ({joint.name})"
+            else:
+                joint_labels[joint.name] = joint.name
+
+    with ui.row().style("flex-wrap: nowrap; gap: 0"):
         # Left panel: 3D scene
-        with ui.column().classes("w-3/4"):
+        with ui.column():
             with ui.scene(
                 width=900,
                 height=700,
-                grid=True,
-                background_color="#d0d0d0",
+                grid=(2, 100),
+                background_color="#a0a0a0",
             ) as scene:
-                # Better lighting
                 scene.spot_light(intensity=1.0).move(2, 2, 3)
                 scene.spot_light(intensity=0.6).move(-2, -1, 2)
 
@@ -84,12 +99,46 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
             # Set initial camera to a good viewpoint
             scene.move_camera(
                 x=0.5, y=-0.5, z=0.4,
-                look_at_x=0, look_at_y=0, look_at_z=0.15,
+                look_at_x=0, look_at_y=0, look_at_z=0.25,
                 duration=0,
             )
 
-        # Right panel: controls
-        with ui.column().classes("w-1/4 p-4"):
+            # Tweak built-in lighting for better surface contrast.
+            # NiceGUI scene has AmbientLight(0.7π) + DirectionalLight(0.3π)
+            # by default — ambient is too strong, washing out surface detail.
+            scene_el_id = scene._props.get("id", scene.id)
+            ui.timer(
+                1.0,
+                lambda: ui.run_javascript(f"""
+                    // Access the three.js scene via NiceGUI's test hook
+                    for (const key of Object.keys(window)) {{
+                        if (key.startsWith('scene_')) {{
+                            const s = window[key];
+                            if (s && s.isScene) {{
+                                s.traverse(obj => {{
+                                    // Lower ambient light for more contrast
+                                    if (obj.isAmbientLight) obj.intensity = 0.8;
+                                    // Boost directional light
+                                    if (obj.isDirectionalLight) {{
+                                        obj.intensity = 3.0;
+                                        obj.position.set(3, -2, 5);
+                                    }}
+                                    // Increase specular shininess on meshes
+                                    if (obj.isMesh && obj.material && obj.material.isMeshPhongMaterial) {{
+                                        obj.material.shininess = 60;
+                                        obj.material.needsUpdate = true;
+                                    }}
+                                }});
+                                break;
+                            }}
+                        }}
+                    }}
+                """),
+                once=True,
+            )
+
+        # Right panel: controls (snug against scene)
+        with ui.column().classes("p-4").style("width: 250px; overflow-y: auto"):
             ui.label("Joint Controls").classes("text-h6")
             sliders: dict[str, ui.slider] = {}
 
@@ -99,15 +148,16 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
 
                 lower_deg = math.degrees(joint.limit_lower)
                 upper_deg = math.degrees(joint.limit_upper)
+                display = joint_labels[joint.name]
 
                 with ui.column().classes("w-full"):
-                    label = ui.label(f"{joint.name}: 0.0°")
+                    label = ui.label(f"{display}: 0.0°")
 
-                    def make_handler(jname, lbl):
+                    def make_handler(jname, lbl, disp):
                         def on_change():
                             angle_deg = sliders[jname].value
                             joint_angles[jname] = math.radians(angle_deg)
-                            lbl.text = f"{jname}: {angle_deg:.1f}°"
+                            lbl.text = f"{disp}: {angle_deg:.1f}°"
                             _update_scene(robot, joint_angles, mesh_objects)
 
                         return on_change
@@ -117,7 +167,7 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                         max=upper_deg,
                         value=0,
                         step=0.5,
-                        on_change=make_handler(joint.name, label),
+                        on_change=make_handler(joint.name, label, display),
                     )
                     sliders[joint.name] = slider
 
