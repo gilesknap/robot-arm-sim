@@ -12,7 +12,15 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 description = "simulation of robot arm motion"
-dependencies = [] # Add project dependencies here, e.g. ["click", "numpy"]
+dependencies = [
+    "typer>=0.9",
+    "trimesh[easy]>=4.0",
+    "pyyaml>=6.0",
+    "numpy>=1.24",
+    "nicegui>=1.4",
+    "ikpy>=3.3",
+    "pyrender>=0.1.45",
+]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"
@@ -32,6 +40,7 @@ dev = [
 
 [project.scripts]
 robot-arm-sim = "robot_arm_sim.__main__:main"
+simulate = "robot_arm_sim.simulate:main"
 
 [project.urls]
 GitHub = "https://github.com/gilesknap/robot-arm-sim"
@@ -136,3 +145,5 @@ lint.select = [
 # See https://github.com/DiamondLightSource/python-copier-template/issues/154
 # Remove this line to forbid private member access in tests
 "tests/**/*" = ["SLF001"]
+"src/robot_arm_sim/__main__.py" = ["B008"]
+"src/robot_arm_sim/simulate/__init__.py" = ["B008"]
