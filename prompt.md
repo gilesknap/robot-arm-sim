@@ -81,6 +81,7 @@ The prompting that led to the current state of the project is documented below, 
 **Claude:** Approach: (1) capture reference images from the real robot in known poses, (2) render the URDF simulation in identical poses, (3) visually compare side-by-side to identify joint misalignments and disconnections, (4) refine the assembly-reasoning skill to validate joint axes against geometry and cross-check with manufacturer datasheets, (5) iterate until sim matches reality.
 
 The plan for this is [plan2.md](plan2.md).
+
 ![Robot comparison](images/compare-one.png)
 
 ## Prompt 14: Implement Connection Point Detection Plan
