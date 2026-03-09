@@ -45,9 +45,29 @@ Use this skill when the user asks to generate a URDF for a robot arm from analyz
    - Proper `<origin>` transforms placing each link correctly
    - `<limit>` elements on revolute joints
 
+8. **If a `verify_kinematics.py` script exists** in the robot directory, run it after
+   generating the URDF to verify zero-config joint positions match expected values.
+   If the script doesn't exist, create one (see the Meca500-R3 example for a template).
+
 ## Output
 
 Write the URDF to `<robot_dir>/robot.urdf`.
+
+## URDF Frame Conventions
+
+**CRITICAL:** Keep all link frames with Z pointing up at zero config. Do NOT add DH-style
+frame rotations (like α rotations) at joint origins — these cause confusing coordinate
+mismatches between joint xyz offsets and the expected robot geometry.
+
+- **Joint axes:** J1/J4/J6 (roll) → axis Z `(0,0,1)`; J2/J3/J5 (pitch) → axis Y `(0,1,0)`
+- **Joint origins:** Pure translations — no rpy needed for serial arm joints
+- **Mesh rotations:** Only in `<visual><origin rpy="..."/>` to align STL coords with link frame
+  - Parts modeled with Z up: `rpy="0 0 0"` (no rotation)
+  - Parts extending along STL +X that should point up: `rpy="0 -1.5708 0"` (maps X→Z)
+  - Parts extending along STL +X that should point down: `rpy="0 1.5708 0"` (maps X→−Z)
+
+Always verify the kinematic chain by computing zero-config world positions and checking
+they match the manufacturer's link lengths (d1, a2, d4, d6, etc.).
 
 ## URDF Template
 
