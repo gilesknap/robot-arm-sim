@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../Robot"
+		},
+		{
+			"path": "../tpi-k3s-ansible"
+		}
+	],
+	"settings": {}
+}
