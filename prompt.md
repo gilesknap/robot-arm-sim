@@ -80,6 +80,37 @@ The prompting that led to the current state of the project is documented below, 
 
 **Claude:** Approach: (1) capture reference images from the real robot in known poses, (2) render the URDF simulation in identical poses, (3) visually compare side-by-side to identify joint misalignments and disconnections, (4) refine the assembly-reasoning skill to validate joint axes against geometry and cross-check with manufacturer datasheets, (5) iterate until sim matches reality.
 
+The plan for this is [plan2.md](plan2.md).
 ![Robot comparison](images/compare-one.png)
 
+## Prompt 14: Implement Connection Point Detection Plan
 
+**User:** Implement the following plan: Fix URDF Assembly via Programmatic Connection Point Detection. [Full plan in plan2.md — split mesh analysis from kinematic reasoning, detect bore/shaft centers programmatically, generate URDF from chain.yaml spec.]
+
+**Claude:** Implemented all 7 steps on branch `feature/connection-point-detection`:
+- Added `ConnectionPoint` dataclass and detection module (`connections.py`) that slices cross-sections along cylindrical axes and fits circles to find bore centers
+- Created `urdf_generator.py` that reads a `chain.yaml` kinematic chain spec + analysis connection points to compute exact joint/visual transforms
+- Added `generate` CLI subcommand: `robot-arm-sim generate <robot_dir> <chain.yaml>`
+- Updated assembly-reasoning skill to write `chain.yaml` instead of raw URDF
+- Enhanced `verify_kinematics.py` with `--json` output and corrected expected positions
+- Created `chain.yaml` for Meca500-R3 — all 6 joints validate at 0mm error against DH-derived positions
+- Pipeline: `analyze → connection_points → skill writes chain.yaml → generate → URDF → simulate`
+
+## Prompt 15: Update README
+
+**User:** Update the readme.md to describe this project and give details of how to start the simulator and how to add a new robot.
+
+**Claude:** Rewrote README.md with: pipeline overview diagram, installation instructions, quick start with the Meca500-R3, step-by-step guide for adding a new robot (prepare STLs → analyze → write chain.yaml → generate URDF → verify → simulate), CLI reference, explanation of how connection point detection works, and project structure tree.
+
+## Prompt 16: Visual URDF Tuning Skill
+
+**User:** The URDF is still not quite right — still has a few issues with joint location and orientation. You mentioned a plan to pose the simulator and compare with images online. Can you prepare a new skill to do that and refine the URDF.
+
+**Claude:** Created `.claude/skills/visual-urdf-tuning.md` — a skill that guides the full visual comparison loop:
+1. Search for reference photos of the real robot at known poses
+2. Launch simulator, capture screenshots at zero config + diagnostic poses (J2=45°, J3=-45°, etc.)
+3. Compare against reference images, diagnose issues using a symptom→cause→fix table (floating mesh → visual_xyz, wrong rotation → visual_rpy, wrong pivot → joint origin override, etc.)
+4. Edit chain.yaml, regenerate URDF, verify kinematics, restart simulator
+5. Iterate until sim matches reality, working base-outward
+
+Uses browser automation (claude-in-chrome) to interact with the simulator and capture screenshots.
