@@ -5,12 +5,16 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-import numpy as np
 from nicegui import app, ui
 
 from robot_arm_sim.models.robot import URDFRobot
 
-from .kinematics import forward_kinematics, matrix_to_position_euler
+from .kinematics import (
+    forward_kinematics,
+    matrix_to_position_euler,
+    rpy_to_matrix,
+    translation_matrix,
+)
 from .urdf_loader import load_urdf
 
 
@@ -41,7 +45,7 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     """Build the simulator UI."""
     # State
     joint_angles: dict[str, float] = {}
-    mesh_objects: dict[str, ui.scene.object3d] = {}
+    mesh_objects: dict[str, object] = {}
     chain = robot.get_kinematic_chain()
 
     for joint in chain:
@@ -50,7 +54,41 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     ui.label(f"Robot: {robot.name}").classes("text-h4")
 
     with ui.row().classes("w-full h-screen"):
-        # Left panel: controls
+        # Left panel: 3D scene
+        with ui.column().classes("w-3/4"):
+            with ui.scene(
+                width=900,
+                height=700,
+                grid=True,
+                background_color="#d0d0d0",
+            ) as scene:
+                # Better lighting
+                scene.spot_light(intensity=1.0).move(2, 2, 3)
+                scene.spot_light(intensity=0.6).move(-2, -1, 2)
+
+                # Add meshes for each link
+                for link in robot.links:
+                    if link.mesh_path:
+                        stl_name = Path(link.mesh_path).name
+                        stl_url = f"/stl/{stl_name}"
+                        obj = scene.stl(stl_url).scale(
+                            link.mesh_scale[0],
+                            link.mesh_scale[1],
+                            link.mesh_scale[2],
+                        ).material(color="#b0b0b0")
+                        mesh_objects[link.name] = obj
+
+                # Initial positioning
+                _update_scene(robot, joint_angles, mesh_objects)
+
+            # Set initial camera to a good viewpoint
+            scene.move_camera(
+                x=0.5, y=-0.5, z=0.4,
+                look_at_x=0, look_at_y=0, look_at_z=0.15,
+                duration=0,
+            )
+
+        # Right panel: controls
         with ui.column().classes("w-1/4 p-4"):
             ui.label("Joint Controls").classes("text-h6")
             sliders: dict[str, ui.slider] = {}
@@ -66,8 +104,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     label = ui.label(f"{joint.name}: 0.0°")
 
                     def make_handler(jname, lbl):
-                        def on_change(e):
-                            angle_deg = e.value
+                        def on_change():
+                            angle_deg = sliders[jname].value
                             joint_angles[jname] = math.radians(angle_deg)
                             lbl.text = f"{jname}: {angle_deg:.1f}°"
                             _update_scene(robot, joint_angles, mesh_objects)
@@ -79,7 +117,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                         max=upper_deg,
                         value=0,
                         step=0.5,
-                    ).on("update:model-value", make_handler(joint.name, label))
+                        on_change=make_handler(joint.name, label),
+                    )
                     sliders[joint.name] = slider
 
             # Reset button
@@ -92,33 +131,11 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
 
             ui.button("Reset Joints", on_click=reset_joints)
 
-        # Right panel: 3D scene
-        with ui.column().classes("w-3/4"):
-            with ui.scene(
-                width=800,
-                height=600,
-                grid=True,
-            ) as scene:
-                # Add meshes for each link
-                for link in robot.links:
-                    if link.mesh_path:
-                        stl_name = Path(link.mesh_path).name
-                        stl_url = f"/stl/{stl_name}"
-                        obj = scene.stl(stl_url).scale(
-                            link.mesh_scale[0],
-                            link.mesh_scale[1],
-                            link.mesh_scale[2],
-                        )
-                        mesh_objects[link.name] = obj
-
-                # Initial positioning
-                _update_scene(robot, joint_angles, mesh_objects)
-
 
 def _update_scene(
     robot: URDFRobot,
     joint_angles: dict[str, float],
-    mesh_objects: dict[str, ui.scene.object3d],
+    mesh_objects: dict[str, object],
 ) -> None:
     """Recompute FK and update mesh transforms."""
     transforms = forward_kinematics(robot, joint_angles)
@@ -128,13 +145,13 @@ def _update_scene(
         if obj is None:
             continue
 
-        # Also apply link visual origin offset
+        # Apply link visual origin offset (xyz + rpy)
         link = robot.get_link(link_name)
         if link:
-            visual_tf = np.eye(4)
-            visual_tf[0, 3] = link.origin_xyz[0]
-            visual_tf[1, 3] = link.origin_xyz[1]
-            visual_tf[2, 3] = link.origin_xyz[2]
+            visual_tf = (
+                translation_matrix(link.origin_xyz)
+                @ rpy_to_matrix(link.origin_rpy)
+            )
             tf = tf @ visual_tf
 
         pos, euler = matrix_to_position_euler(tf)
