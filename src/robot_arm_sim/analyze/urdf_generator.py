@@ -179,6 +179,11 @@ def _compute_visual_origin(
         xyz = -rot @ pos_m
         viz_xyz = xyz.tolist()
 
+    # Apply additive visual_xyz adjustment from chain spec
+    extra_xyz = link_spec.get("visual_xyz")
+    if extra_xyz is not None:
+        viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz)]
+
     return [round(v, 6) for v in viz_xyz], viz_rpy
 
 

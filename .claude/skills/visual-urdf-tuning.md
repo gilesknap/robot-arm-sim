@@ -31,26 +31,59 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
 4. **Start the simulator** if not already running:
    ```bash
    uv run robot-arm-sim simulate robots/<name>/ &
+   disown
    ```
-   Wait a few seconds, then use browser tools to navigate to `http://localhost:8080`.
+   Wait ~5 seconds, then verify with `curl -s -o /dev/null -w "%{http_code}" http://localhost:8080` (expect 200).
 
-5. **Get tab context** with `mcp__claude-in-chrome__tabs_context_mcp` to find or create the simulator tab.
+5. **Set up browser tab:**
+   - Load browser tools first: `ToolSearch("select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__read_page,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__javascript_tool")`
+   - Call `mcp__claude-in-chrome__tabs_context_mcp` with `createIfEmpty: true` to get a tab
+   - **IMPORTANT:** The user must navigate to `http://localhost:8080` in the Claude tab group tab themselves — `mcp__claude-in-chrome__navigate` to localhost may be denied
+   - After the user confirms the page is loaded, call `tabs_context_mcp` again to verify the tab URL shows the simulator
 
-6. **Capture the zero-config pose:**
-   - Navigate to `http://localhost:8080`
-   - Wait for the 3D scene to load (look for the joint sliders in the page)
-   - Use `mcp__claude-in-chrome__read_page` to take a screenshot of the simulator
+6. **Handle WebGL/connection issues:**
+   - If `read_page` shows "WebGL context lost" or "Connection lost", press F5 to reload:
+     ```
+     mcp__claude-in-chrome__computer action=key text=F5
+     ```
+   - Wait 3 seconds after reload before interacting
+   - If "Connection lost" persists, the simulator process may have died — check with `pgrep -f "robot-arm-sim simulate"` and restart if needed
+
+7. **Capture the zero-config pose:**
+   - Use `mcp__claude-in-chrome__computer action=screenshot` to capture the full page
+   - Use `action=zoom` with a region to inspect specific joints closely
    - This is the baseline to compare against the reference zero-config image
 
-7. **Set specific test poses** to reveal alignment issues:
-   - Use `mcp__claude-in-chrome__javascript_tool` to set slider values:
-     ```javascript
-     // Find slider elements and dispatch input events
-     const sliders = document.querySelectorAll('input[type="range"]');
-     // Set joint 2 to 45 degrees, etc.
-     ```
-   - Or use `mcp__claude-in-chrome__form_input` on the slider elements
-   - Capture screenshots at each test pose
+8. **Set specific test poses** using JavaScript slider control:
+
+   **CRITICAL: NiceGUI uses Quasar `.q-slider` components, NOT native `input[type="range"]`.** Standard form input tools will not work. Use this JavaScript pattern:
+
+   ```javascript
+   const tracks = document.querySelectorAll('.q-slider__track-container');
+   function clickSlider(idx, degrees, minDeg, maxDeg) {
+       const t = tracks[idx];
+       const r = t.getBoundingClientRect();
+       const frac = (degrees - minDeg) / (maxDeg - minDeg);
+       const x = r.left + frac * r.width;
+       const y = r.top + r.height / 2;
+       t.dispatchEvent(new MouseEvent('mousedown', {clientX: x, clientY: y, bubbles: true}));
+       t.dispatchEvent(new MouseEvent('mouseup', {clientX: x, clientY: y, bubbles: true}));
+   }
+   // Example: Set J2 (slider index 1) to 45° (range -70 to 90)
+   clickSlider(1, 45, -70, 90);
+   ```
+
+   **Slider index mapping for Meca500-R3:**
+   | Index | Joint | Label | Min° | Max° |
+   |-------|-------|-------|------|------|
+   | 0 | joint_1 | A1 | -175 | 175 |
+   | 1 | joint_2 | A2 | -70 | 90 |
+   | 2 | joint_3 | A3_4 | -135 | 70 |
+   | 3 | joint_4 | A3_4 | -170 | 170 |
+   | 4 | joint_5 | A5 | -115 | 115 |
+   | 5 | joint_6 | A6 | -180 | 180 |
+
+   **To reset all joints:** Click the "Reset Joints" button via `read_page` to find its ref, then `computer action=left_click ref=<ref_id>`.
 
    **Recommended test poses for a 6-axis arm:**
    - Zero config (all joints 0) — reveals overall assembly accuracy
@@ -117,9 +150,14 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
     Check all joints still pass within tolerance.
 
 13. **Refresh the simulator** — the NiceGUI app needs restarting to pick up the new URDF:
-    - Kill the running simulator process
-    - Restart: `uv run robot-arm-sim simulate robots/<name>/`
-    - Reload the browser tab
+    ```bash
+    pkill -f "robot-arm-sim simulate" 2>/dev/null
+    sleep 2
+    uv run robot-arm-sim simulate robots/<name>/ &
+    disown
+    ```
+    Wait ~5 seconds, verify with `curl`, then ask the user to reload (or press F5 via `computer action=key text=F5`).
+    After reload, wait 3 seconds before interacting with sliders.
 
 14. **Re-capture screenshots** at the same poses and compare again.
 
@@ -135,7 +173,8 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
 - **Make one change at a time** and check the result before making another.
 - **Start from the base** and work outward — fix base_link first, then link_1, etc. Errors compound along the chain.
 - **Use the verify_kinematics.py --json** check after each change to ensure FK positions haven't regressed.
-- **Small visual_xyz adjustments** (< 5mm / 0.005m) are normal for imprecise connection point detection. Larger adjustments suggest the chain.yaml topology or DH params are wrong.
+- **`visual_xyz` in chain.yaml is ADDITIVE** — it's added on top of the auto-computed offset from the proximal connection point. So `visual_xyz: [0, 0, 0.019]` shifts the mesh 19mm up relative to where the auto-detection placed it.
+- **Small visual_xyz adjustments** (< 5mm / 0.005m) are normal for imprecise connection point detection. Larger adjustments (10-20mm) can occur when the mesh doesn't fully span the kinematic link length (e.g., A3_4 is 101mm tall but d4=120mm).
 
 ## Meca500-R3 Specific Notes
 

@@ -15,11 +15,13 @@ links:
     mesh: A2
   - name: link_3
     mesh: A3_4
+    visual_xyz: [0, 0, 0.019]  # shift up 19mm to close gap with A5
   - name: link_4
     mesh: null  # virtual link (J4 colocated with J3 end)
   - name: link_5
     mesh: A5
     visual_rpy: [0, -1.5708, 0]  # STL extends along +X, rotate to Z-up
+    visual_xyz: [0, 0, -0.005]  # shift down 5mm to close gap with A3_4
   - name: link_6
     mesh: A6
     visual_rpy: [0, -1.5708, 0]  # STL extends along +X, rotate to Z-up
