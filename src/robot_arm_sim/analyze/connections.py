@@ -114,7 +114,7 @@ def _detect_a3_4_connections(
     center_z = _find_circle_center_at_slice(mesh, np.array([0, 0, 1]), z_min, "above")
     if center_z is not None:
         z_cyl = next((c for c in cylinders if c.axis == [0, 0, 1]), None)
-        radius = z_cyl.radius_mm if z_cyl else 20.0
+        radius = z_cyl.radius_mm if z_cyl and z_cyl.radius_mm is not None else 20.0
         points.append(
             ConnectionPoint(
                 end="proximal",
@@ -157,7 +157,7 @@ def _detect_a3_4_connections(
     center_x = _find_circle_center_at_slice(mesh, np.array([1, 0, 0]), x_max, "below")
     if center_x is not None:
         x_cyl = next((c for c in cylinders if c.axis == [1, 0, 0]), None)
-        radius = x_cyl.radius_mm if x_cyl else 20.0
+        radius = x_cyl.radius_mm if x_cyl and x_cyl.radius_mm is not None else 20.0
         points.append(
             ConnectionPoint(
                 end="distal",
@@ -303,7 +303,7 @@ def _find_circle_center_at_slice(
 
 
 def _extract_circle_center_from_section(
-    section: trimesh.path.Path3D,
+    section: trimesh.path.Path3D,  # type: ignore[name-defined]
     axis: np.ndarray,
 ) -> np.ndarray | None:
     """Extract center of the most circular polygon in a section."""

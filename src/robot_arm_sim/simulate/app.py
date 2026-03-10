@@ -477,15 +477,15 @@ def _update_scene(
     transforms = forward_kinematics(robot, joint_angles)
 
     # Build lookup: joint_name -> world position, link_name -> mesh center world pos
-    joint_positions: dict[str, tuple] = {}
-    link_center_positions: dict[str, tuple] = {}
+    joint_positions: dict[str, tuple[float, ...]] = {}
+    link_center_positions: dict[str, tuple[float, ...]] = {}
 
     for link_name, tf in transforms.items():
         link_pos, _ = matrix_to_position_euler(tf)
 
         for joint in robot.joints:
             if joint.child == link_name:
-                joint_positions[joint.name] = link_pos
+                joint_positions[joint.name] = tuple(link_pos)
                 break
 
         obj = mesh_objects.get(link_name)
@@ -502,8 +502,8 @@ def _update_scene(
             tf_visual = tf
 
         pos, euler = matrix_to_position_euler(tf_visual)
-        obj.move(pos[0], pos[1], pos[2])
-        obj.rotate(euler[0], euler[1], euler[2])
+        obj.move(pos[0], pos[1], pos[2])  # type: ignore[attr-defined]
+        obj.rotate(euler[0], euler[1], euler[2])  # type: ignore[attr-defined]
 
         # Compute mesh bbox center in world coords for part labels
         if mesh_centers and link_name in mesh_centers:
@@ -519,7 +519,7 @@ def _update_scene(
             )
         else:
             # Fallback: use joint origin
-            link_center_positions[link_name] = link_pos
+            link_center_positions[link_name] = tuple(link_pos)
 
     # Update callout positions
     if callout_items:

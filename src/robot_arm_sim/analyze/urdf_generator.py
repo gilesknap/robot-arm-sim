@@ -74,7 +74,7 @@ def generate_urdf(
                 ET.SubElement(
                     visual,
                     "origin",
-                    **{
+                    attrib={
                         "xyz": _fmt_xyz(viz_xyz),
                         "rpy": _fmt_xyz(viz_rpy),
                     },
@@ -84,7 +84,7 @@ def generate_urdf(
             ET.SubElement(
                 geom,
                 "mesh",
-                **{
+                attrib={
                     "filename": f"stl_files/{mesh_name}.stl",
                     "scale": "0.001 0.001 0.001",
                 },
@@ -116,7 +116,7 @@ def generate_urdf(
         ET.SubElement(
             joint_el,
             "origin",
-            **{
+            attrib={
                 "xyz": _fmt_xyz(jnt_xyz),
                 "rpy": _fmt_xyz(jnt_rpy),
             },
@@ -133,7 +133,7 @@ def generate_urdf(
             ET.SubElement(
                 joint_el,
                 "limit",
-                **{
+                attrib={
                     "lower": str(limits[0]),
                     "upper": str(limits[1]),
                     "effort": str(joint_spec.get("effort", 100)),
@@ -144,9 +144,9 @@ def generate_urdf(
     # Write pretty-printed XML
     rough_xml = ET.tostring(robot, encoding="unicode")
     dom = xml.dom.minidom.parseString(rough_xml)
-    pretty_xml = '<?xml version="1.0"?>\n' + dom.documentElement.toprettyxml(
-        indent="  "
-    )
+    doc_el = dom.documentElement
+    assert doc_el is not None
+    pretty_xml = '<?xml version="1.0"?>\n' + doc_el.toprettyxml(indent="  ")
     lines = [line for line in pretty_xml.split("\n") if line.strip()]
     final_xml = "\n".join(lines) + "\n"
 

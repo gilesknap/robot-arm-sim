@@ -53,6 +53,7 @@ def run_analysis(robot_dir: Path) -> None:
         # Detect features
         print(f"  Detecting features for {stl_file.name}...")
         mesh = trimesh.load(stl_file, force="mesh")
+        assert isinstance(mesh, trimesh.Trimesh)
         features = detect_features(mesh)
         analysis.features = features
 

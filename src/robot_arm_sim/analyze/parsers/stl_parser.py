@@ -20,6 +20,7 @@ class STLParser(AbstractMeshParser):
 
     def parse(self, file_path: Path) -> PartAnalysis:
         mesh = trimesh.load(file_path, force="mesh")
+        assert isinstance(mesh, trimesh.Trimesh)
 
         # Determine format
         with open(file_path, "rb") as f:

@@ -105,7 +105,9 @@ def render_views(
             # Render
             renderer = pyrender.OffscreenRenderer(*resolution)
             try:
-                color, _ = renderer.render(scene)
+                result = renderer.render(scene)
+                assert result is not None
+                color, _ = result
             finally:
                 renderer.delete()
 
