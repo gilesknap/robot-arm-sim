@@ -30,48 +30,31 @@ robots/MyRobot/
 Name the files so they sort in kinematic chain order (base to end-effector).
 STL files should be in millimetres with Z pointing up.
 
-## Step 2: Run the analysis
+## Step 2: Run auto-build-robot
 
-```bash
-uv run robot-arm-sim analyze robots/MyRobot/
-```
-
-This produces `robots/MyRobot/analysis/` containing:
-
-- Per-part YAML files with geometry, features, and detected connection points
-- Rendered PNG views of each part (front, side, top, isometric)
-- A `summary.yaml` with assembly hints
-
-Check the output makes sense. Each part YAML should have `connection_points`
-entries showing detected bore/shaft centres.
-
-## Step 3: Generate chain.yaml with the assembly-reasoning skill
-
-This is where Claude does the semantic reasoning — figuring out which parts
-connect, what type of joint they form, and what the rotation axes are.
+The `auto-build-robot` skill orchestrates the entire pipeline — from STL
+analysis through chain.yaml generation to URDF verification and visual
+comparison.
 
 In Claude Code, invoke the skill:
 
 ```
-/assembly-reasoning
+/auto-build-robot
 ```
 
 Then tell Claude which robot to work on:
 
 ```
-Generate a chain.yaml for robots/MyRobot/
+Build robots/MyRobot/
 ```
 
-Claude will:
+Claude will run through 5 stages:
 
-1. Read the analysis YAMLs and connection point data
-2. Search online for manufacturer specifications (DH parameters, joint limits)
-3. Write `robots/MyRobot/chain.yaml` with the kinematic chain topology
-4. Run `robot-arm-sim generate` to produce the URDF
-5. Run verification to check FK positions
-
-The resulting `chain.yaml` defines links, joints, axes, and limits. See the
-Meca500-R3 example at `robots/Meca500-R3/chain.yaml` for reference.
+1. **Analyze STLs** — detect connection points, geometry, and assembly hints
+2. **Research manufacturer specs** — find DH parameters, joint limits online
+3. **Infer kinematic chain** — write `chain.yaml` with topology, axes, limits
+4. **Generate & verify URDF** — produce `robot.urdf` and check FK positions
+5. **Visual comparison** — compare simulation against reference images
 
 ### chain.yaml key fields
 
@@ -84,19 +67,10 @@ Meca500-R3 example at `robots/Meca500-R3/chain.yaml` for reference.
 | `joints[].limits` | Joint angle limits in radians |
 | `joints[].origin` | Override auto-computed joint position (metres) |
 
-## Step 4: Generate the URDF
+The resulting `chain.yaml` defines links, joints, axes, and limits. See the
+Meca500-R3 example at `robots/Meca500-R3/chain.yaml` for reference.
 
-If the skill didn't already do this:
-
-```bash
-uv run robot-arm-sim generate robots/MyRobot/ robots/MyRobot/chain.yaml
-```
-
-This reads the connection points from the analysis data, computes visual and
-joint transforms, and writes `robots/MyRobot/robot.urdf`. It prints the
-zero-config FK position of each joint for validation.
-
-## Step 5: Launch the simulator
+## Step 3: Launch the simulator
 
 ```bash
 uv run robot-arm-sim simulate robots/MyRobot/
@@ -125,9 +99,9 @@ The simulator includes several controls for inspecting the model:
   pan.
 
 If the robot looks correct, you are done. If parts are misaligned, continue
-to the visual tuning steps below.
+to the visual tuning step below.
 
-## Step 6: Visual tuning with reference images
+## Step 4: Visual tuning with reference images
 
 This is where the project's visual skills and claude-in-chrome come together
 to iteratively refine the URDF until the simulation matches reality.
@@ -151,49 +125,6 @@ Once configured, Claude can:
 - Take screenshots for comparison against reference photos
 - Snap to orthographic named views via the ViewCube for precise comparison
 - Click the Fit button to auto-zoom the robot into the viewport
-
-### Using the refine-with-image skill
-
-The `refine-with-image` skill is a 10-step workflow for visual URDF
-refinement. It is the most effective way to get a pixel-perfect simulation.
-
-1. Find or take a reference photo of the real robot at a known pose (ideally
-   zero config — all joints at zero degrees)
-
-2. In Claude Code, invoke the skill:
-
-   ```
-   /refine-with-image
-   ```
-
-3. Claude will ask for:
-   - **Image**: provide the file path or paste the image
-   - **Pose**: what joint angles the robot is at in the photo
-   - **View angle**: what direction the camera is looking from
-
-4. Claude then:
-   - Starts the simulator if needed
-   - Opens it in Chrome via claude-in-chrome
-   - Matches the camera angle and joint pose to the reference photo
-   - Takes a screenshot and compares part-by-part from base to tip
-   - Edits `chain.yaml` to fix misalignments
-   - Regenerates the URDF and restarts the simulator
-   - Repeats until the simulation matches the photo
-
-A typical tuning session takes 2-4 iterations.
-
-### Using the visual-urdf-tuning skill
-
-The `visual-urdf-tuning` skill is an alternative when you don't have a
-reference photo handy. It searches online for images of the robot and uses
-those as reference:
-
-```
-/visual-urdf-tuning
-```
-
-This skill follows the same compare-diagnose-fix cycle but starts by finding
-reference images via web search.
 
 ### Using the manufacturer-comparison skill
 
@@ -257,7 +188,7 @@ relying solely on visual appearance.
 - **One change at a time** — adjust one parameter, regenerate, and compare
   before making the next change.
 
-## Step 7: Verify and commit
+## Step 5: Verify and commit
 
 Once the simulation looks correct:
 
@@ -280,9 +211,8 @@ Once the simulation looks correct:
 
 | Skill | Purpose | Invocation |
 |---|---|---|
-| `assembly-reasoning` | Generate `chain.yaml` from analysis data | `/assembly-reasoning` |
-| `visual-urdf-tuning` | Find reference images and tune URDF | `/visual-urdf-tuning` |
-| `refine-with-image` | Tune URDF against a provided reference photo | `/refine-with-image` |
+| `auto-build-robot` | Full pipeline: analyze, infer chain, generate, verify | `/auto-build-robot` |
+| `assembly-reasoning` | Generate `chain.yaml` from analysis data (standalone) | `/assembly-reasoning` |
 | `manufacturer-comparison` | Compare against manufacturer technical drawings | `/manufacturer-comparison` |
 | `zoom-rotate-camera` | Position the 3D camera programmatically | `/zoom-rotate-camera` |
 
