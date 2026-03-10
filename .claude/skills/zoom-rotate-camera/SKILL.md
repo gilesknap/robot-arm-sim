@@ -56,7 +56,135 @@ ctrl.update();
 - **Y**: front(-) / back(+) — negative Y is toward the viewer in default view
 - **Z**: down(0) / up(+) — Z=0 is ground plane
 
-### Preset Views for Meca500-R3
+### Orthogonal Named Views (ViewCube convention)
+
+These match the ViewCube face labels in `view_controls.py`. Camera is placed at `target + direction * dist` where `target = (0, 0, 0.22)` and `dist = 0.55`.
+
+| View | Direction (dir) | Camera Up | Camera Position | Use Case |
+|------|----------------|-----------|-----------------|----------|
+| **FRONT** | `(1, 0, 0)` | `(0,0,1)` | `(0.55, 0, 0.22)` | Compare with manufacturer front view |
+| **BACK** | `(-1, 0, 0)` | `(0,0,1)` | `(-0.55, 0, 0.22)` | Rear inspection |
+| **RIGHT** | `(0, -1, 0)` | `(0,0,1)` | `(0, -0.55, 0.22)` | Right side profile |
+| **LEFT** | `(0, 1, 0)` | `(0,0,1)` | `(0, 0.55, 0.22)` | Left side profile |
+| **TOP** | `(0, 0, 1)` | `(0,-1,0)` | `(0, 0, 0.77)` | Plan view from above |
+| **BOTTOM** | `(0, 0, -1)` | `(0,1,0)` | `(0, 0, -0.33)` | Underside |
+
+**Important**: When using named views, also set `cam.up` to match the view's "Camera Up" vector, otherwise the orientation will be wrong.
+
+### Switching to Orthographic Mode
+
+For comparison with manufacturer images, use orthographic projection to eliminate perspective distortion. The ViewCube Ortho/Persp button does this in the UI, but you can also do it programmatically:
+
+```javascript
+// Switch to orthographic (if currently perspective)
+const cam = sc.camera;
+const ctrl = sc.controls;
+const canvas = sc.renderer.domElement;
+const aspect = canvas.width / canvas.height;
+
+if (cam.isPerspectiveCamera) {
+    const d = cam.position.distanceTo(ctrl.target);
+    const fovRad = (cam.fov * Math.PI) / 180;
+    const frustumH = 2 * d * Math.tan(fovRad / 2);
+    const frustumW = frustumH * aspect;
+    const ortho = new THREE.OrthographicCamera(
+        -frustumW/2, frustumW/2, frustumH/2, -frustumH/2, 0.001, 100
+    );
+    ortho.position.copy(cam.position);
+    ortho.quaternion.copy(cam.quaternion);
+    ortho.up.copy(cam.up);
+    ortho.zoom = 1;
+    ortho.updateProjectionMatrix();
+    sc.camera = ortho;
+    ctrl.object = ortho;
+    ctrl.update();
+}
+```
+
+To get THREE reference: `const THREE = window.__THREE_REF;` (set by ViewCube init).
+
+To switch back to perspective:
+```javascript
+const cam = sc.camera;
+if (cam.isOrthographicCamera) {
+    const canvas = sc.renderer.domElement;
+    const aspect = canvas.width / canvas.height;
+    const persp = new THREE.PerspectiveCamera(50, aspect, 0.01, 100);
+    persp.position.copy(cam.position);
+    persp.quaternion.copy(cam.quaternion);
+    persp.up.copy(cam.up);
+    persp.updateProjectionMatrix();
+    sc.camera = persp;
+    ctrl.object = persp;
+    ctrl.update();
+}
+```
+
+### Ortho Named View One-liner Template
+
+Complete JS block to set an orthographic named view for manufacturer image comparison:
+
+```javascript
+function findSceneComp(vnode) {
+    if (!vnode) return null;
+    if (vnode.component && vnode.component.proxy) {
+        const p = vnode.component.proxy;
+        if (p.renderer && p.scene && p.controls) return p;
+    }
+    if (vnode.children && Array.isArray(vnode.children)) {
+        for (const c of vnode.children) { const r = findSceneComp(c); if (r) return r; }
+    }
+    if (vnode.component && vnode.component.subTree) return findSceneComp(vnode.component.subTree);
+    return null;
+}
+const sc = findSceneComp(document.getElementById('app').__vue_app__._container._vnode);
+const THREE = window.__THREE_REF;
+const cam = sc.camera;
+const ctrl = sc.controls;
+const canvas = sc.renderer.domElement;
+const aspect = canvas.width / canvas.height;
+
+// --- Edit these for your desired view ---
+const dir = [1, 0, 0];       // FRONT (see table above)
+const up = [0, 0, 1];        // camera up for this view
+const target = [0, 0, 0.22]; // robot center
+const dist = 0.55;
+// -----------------------------------------
+
+const camPos = [target[0]+dir[0]*dist, target[1]+dir[1]*dist, target[2]+dir[2]*dist];
+
+// Switch to ortho if needed
+let activeCam = cam;
+if (cam.isPerspectiveCamera) {
+    const d = cam.position.distanceTo(ctrl.target);
+    const fovRad = (cam.fov * Math.PI) / 180;
+    const frustumH = 2 * d * Math.tan(fovRad / 2);
+    const frustumW = frustumH * aspect;
+    activeCam = new THREE.OrthographicCamera(
+        -frustumW/2, frustumW/2, frustumH/2, -frustumH/2, 0.001, 100
+    );
+    sc.camera = activeCam;
+    ctrl.object = activeCam;
+}
+
+activeCam.position.set(...camPos);
+activeCam.up.set(...up);
+ctrl.target.set(...target);
+
+// Adjust ortho frustum for this distance
+const fovRad = (50 * Math.PI) / 180;
+const frustumH = 2 * dist * Math.tan(fovRad / 2);
+const frustumW = frustumH * aspect;
+activeCam.left = -frustumW / 2;
+activeCam.right = frustumW / 2;
+activeCam.top = frustumH / 2;
+activeCam.bottom = -frustumH / 2;
+activeCam.updateProjectionMatrix();
+ctrl.update();
+'ortho view set'
+```
+
+### Preset Views (legacy perspective)
 
 All presets assume the robot base is at origin. The robot stands ~0.46m tall at zero config.
 
