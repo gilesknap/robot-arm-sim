@@ -115,3 +115,24 @@ The plan for this is [plan2.md](plan2.md).
 5. Iterate until sim matches reality, working base-outward
 
 Uses browser automation (claude-in-chrome) to interact with the simulator and capture screenshots.
+
+## Prompt 17: Interactive Visual Joint Alignment
+
+**User:** Load assembly-reasoning and visual-urdf-tuning skills, then use labels in the simulator to talk through where joint mapping is still incorrect and update the URDF accordingly.
+
+**Claude:** Iterative visual tuning session using simulator labels and browser automation:
+
+1. **Loaded skills**, started simulator, turned on part labels (blue) and joint labels (red) to identify components
+2. **Joint 2 / A2 alignment** — user identified A2's bore circle was not aligned with joint_2's center of rotation. Through several iterations:
+   - Removed stale A3_4 +19mm offset (was masking the real issue)
+   - Added `visual_xyz: [0, 0, -0.039]` on A2 (39mm down) to align bore with joint_2
+   - Verified symmetry by testing J2 at +45° and -45° — small residual asymmetry (~1mm) accepted
+3. **Discovered hot reload limitation** — URDF data file changes require full simulator restart (`pkill` + relaunch), not just browser F5. Updated the visual-urdf-tuning skill accordingly.
+4. **Created `zoom-rotate-camera` skill** — programmatic Three.js camera control via JavaScript to avoid accidentally moving joint sliders when dragging in the viewport. Uses OrbitControls with preset views (front, side, close-up per joint).
+5. **Created `refine-with-image` skill** — a comprehensive 10-step workflow for a fresh context: takes a reference photo, matches camera angle and joint pose in the simulator, compares part-by-part from base to tip, edits chain.yaml, regenerates, and iterates until the sim matches the photo. Can request additional reference images if needed.
+
+Key lessons captured in memory and skills:
+- `visual_xyz` in chain.yaml is additive to auto-computed connection point offset
+- Always use JavaScript for camera/slider control (never mouse drag)
+- Vue vnode `children` may not be an array — always guard with `Array.isArray`
+- Work base-to-tip: fix base_link first, errors compound along the chain

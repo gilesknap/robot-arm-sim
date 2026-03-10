@@ -157,15 +157,14 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
     ```
     Check all joints still pass within tolerance.
 
-13. **Refresh the simulator** — the NiceGUI app needs restarting to pick up the new URDF:
+13. **Refresh the simulator** — hot reload only covers Python code changes, NOT URDF data file changes. After regenerating the URDF, you must restart the simulator process:
     ```bash
     pkill -f "robot-arm-sim simulate" 2>/dev/null
-    sleep 2
-    uv run robot-arm-sim simulate robots/<name>/ &
-    disown
+    sleep 3
+    nohup uv run robot-arm-sim simulate robots/<name>/ > /tmp/sim.log 2>&1 &
     ```
-    Wait ~5 seconds, verify with `curl`, then ask the user to reload (or press F5 via `computer action=key text=F5`).
-    After reload, wait 3 seconds before interacting with sliders.
+    Wait ~5 seconds, verify with `curl`, then press F5 in the browser (`computer action=key text=F5`).
+    Wait 3-4 seconds after reload before interacting with sliders.
 
 14. **Re-capture screenshots** at the same poses and compare again.
 
@@ -183,6 +182,20 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
 - **Use the verify_kinematics.py --json** check after each change to ensure FK positions haven't regressed.
 - **`visual_xyz` in chain.yaml is ADDITIVE** — it's added on top of the auto-computed offset from the proximal connection point. So `visual_xyz: [0, 0, 0.019]` shifts the mesh 19mm up relative to where the auto-detection placed it.
 - **Small visual_xyz adjustments** (< 5mm / 0.005m) are normal for imprecise connection point detection. Larger adjustments (10-20mm) can occur when the mesh doesn't fully span the kinematic link length (e.g., A3_4 is 101mm tall but d4=120mm).
+
+## NiceGUI Three.js Access
+
+- `THREE` is **not** in global JS scope. Use `import('nicegui-scene')` to get it:
+  ```javascript
+  import('nicegui-scene').then(SceneLib => {
+      const THREE = SceneLib.default ? SceneLib.default.THREE : SceneLib.THREE;
+  });
+  ```
+- `ui.run_javascript()` runs in page global scope (same as chrome JS tool) — no module access.
+- The Vue scene component (with `.renderer`, `.scene`, `.controls`) is found by walking the Vue vnode tree from `document.getElementById('app').__vue_app__._container._vnode`. Look for a proxy with `p.renderer && p.scene`.
+- OrbitControls: `sceneComp.controls` (NOT on `window.scene_*`).
+- `reload=True` in `ui.run()` fails with CLI entry points — keep `reload=False`.
+- Ground plane mesh is at `position.z < 0` — skip it when upgrading robot materials.
 
 ## Meca500-R3 Specific Notes
 
