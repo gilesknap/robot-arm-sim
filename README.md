@@ -39,6 +39,9 @@ robot-arm-sim generate <robot_dir> <chain.yaml>       # Generate URDF
 robot-arm-sim simulate <robot_dir> [--port 8080]      # Launch simulator
 ```
 
+
 <!-- README only content. Anything below this line won't be included in index.md -->
+
+![simulator image](docs/images/simulator.png)
 
 See <https://gilesknap.github.io/robot-arm-sim> for full documentation.

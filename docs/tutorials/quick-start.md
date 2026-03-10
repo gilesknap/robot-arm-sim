@@ -32,6 +32,9 @@ Meca500-R3 collaborative robot.
 - **Show Labels** — click the button below the viewport to display part names
   (blue, left) and joint names (red, right) as callout labels.
 - **Reset Joints** — returns all sliders to zero degrees.
+- **ViewCube** — a 3D orientation widget in the corner of the viewport. Click
+  a face (Front, Right, Top, etc.) to snap to that view.
+- **Fit** — auto-zoom so the robot fills the viewport.
 - **Camera** — left-click drag to orbit, scroll to zoom, middle-click drag
   to pan.
 

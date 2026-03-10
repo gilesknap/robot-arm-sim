@@ -109,6 +109,21 @@ joint sliders on the right. Check that:
 - Sliders rotate the correct parts
 - The overall shape resembles the real robot
 
+The simulator includes several controls for inspecting the model:
+
+- **Joint sliders** — drag to rotate each joint in real time
+- **Show Labels** — display part names (blue) and joint names (red) as callout
+  labels
+- **Reset Joints** — return all sliders to zero degrees
+- **ViewCube** — a 3D orientation widget in the corner of the viewport. Click a
+  face (Front, Right, Top, etc.) to snap the camera to that named view.
+- **Ortho / Persp** — toggle between orthographic and perspective projection.
+  Orthographic mode removes perspective distortion, which is essential for
+  accurate comparison against technical drawings.
+- **Fit** — auto-zoom to fit the entire robot in the viewport.
+- **Camera** — left-click drag to orbit, scroll to zoom, middle-click drag to
+  pan.
+
 If the robot looks correct, you are done. If parts are misaligned, continue
 to the visual tuning steps below.
 
@@ -134,6 +149,8 @@ Once configured, Claude can:
 - Set camera angles via JavaScript (using the `zoom-rotate-camera` skill)
 - Set joint poses via slider automation
 - Take screenshots for comparison against reference photos
+- Snap to orthographic named views via the ViewCube for precise comparison
+- Click the Fit button to auto-zoom the robot into the viewport
 
 ### Using the refine-with-image skill
 
@@ -177,6 +194,39 @@ those as reference:
 
 This skill follows the same compare-diagnose-fix cycle but starts by finding
 reference images via web search.
+
+### Using the manufacturer-comparison skill
+
+The `manufacturer-comparison` skill is the most systematic approach to visual
+tuning. It automates finding dimensioned technical drawings from the
+manufacturer, setting up orthographic comparison views, and iterating with
+measurable convergence criteria.
+
+```
+/manufacturer-comparison
+```
+
+This skill follows a six-phase workflow:
+
+1. **Find reference images** — searches for dimensioned technical drawings,
+   CAD renders, and product photos. Saves them to `robots/<name>/images/` for
+   reuse across sessions.
+2. **Map manufacturer views** — determines how the manufacturer's labelled
+   views (front, side, top) correspond to the simulator's ViewCube faces, since
+   conventions often differ.
+3. **Set up orthographic comparison** — snaps the camera to the matching
+   ViewCube face in orthographic projection, ensuring no parallax errors when
+   comparing against technical drawings.
+4. **Part-by-part comparison** — works base-to-tip, checking link lengths,
+   silhouettes, joint positions, and gaps against the manufacturer's dimensions.
+5. **Adjust and iterate** — edits `chain.yaml`, regenerates the URDF, and
+   re-compares until each link is within **2mm** of manufacturer specs.
+6. **Multi-view validation** — verifies accuracy across multiple orthographic
+   views and at non-zero joint angles to confirm rotation centres are correct.
+
+This is the recommended skill when manufacturer datasheets or technical drawings
+are available, since it uses actual dimensions as ground truth rather than
+relying solely on visual appearance.
 
 ### Common adjustments
 
@@ -233,6 +283,7 @@ Once the simulation looks correct:
 | `assembly-reasoning` | Generate `chain.yaml` from analysis data | `/assembly-reasoning` |
 | `visual-urdf-tuning` | Find reference images and tune URDF | `/visual-urdf-tuning` |
 | `refine-with-image` | Tune URDF against a provided reference photo | `/refine-with-image` |
+| `manufacturer-comparison` | Compare against manufacturer technical drawings | `/manufacturer-comparison` |
 | `zoom-rotate-camera` | Position the 3D camera programmatically | `/zoom-rotate-camera` |
 
 All skills edit `chain.yaml` and regenerate — they never touch `robot.urdf`
