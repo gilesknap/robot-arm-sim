@@ -72,12 +72,18 @@ _VIEWCUBE_JS = (
 
     // Face definitions: label, normal direction, color, rotation to face camera
     const faces = [
-        { label: 'RIGHT',  dir: [0, -1, 0], color: 0x50B86C, up: [0,0,1] },
-        { label: 'LEFT',   dir: [0, 1, 0],  color: 0x50B86C, up: [0,0,1] },
-        { label: 'FRONT',  dir: [1, 0, 0],  color: 0x4A90D9, up: [0,0,1] },
-        { label: 'BACK',   dir: [-1, 0, 0], color: 0x4A90D9, up: [0,0,1] },
-        { label: 'TOP',    dir: [0, 0, 1],  color: 0xE8734A, up: [0,-1,0] },
-        { label: 'BOTTOM', dir: [0, 0, -1], color: 0xE8734A, up: [0,1,0] },
+        {label:'RIGHT', dir:[0,-1,0], color:0x50B86C,
+         up:[0,0,1], textRot:0},
+        {label:'LEFT', dir:[0,1,0], color:0x50B86C,
+         up:[0,0,1], textRot:Math.PI},
+        {label:'FRONT', dir:[1,0,0], color:0x4A90D9,
+         up:[0,0,1], textRot:3*Math.PI/2},
+        {label:'BACK', dir:[-1,0,0], color:0x4A90D9,
+         up:[0,0,1], textRot:Math.PI/2},
+        {label:'TOP', dir:[0,0,1], color:0xE8734A,
+         up:[0,-1,0], textRot:Math.PI},
+        {label:'BOTTOM', dir:[0,0,-1], color:0xE8734A,
+         up:[0,1,0], textRot:0},
     ];
 
     // Create a rounded box geometry
@@ -133,7 +139,14 @@ _VIEWCUBE_JS = (
         ctx.font = 'bold 26px -apple-system, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        if (f.textRot) {
+            ctx.save();
+            ctx.translate(64, 64);
+            ctx.rotate(f.textRot);
+            ctx.translate(-64, -64);
+        }
         ctx.fillText(f.label, 64, 64);
+        if (f.textRot) ctx.restore();
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.needsUpdate = true;

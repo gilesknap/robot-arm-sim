@@ -221,12 +221,101 @@ import('nicegui-scene').then(SceneLib => {
 """
 
 
+_SCREENSHOT_JS = """
+(function() {
+    const appEl = document.getElementById('app');
+    if (!appEl || !appEl.__vue_app__) return;
+    let sc = null;
+    function walk(n, d) {
+        if (d > 30 || sc) return;
+        if (n.component) {
+            const p = n.component.proxy;
+            if (p && p.renderer && p.scene && p.camera) {
+                sc = p; return;
+            }
+            if (n.component.subTree)
+                walk(n.component.subTree, d+1);
+        }
+        if (Array.isArray(n.children))
+            n.children.forEach(
+                c => c && typeof c === 'object'
+                    && walk(c, d+1));
+    }
+    walk(appEl.__vue_app__._container._vnode, 0);
+    if (!sc) return;
+    sc.renderer.render(sc.scene, sc.camera);
+    const url = sc.renderer.domElement.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'robot-screenshot.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+})();
+"""
+
+
+_AXES_INIT_JS = """
+(async function() {
+    const SceneLib = await import('nicegui-scene');
+    const THREE = SceneLib.default
+        ? SceneLib.default.THREE : SceneLib.THREE;
+    if (!THREE) return;
+    const appEl = document.getElementById('app');
+    if (!appEl || !appEl.__vue_app__) return;
+    let sc = null;
+    function walk(n, d) {
+        if (d > 30 || sc) return;
+        if (n.component) {
+            const p = n.component.proxy;
+            if (p && p.renderer && p.scene) {
+                sc = p; return;
+            }
+            if (n.component.subTree)
+                walk(n.component.subTree, d+1);
+        }
+        if (Array.isArray(n.children))
+            n.children.forEach(
+                c => c && typeof c === 'object'
+                    && walk(c, d+1));
+    }
+    walk(appEl.__vue_app__._container._vnode, 0);
+    if (!sc) return;
+    const helpers = {};
+    const joints = JOINT_NAMES;
+    joints.forEach(name => {
+        const ax = new THREE.AxesHelper(0.05);
+        ax.visible = false;
+        sc.scene.add(ax);
+        helpers[name] = ax;
+    });
+    window.__axesHelpers = helpers;
+    window.__setAxesVisible = function(show) {
+        Object.values(helpers).forEach(
+            h => { h.visible = show; });
+    };
+    window.__updateAxesPoses = function(data) {
+        for (const [name, info] of Object.entries(data)) {
+            const h = helpers[name];
+            if (!h) continue;
+            h.position.set(
+                info.p[0], info.p[1], info.p[2]);
+            h.quaternion.set(
+                info.q[0], info.q[1],
+                info.q[2], info.q[3]);
+        }
+    };
+})();
+"""
+
+
 def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     """Build the simulator UI."""
     # State
     joint_angles: dict[str, float] = {}
     mesh_objects: dict[str, object] = {}
     labels_visible = {"value": False}
+    frames_visible = {"value": False}
     callout_items: list[dict] = []
     chain = robot.get_kinematic_chain()
     mesh_centers = _load_mesh_centers(robot, robot_dir)
@@ -378,6 +467,18 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 once=True,
             )
 
+            # Initialize coordinate frame axes helpers
+            joint_names_js = "[" + ",".join(f"'{j.name}'" for j in chain) + "]"
+            axes_js = _AXES_INIT_JS.replace("JOINT_NAMES", joint_names_js)
+            ui.timer(
+                2.5,
+                lambda: ui.run_javascript(axes_js),
+                once=True,
+            )
+
+            # ee_readout placeholder — set after right panel is built
+            ee_readout_ref: list[ui.label | None] = [None]
+
             # Toolbar below 3D viewport
             def toggle_labels():
                 labels_visible["value"] = not labels_visible["value"]
@@ -388,6 +489,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     callout_items,
                     labels_visible,
                     mesh_centers,
+                    ee_readout_ref[0],
+                    frames_visible,
                 )
                 label_btn.text = (
                     "Hide Labels" if labels_visible["value"] else "Show Labels"
@@ -407,56 +510,56 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 label_btn = ui.button("Show Labels", on_click=toggle_labels).props(
                     "flat dense"
                 )
+
+                def toggle_frames():
+                    frames_visible["value"] = not frames_visible["value"]
+                    show = frames_visible["value"]
+                    frames_btn.text = "Hide Frames" if show else "Show Frames"
+                    ui.run_javascript(f"window.__setAxesVisible({str(show).lower()})")
+                    if show:
+                        _update_scene(
+                            robot,
+                            joint_angles,
+                            mesh_objects,
+                            callout_items,
+                            labels_visible,
+                            mesh_centers,
+                            ee_readout_ref[0],
+                            frames_visible,
+                        )
+
+                frames_btn = ui.button("Show Frames", on_click=toggle_frames).props(
+                    "flat dense"
+                )
+
+                def _take_screenshot():
+                    ui.run_javascript(_SCREENSHOT_JS)
+
+                ui.button("Screenshot", on_click=_take_screenshot).props("flat dense")
+
+                ui.button(
+                    "About",
+                    on_click=lambda: ui.navigate.to(
+                        "https://gilesknap.github.io/"
+                        "robot-arm-sim/main/"
+                        "explanations/building-with-claude.html",
+                        new_tab=True,
+                    ),
+                ).props("flat dense")
+
                 ui.button("Stop Simulator", on_click=shutdown).props(
                     "color=red-7 flat dense"
                 )
 
         # Right panel: controls (snug against scene)
-        with ui.column().classes("p-4").style("width: 250px; overflow-y: auto"):
-            ui.label("Joint Controls").classes("text-h6")
-            sliders: dict[str, ui.slider] = {}
+        with ui.column().classes("p-4").style("width: 280px; overflow-y: auto"):
+            # Cache ikpy chain once for IK solving
+            from .ik_solver import build_ik_chain, solve_ik
 
-            for joint in chain:
-                if joint.joint_type not in ("revolute", "continuous"):
-                    continue
+            ik_chain = build_ik_chain(robot_dir / "robot.urdf")
 
-                lower_deg = math.degrees(joint.limit_lower)
-                upper_deg = math.degrees(joint.limit_upper)
-                display = joint_labels[joint.name]
-
-                with ui.column().classes("w-full"):
-                    label = ui.label(f"{display}: 0.0°")
-
-                    def make_handler(jname, lbl, disp):
-                        def on_change():
-                            angle_deg = sliders[jname].value
-                            joint_angles[jname] = math.radians(angle_deg)
-                            lbl.text = f"{disp}: {angle_deg:.1f}°"
-                            _update_scene(
-                                robot,
-                                joint_angles,
-                                mesh_objects,
-                                callout_items,
-                                labels_visible,
-                            )
-
-                        return on_change
-
-                    slider = ui.slider(
-                        min=lower_deg,
-                        max=upper_deg,
-                        value=0,
-                        step=0.5,
-                        on_change=make_handler(joint.name, label, display),
-                    )
-                    sliders[joint.name] = slider
-
-            # Reset button
-            def reset_joints():
-                for jname in joint_angles:
-                    joint_angles[jname] = 0.0
-                for s in sliders.values():
-                    s.value = 0
+            # Compact header row: title + mode radio + reset button
+            def _update_scene_now():
                 _update_scene(
                     robot,
                     joint_angles,
@@ -464,9 +567,191 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     callout_items,
                     labels_visible,
                     mesh_centers,
+                    ee_readout_ref[0],
+                    frames_visible,
                 )
 
-            ui.button("Reset Joints", on_click=reset_joints)
+            def _populate_ik_from_fk():
+                """Set IK slider values from current FK pose."""
+                ee_chain = robot.get_kinematic_chain()
+                if not ee_chain:
+                    return
+                tfs = forward_kinematics(robot, joint_angles)
+                last = ee_chain[-1].child
+                ee_tf = tfs.get(last, np.eye(4))
+                p, eu = matrix_to_position_euler(ee_tf)
+                ik_sliders["x"].value = round(p[0] * 1000)
+                ik_sliders["y"].value = round(p[1] * 1000)
+                ik_sliders["z"].value = round(p[2] * 1000)
+                ik_sliders["rx"].value = round(math.degrees(eu[0]))
+                ik_sliders["ry"].value = round(math.degrees(eu[1]))
+                ik_sliders["rz"].value = round(math.degrees(eu[2]))
+
+            def reset_all():
+                for jname in joint_angles:
+                    joint_angles[jname] = 0.0
+                for s in sliders.values():
+                    s.value = 0
+                _populate_ik_from_fk()
+                _update_scene_now()
+
+            with ui.row().classes("w-full items-center"):
+                ui.label("Controls").classes("text-h6")
+                ui.space()
+                mode_radio = ui.radio(["Joint", "IK"], value="Joint").props(
+                    "dense inline"
+                )
+                ui.button("Reset", on_click=reset_all).props("flat dense")
+
+            # --- Joint control panel ---
+            joint_panel = ui.column().classes("w-full")
+            with joint_panel:
+                sliders: dict[str, ui.slider] = {}
+
+                for joint in chain:
+                    if joint.joint_type not in ("revolute", "continuous"):
+                        continue
+
+                    lower_deg = math.degrees(joint.limit_lower)
+                    upper_deg = math.degrees(joint.limit_upper)
+                    display = joint_labels[joint.name]
+
+                    with ui.column().classes("w-full"):
+                        label = ui.label(f"{display}: 0.0\u00b0")
+
+                        def make_handler(jname, lbl, disp):
+                            def on_change():
+                                angle_deg = sliders[jname].value
+                                joint_angles[jname] = math.radians(angle_deg)
+                                lbl.text = f"{disp}: {angle_deg:.1f}\u00b0"
+                                _update_scene_now()
+
+                            return on_change
+
+                        slider = ui.slider(
+                            min=lower_deg,
+                            max=upper_deg,
+                            value=0,
+                            step=0.5,
+                            on_change=make_handler(joint.name, label, display),
+                        )
+                        sliders[joint.name] = slider
+
+            # --- IK control panel ---
+            ik_panel = ui.column().classes("w-full")
+            ik_panel.set_visibility(False)
+            ik_sliders: dict[str, ui.slider] = {}
+            ik_labels: dict[str, ui.label] = {}
+
+            def _solve_ik_from_sliders():
+                target = np.array(
+                    [
+                        (ik_sliders["x"].value or 0) / 1000,
+                        (ik_sliders["y"].value or 0) / 1000,
+                        (ik_sliders["z"].value or 0) / 1000,
+                    ]
+                )
+                current = [0.0] + [joint_angles.get(j.name, 0.0) for j in chain]
+                result = solve_ik(ik_chain, target, current)
+                if result is None:
+                    return
+                for i, jt in enumerate(chain):
+                    angle = result[i + 1]
+                    joint_angles[jt.name] = angle
+                    if jt.name in sliders:
+                        sliders[jt.name].value = math.degrees(angle)
+                _update_scene_now()
+
+            ik_defs = [
+                ("x", "X (mm)", -300, 300),
+                ("y", "Y (mm)", -300, 300),
+                ("z", "Z (mm)", 0, 500),
+                ("rx", "Rx (\u00b0)", -180, 180),
+                ("ry", "Ry (\u00b0)", -180, 180),
+                ("rz", "Rz (\u00b0)", -180, 180),
+            ]
+
+            with ik_panel:
+                for key, name, lo, hi in ik_defs:
+
+                    def make_ik_handler(k, nm):
+                        def on_change():
+                            v = ik_sliders[k].value
+                            ik_labels[k].text = f"{nm}: {v}"
+                            _solve_ik_from_sliders()
+
+                        return on_change
+
+                    with ui.column().classes("w-full"):
+                        ik_labels[key] = ui.label(f"{name}: 0")
+                        ik_sliders[key] = ui.slider(
+                            min=lo,
+                            max=hi,
+                            value=0,
+                            step=1,
+                            on_change=make_ik_handler(key, name),
+                        )
+
+            # Mode toggle handler
+            def on_mode_change(e):
+                is_joint = e.value == "Joint"
+                joint_panel.set_visibility(is_joint)
+                ik_panel.set_visibility(not is_joint)
+                if not is_joint:
+                    _populate_ik_from_fk()
+
+            mode_radio.on_value_change(on_mode_change)
+
+            # --- End-effector readout ---
+            ui.separator()
+            ui.label("End Effector").classes("text-subtitle2")
+            ee_readout = ui.label(
+                "X: 0.0  Y: 0.0  Z: 0.0 mm\nRx: 0.0\u00b0  Ry: 0.0\u00b0  Rz: 0.0\u00b0"
+            ).style("white-space: pre; font-family: monospace;")
+
+            # Wire up the ee_readout reference
+            ee_readout_ref[0] = ee_readout
+
+            # Initial EE readout update
+            _update_scene(
+                robot,
+                joint_angles,
+                mesh_objects,
+                callout_items,
+                labels_visible,
+                mesh_centers,
+                ee_readout,
+            )
+
+
+def _matrix_to_quaternion(m: np.ndarray) -> list[float]:
+    """Convert a 3x3 rotation matrix to quaternion [x, y, z, w]."""
+    trace = m[0, 0] + m[1, 1] + m[2, 2]
+    if trace > 0:
+        s = 0.5 / np.sqrt(trace + 1.0)
+        w = 0.25 / s
+        x = (m[2, 1] - m[1, 2]) * s
+        y = (m[0, 2] - m[2, 0]) * s
+        z = (m[1, 0] - m[0, 1]) * s
+    elif m[0, 0] > m[1, 1] and m[0, 0] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[0, 0] - m[1, 1] - m[2, 2])
+        w = (m[2, 1] - m[1, 2]) / s
+        x = 0.25 * s
+        y = (m[0, 1] + m[1, 0]) / s
+        z = (m[0, 2] + m[2, 0]) / s
+    elif m[1, 1] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[1, 1] - m[0, 0] - m[2, 2])
+        w = (m[0, 2] - m[2, 0]) / s
+        x = (m[0, 1] + m[1, 0]) / s
+        y = 0.25 * s
+        z = (m[1, 2] + m[2, 1]) / s
+    else:
+        s = 2.0 * np.sqrt(1.0 + m[2, 2] - m[0, 0] - m[1, 1])
+        w = (m[1, 0] - m[0, 1]) / s
+        x = (m[0, 2] + m[2, 0]) / s
+        y = (m[1, 2] + m[2, 1]) / s
+        z = 0.25 * s
+    return [float(x), float(y), float(z), float(w)]
 
 
 def _update_scene(
@@ -476,6 +761,8 @@ def _update_scene(
     callout_items: list[dict] | None = None,
     labels_visible: dict | None = None,
     mesh_centers: dict[str, np.ndarray] | None = None,
+    ee_label: ui.label | None = None,
+    frames_visible: dict | None = None,
 ) -> None:
     """Recompute FK and update mesh transforms."""
     transforms = forward_kinematics(robot, joint_angles)
@@ -548,3 +835,44 @@ def _update_scene(
             ax, ay, az = anchor
             item["text"].move(ax + ox, ay + oy, az + oz)
             item["line"].move(ax, ay, az)
+
+    # End-effector readout
+    if ee_label is not None:
+        # Get the last link transform (end-effector)
+        chain = robot.get_kinematic_chain()
+        if chain:
+            last_link = chain[-1].child
+            ee_tf = transforms.get(last_link, np.eye(4))
+            ee_pos, ee_euler = matrix_to_position_euler(ee_tf)
+            # Convert to mm and degrees
+            x_mm = ee_pos[0] * 1000
+            y_mm = ee_pos[1] * 1000
+            z_mm = ee_pos[2] * 1000
+            rx_deg = math.degrees(ee_euler[0])
+            ry_deg = math.degrees(ee_euler[1])
+            rz_deg = math.degrees(ee_euler[2])
+            ee_label.text = (
+                f"X: {x_mm:.1f}  Y: {y_mm:.1f}"
+                f"  Z: {z_mm:.1f} mm\n"
+                f"Rx: {rx_deg:.1f}\u00b0  Ry: {ry_deg:.1f}\u00b0"
+                f"  Rz: {rz_deg:.1f}\u00b0"
+            )
+
+    # Coordinate frames update
+    if frames_visible and frames_visible.get("value", False):
+        frame_data = {}
+        for jt in robot.get_kinematic_chain():
+            tf = transforms.get(jt.child)
+            if tf is None:
+                continue
+            pos_j = [
+                float(tf[0, 3]),
+                float(tf[1, 3]),
+                float(tf[2, 3]),
+            ]
+            q = _matrix_to_quaternion(tf[:3, :3])
+            frame_data[jt.name] = {"p": pos_j, "q": q}
+        import json
+
+        js_data = json.dumps(frame_data)
+        ui.run_javascript(f"window.__updateAxesPoses({js_data})")
