@@ -61,7 +61,7 @@ joints:
     child: link_5
     axis: [0, 1, 0]
     limits: [-2.0071, 2.0071]
-    origin: [0.081, 0, 0]  # at A5 distal bore — end of yoke where pitch pivot is
+    origin: [0.048, 0, 0]  # at A5 pitch bearing (Z-axis cylinder center) — inside the yoke jaws
 
   - name: joint_6
     type: revolute
