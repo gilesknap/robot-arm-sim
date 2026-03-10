@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -12,8 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 def build_ik_chain(urdf_path: Path) -> Chain:
-    """Build an ikpy Chain from a URDF file."""
-    return Chain.from_urdf_file(str(urdf_path))
+    """Build an ikpy Chain from a URDF file, marking fixed links inactive."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        chain = Chain.from_urdf_file(str(urdf_path))
+    mask = [link.joint_type != "fixed" for link in chain.links]
+    return Chain.from_urdf_file(str(urdf_path), active_links_mask=mask)
 
 
 def solve_ik(

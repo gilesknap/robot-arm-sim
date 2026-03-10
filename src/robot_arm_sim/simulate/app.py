@@ -702,10 +702,10 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
 
             # --- End-effector readout ---
             ui.separator()
-            ui.label("End Effector").classes("text-subtitle2")
+            ui.label("End Effector").classes("text-caption")
             ee_readout = ui.label(
                 "X: 0.0  Y: 0.0  Z: 0.0 mm\nRx: 0.0\u00b0  Ry: 0.0\u00b0  Rz: 0.0\u00b0"
-            ).style("white-space: pre; font-family: monospace;")
+            ).style("white-space: pre; font-family: monospace; font-size: 0.75rem;")
 
             # Wire up the ee_readout reference
             ee_readout_ref[0] = ee_readout
