@@ -51,5 +51,6 @@ COPY --from=build /app/robots /app/robots
 ENV PATH=/app/.venv/bin:$PATH
 
 # change this entrypoint if it is not the same as the repo
+ENV ROBOT_DIR=/app/robots/Meca500-R3
 ENTRYPOINT ["robot-arm-sim"]
-CMD ["simulate", "/app/robots/Meca500-R3"]
+CMD ["sh", "-c", "robot-arm-sim simulate ${ROBOT_DIR}"]

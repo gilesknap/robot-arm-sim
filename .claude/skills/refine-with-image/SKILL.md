@@ -104,7 +104,9 @@ function clickSlider(idx, degrees, minDeg, maxDeg) {
     t.dispatchEvent(new MouseEvent('mousedown', {clientX: x, clientY: y, bubbles: true}));
     t.dispatchEvent(new MouseEvent('mouseup', {clientX: x, clientY: y, bubbles: true}));
 }
-// Meca500-R3 slider mapping:
+// Slider indices match joint order in the URDF.
+// Read joint limits from chain.yaml or the loaded URDF.
+// Example (Meca500-R3):
 // idx 0: joint_1 [-175, 175]
 // idx 1: joint_2 [-70, 90]
 // idx 2: joint_3 [-135, 70]

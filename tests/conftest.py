@@ -8,14 +8,14 @@ from pathlib import Path
 import pytest
 
 ROBOTS_DIR = Path(__file__).resolve().parent.parent / "robots"
-MECA500_DIR = ROBOTS_DIR / "Meca500-R3"
+SAMPLE_ROBOT_DIR = ROBOTS_DIR / "Meca500-R3"
 
 
 @pytest.fixture
 def robot_dir(tmp_path: Path) -> Path:
-    """Copy the Meca500-R3 robot folder to a temp directory and return it."""
-    dest = tmp_path / "Meca500-R3"
-    shutil.copytree(MECA500_DIR, dest)
+    """Copy the sample robot folder to a temp directory and return it."""
+    dest = tmp_path / SAMPLE_ROBOT_DIR.name
+    shutil.copytree(SAMPLE_ROBOT_DIR, dest)
     return dest
 
 

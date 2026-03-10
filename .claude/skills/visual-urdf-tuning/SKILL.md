@@ -81,7 +81,9 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
    clickSlider(1, 45, -70, 90);
    ```
 
-   **Slider index mapping for Meca500-R3:**
+   **Slider indices** correspond to the joint order in the URDF. Read the joint limits from `chain.yaml` or the loaded URDF to determine the correct min/max for each slider index.
+
+   **Example (Meca500-R3):**
    | Index | Joint | Label | Min° | Max° |
    |-------|-------|-------|------|------|
    | 0 | joint_1 | A1 | -175 | 175 |
@@ -201,6 +203,8 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
 - Ground plane mesh is at `position.z < 0` — skip it when upgrading robot materials.
 
 ## Meca500-R3 Specific Notes
+
+**Note:** These details are specific to the Meca500-R3. For other robots, derive equivalent information from the robot's `chain.yaml` and manufacturer documentation.
 
 - The Meca500 home/zero position is straight up (all joints 0°)
 - A3_4 is L-shaped: Z bore at bottom (J3), X bore at +X end (J4/J5)

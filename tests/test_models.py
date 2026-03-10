@@ -42,15 +42,17 @@ def test_get_kinematic_chain_order():
 
 def test_get_link():
     robot = _make_robot()
-    assert robot.get_link("base") is not None
-    assert robot.get_link("base").name == "base"
+    link = robot.get_link("base")
+    assert link is not None
+    assert link.name == "base"
     assert robot.get_link("nonexistent") is None
 
 
 def test_get_joint():
     robot = _make_robot()
-    assert robot.get_joint("j1") is not None
-    assert robot.get_joint("j1").joint_type == "revolute"
+    joint = robot.get_joint("j1")
+    assert joint is not None
+    assert joint.joint_type == "revolute"
     assert robot.get_joint("nonexistent") is None
 
 

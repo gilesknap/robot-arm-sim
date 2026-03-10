@@ -42,6 +42,7 @@ def test_load_urdf_mesh_paths(robot_dir: Path):
     links_with_mesh = [link for link in robot.links if link.mesh_path]
     assert len(links_with_mesh) >= 1
     for link in links_with_mesh:
+        assert link.mesh_path is not None
         mesh_file = robot_dir / link.mesh_path
         assert mesh_file.exists(), f"Mesh file missing: {link.mesh_path}"
 
@@ -61,7 +62,12 @@ def test_validate_urdf_broken_mesh_ref(robot_dir: Path):
     # Break a mesh reference in the URDF
     urdf_path = robot_dir / "robot.urdf"
     content = urdf_path.read_text()
-    content = content.replace("A0.stl", "NONEXISTENT.stl", 1)
+    import re
+
+    stl_match = re.search(r'filename="[^"]*?([^"/]+\.stl)"', content)
+    assert stl_match is not None, "No .stl reference found in URDF"
+    stl_name = stl_match.group(1)
+    content = content.replace(stl_name, "NONEXISTENT.stl", 1)
     urdf_path.write_text(content)
 
     errors = validate_urdf(robot_dir)

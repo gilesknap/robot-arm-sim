@@ -134,7 +134,7 @@ Manufacturer View → ViewCube Face Mapping:
 2. **If no axis arrows**: Use physical landmarks:
    - Cable exit location (usually rear/back of base)
    - Teach pendant port location
-   - Mecademic logo position (for Meca500)
+   - Manufacturer logo/branding position (if identifiable)
    - Mounting bolt pattern orientation
 
 3. **Verify**: The mapping must be consistent across all views. If manufacturer front maps to our RIGHT, then manufacturer left must map to our FRONT (90° rotation).
