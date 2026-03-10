@@ -27,34 +27,77 @@ def detect_connection_points(
     Uses cylindrical surface axes from feature detection, then slices
     cross-sections near both ends to find circular features and their
     centers.
+
+    Classification is geometry-based:
+    - No significant cylindrical surfaces → base part (distal only)
+    - Cylinders along 2+ distinct axes (>30° apart) → multi-axis part
+    - Single dominant cylinder axis → standard part with proximal/distal
     """
     cylinders = [f for f in features if f.kind == "cylindrical_surface"]
 
-    if part_name == "A0":
+    if not cylinders:
+        # No cylindrical surfaces → treat as base (distal connection only)
         return _detect_base_connection(mesh, features)
 
-    if part_name == "A3_4":
-        return _detect_a3_4_connections(mesh, features, cylinders)
+    # Group cylinder axes: two axes are "distinct" if angle between them > 30°
+    axis_groups = _group_cylinder_axes(cylinders, angle_threshold_deg=30.0)
+
+    if len(axis_groups) >= 2:
+        # Multi-axis part (e.g., L-shaped with bores along different axes)
+        return _detect_multi_axis_connections(mesh, features, cylinders, axis_groups)
 
     # Standard parts: find primary axis from largest cylinder
-    if not cylinders:
-        logger.warning(
-            "%s: no cylindrical surfaces, skipping connection detection",
-            part_name,
-        )
-        return []
-
     primary_cyl = max(cylinders, key=lambda c: c.length_mm or 0)
     axis = np.array(primary_cyl.axis)
 
     return _detect_endpoints_along_axis(mesh, axis, part_name)
 
 
+def _group_cylinder_axes(
+    cylinders: list[GeometricFeature],
+    angle_threshold_deg: float = 30.0,
+) -> list[list[GeometricFeature]]:
+    """Group cylinders by axis direction.
+
+    Cylinders whose axes are within angle_threshold_deg are in the same group.
+    Returns groups sorted by total cylinder length (largest first).
+    """
+    threshold_rad = np.radians(angle_threshold_deg)
+    groups: list[list[GeometricFeature]] = []
+
+    for cyl in cylinders:
+        axis = np.array(cyl.axis)
+        norm = np.linalg.norm(axis)
+        if norm < 1e-6:
+            continue
+        axis = axis / norm
+
+        placed = False
+        for group in groups:
+            ref_axis = np.array(group[0].axis)
+            ref_norm = np.linalg.norm(ref_axis)
+            if ref_norm < 1e-6:
+                continue
+            ref_axis = ref_axis / ref_norm
+            angle = np.arccos(np.clip(abs(np.dot(axis, ref_axis)), -1.0, 1.0))
+            if angle < threshold_rad:
+                group.append(cyl)
+                placed = True
+                break
+
+        if not placed:
+            groups.append([cyl])
+
+    # Sort groups by total cylinder length (dominant axis first)
+    groups.sort(key=lambda g: sum(c.length_mm or 0 for c in g), reverse=True)
+    return groups
+
+
 def _detect_base_connection(
     mesh: trimesh.Trimesh,
     features: list[GeometricFeature],
 ) -> list[ConnectionPoint]:
-    """A0 (base): only has a distal connection at the top."""
+    """Base part: only has a distal connection at the top."""
     top_faces = [
         f for f in features if f.kind == "flat_face" and f.normal and f.normal[2] > 0.9
     ]
@@ -100,96 +143,111 @@ def _detect_base_connection(
     return []
 
 
-def _detect_a3_4_connections(
+def _detect_multi_axis_connections(
     mesh: trimesh.Trimesh,
     features: list[GeometricFeature],
     cylinders: list[GeometricFeature],
+    axis_groups: list[list[GeometricFeature]],
 ) -> list[ConnectionPoint]:
-    """A3_4 (L-shaped): proximal along Z, distal along X."""
+    """Multi-axis part (e.g., L-shaped): proximal along first dominant axis,
+    distal along second dominant axis."""
     points = []
     bounds = mesh.bounds
 
-    # Proximal: bottom of the part along Z axis (J3 bore)
-    z_min = bounds[0][2]
-    center_z = _find_circle_center_at_slice(mesh, np.array([0, 0, 1]), z_min, "above")
-    if center_z is not None:
-        z_cyl = next((c for c in cylinders if c.axis == [0, 0, 1]), None)
-        radius = z_cyl.radius_mm if z_cyl and z_cyl.radius_mm is not None else 20.0
+    # First dominant axis group → proximal end
+    primary_axis = np.array(axis_groups[0][0].axis)
+    primary_norm = np.linalg.norm(primary_axis)
+    if primary_norm > 1e-6:
+        primary_axis = primary_axis / primary_norm
+    axis_idx_p = int(np.argmax(np.abs(primary_axis)))
+    proj_min_p = bounds[0][axis_idx_p]
+
+    center_p = _find_circle_center_at_slice(
+        mesh, np.abs(primary_axis) * np.sign(primary_axis), proj_min_p, "above"
+    )
+    if center_p is not None:
+        p_cyl = next((c for c in axis_groups[0] if c.radius_mm is not None), None)
+        radius = p_cyl.radius_mm if p_cyl and p_cyl.radius_mm is not None else 20.0
+        pos = center_p.copy()
+        pos[axis_idx_p] = proj_min_p
         points.append(
             ConnectionPoint(
                 end="proximal",
-                position=[
-                    round(center_z[0], 3),
-                    round(center_z[1], 3),
-                    round(z_min, 3),
-                ],
-                axis=[0, 0, 1],
+                position=[round(v, 3) for v in pos],
+                axis=[round(a, 4) for a in primary_axis.tolist()],
                 radius_mm=round(radius, 1),
                 method="cross_section",
             )
         )
     else:
-        bottom_faces = [
+        # Fallback: use flat face normals opposite to primary axis
+        neg_dir = -primary_axis
+        matching_faces = [
             f
             for f in features
-            if f.kind == "flat_face" and f.normal and f.normal[2] < -0.9
+            if f.kind == "flat_face" and f.normal and np.dot(f.normal, neg_dir) > 0.9
         ]
-        if bottom_faces:
-            bf = max(bottom_faces, key=lambda f: f.area_mm2 or 0)
+        if matching_faces:
+            bf = max(matching_faces, key=lambda f: f.area_mm2 or 0)
             if bf.centroid:
                 c = bf.centroid
+                pos = list(c)
+                pos[axis_idx_p] = proj_min_p
                 points.append(
                     ConnectionPoint(
                         end="proximal",
-                        position=[
-                            round(c[0], 3),
-                            round(c[1], 3),
-                            round(z_min, 3),
-                        ],
-                        axis=[0, 0, 1],
+                        position=[round(v, 3) for v in pos],
+                        axis=[round(a, 4) for a in primary_axis.tolist()],
                         radius_mm=20.0,
                         method="centroid_fallback",
                     )
                 )
 
-    # Distal: +X end of the part (J4/J5 bore), axis is X
-    x_max = bounds[1][0]
-    center_x = _find_circle_center_at_slice(mesh, np.array([1, 0, 0]), x_max, "below")
-    if center_x is not None:
-        x_cyl = next((c for c in cylinders if c.axis == [1, 0, 0]), None)
-        radius = x_cyl.radius_mm if x_cyl and x_cyl.radius_mm is not None else 20.0
+    # Second dominant axis group → distal end
+    secondary_axis = np.array(axis_groups[1][0].axis)
+    secondary_norm = np.linalg.norm(secondary_axis)
+    if secondary_norm > 1e-6:
+        secondary_axis = secondary_axis / secondary_norm
+    axis_idx_s = int(np.argmax(np.abs(secondary_axis)))
+    proj_max_s = bounds[1][axis_idx_s]
+
+    center_s = _find_circle_center_at_slice(
+        mesh, np.abs(secondary_axis) * np.sign(secondary_axis), proj_max_s, "below"
+    )
+    if center_s is not None:
+        s_cyl = next((c for c in axis_groups[1] if c.radius_mm is not None), None)
+        radius = s_cyl.radius_mm if s_cyl and s_cyl.radius_mm is not None else 20.0
+        pos = center_s.copy()
+        pos[axis_idx_s] = proj_max_s
         points.append(
             ConnectionPoint(
                 end="distal",
-                position=[
-                    round(x_max, 3),
-                    round(center_x[1], 3),
-                    round(center_x[2], 3),
-                ],
-                axis=[1, 0, 0],
+                position=[round(v, 3) for v in pos],
+                axis=[round(a, 4) for a in secondary_axis.tolist()],
                 radius_mm=round(radius, 1),
                 method="cross_section",
             )
         )
     else:
-        right_faces = [
+        # Fallback: use flat faces along secondary axis direction
+        matching_faces = [
             f
             for f in features
-            if f.kind == "flat_face" and f.normal and f.normal[0] > 0.9
+            if f.kind == "flat_face"
+            and f.normal
+            and np.dot(f.normal, secondary_axis) > 0.9
         ]
-        if right_faces:
-            rf = max(right_faces, key=lambda f: f.area_mm2 or 0)
+        if matching_faces:
+            rf = max(matching_faces, key=lambda f: f.area_mm2 or 0)
             if rf.centroid:
                 c = rf.centroid
+                pos = list(c)
+                pos[axis_idx_s] = proj_max_s
                 points.append(
                     ConnectionPoint(
                         end="distal",
-                        position=[
-                            round(x_max, 3),
-                            round(c[1], 3),
-                            round(c[2], 3),
-                        ],
-                        axis=[1, 0, 0],
+                        position=[round(v, 3) for v in pos],
+                        axis=[round(a, 4) for a in secondary_axis.tolist()],
                         radius_mm=20.0,
                         method="centroid_fallback",
                     )

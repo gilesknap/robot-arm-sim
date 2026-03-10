@@ -41,6 +41,7 @@ The skill writes a `chain.yaml` describing the kinematic chain topology (part or
 
 5. **Write `chain.yaml`** with this format:
 
+Example (Meca500-R3):
 ```yaml
 robot_name: Robot-Name
 dh_params:  # from manufacturer specs (mm)

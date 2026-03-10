@@ -2,10 +2,17 @@
 # or docker with user namespaces.
 FROM ghcr.io/diamondlightsource/ubuntu-devcontainer:noble AS developer
 
-# Add any system dependencies for the developer/build environment here
+# Add GitHub CLI repository and system dependencies for the developer/build environment
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    curl \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update -y && apt-get install -y --no-install-recommends \
+    gh \
     graphviz \
-    && apt-get dist-clean
+    && rm -rf /var/lib/apt/lists/*
 
 # The build stage installs the context into the venv
 FROM developer AS build
@@ -44,5 +51,6 @@ COPY --from=build /app/robots /app/robots
 ENV PATH=/app/.venv/bin:$PATH
 
 # change this entrypoint if it is not the same as the repo
+ENV ROBOT_DIR=/app/robots/Meca500-R3
 ENTRYPOINT ["robot-arm-sim"]
-CMD ["simulate", "/app/robots/Meca500-R3"]
+CMD ["sh", "-c", "robot-arm-sim simulate ${ROBOT_DIR}"]

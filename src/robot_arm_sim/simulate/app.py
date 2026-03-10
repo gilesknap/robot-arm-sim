@@ -88,29 +88,26 @@ def create_app(robot_dir: Path, port: int = 8080) -> None:
     )
 
 
-# Callout offsets: (x_offset, y_offset, z_offset) from the anchor point.
-# Part labels go LEFT, joint labels go RIGHT to avoid overlap.
-# z_offset staggers vertically within each side.
-_PART_OFFSETS = [
-    (-0.18, 0.0, 0.0),  # A0 (base)
-    (-0.18, 0.0, 0.0),  # A1
-    (-0.18, 0.0, 0.0),  # A2
-    (-0.18, 0.0, 0.0),  # A3_4
-    (-0.18, 0.0, 0.0),  # A5
-    (-0.18, 0.0, 0.0),  # A6
-    (-0.18, 0.0, 0.0),
-    (-0.18, 0.0, 0.0),
-]
-_JOINT_OFFSETS = [
-    (0.18, 0.0, -0.02),  # joint_1 — nudge down to separate from joint_2
-    (0.18, 0.0, 0.02),  # joint_2 — nudge up
-    (0.18, 0.0, 0.0),  # joint_3
-    (0.18, 0.0, 0.0),  # joint_4
-    (0.18, 0.0, 0.0),  # joint_5
-    (0.18, 0.0, 0.0),  # joint_6
-    (0.18, 0.0, 0.0),
-    (0.18, 0.0, 0.0),
-]
+def _make_offsets(
+    count: int, x: float, origins: list[list[float]] | None = None
+) -> list[tuple[float, float, float]]:
+    """Generate callout offsets for labels.
+
+    For co-located joints (origin distance < 5mm between consecutive joints),
+    apply alternating z-nudges of ±0.02 to prevent overlap.
+    """
+    offsets: list[tuple[float, float, float]] = []
+    for i in range(count):
+        z_nudge = 0.0
+        if origins and i > 0:
+            dist = (
+                sum((origins[i][k] - origins[i - 1][k]) ** 2 for k in range(3)) ** 0.5
+            )
+            if dist < 0.005:  # co-located (< 5mm)
+                z_nudge = 0.02 if i % 2 else -0.02
+        offsets.append((x, 0.0, z_nudge))
+    return offsets
+
 
 # Position to hide labels (far off screen)
 _HIDDEN_POS = (0, 0, -100)
@@ -324,6 +321,12 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     chain = robot.get_kinematic_chain()
     mesh_centers = _load_mesh_centers(robot, robot_dir)
 
+    # Generate callout offsets dynamically based on link/joint counts
+    part_count = sum(1 for link in robot.links if link.mesh_path)
+    joint_origins = [j.origin_xyz for j in chain]
+    part_offsets = _make_offsets(part_count, -0.18)
+    joint_offsets = _make_offsets(len(chain), 0.18, joint_origins)
+
     for joint in chain:
         joint_angles[joint.name] = 0.0
 
@@ -377,7 +380,7 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 for link in robot.links:
                     if link.mesh_path:
                         part_name = Path(link.mesh_path).stem
-                        off = _PART_OFFSETS[pidx % len(_PART_OFFSETS)]
+                        off = part_offsets[pidx % len(part_offsets)]
                         text_obj = scene.text(
                             part_name,
                             style=(
@@ -410,7 +413,7 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 # Create callout labels for joints (red, RIGHT side)
                 jidx = 0
                 for joint in chain:
-                    off = _JOINT_OFFSETS[jidx % len(_JOINT_OFFSETS)]
+                    off = joint_offsets[jidx % len(joint_offsets)]
                     text_obj = scene.text(
                         joint.name,
                         style=(

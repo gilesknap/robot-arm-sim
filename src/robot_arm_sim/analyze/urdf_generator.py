@@ -341,22 +341,13 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
                 f"  {name}: ({pos_mm[0]:.1f}, {pos_mm[1]:.1f}, {pos_mm[2]:.1f}) mm"
             )
 
-        # Validate inter-joint distances against DH params
-        dh_checks = [
-            ("joint_1", "joint_2", dh.get("d1", 0) - 93),
-            ("joint_2", "joint_3", dh.get("a2", 0)),
-        ]
-        for j_from, j_to, expected_mm in dh_checks:
-            if j_from in positions and j_to in positions:
-                dist = float(np.linalg.norm(positions[j_to] - positions[j_from]))
-                diff = abs(dist - expected_mm)
-                if diff > 5.0:
-                    messages.append(
-                        f"  WARNING: {j_from}→{j_to}"
-                        f" distance={dist:.1f}mm,"
-                        f" DH expects {expected_mm}mm"
-                        f" (off by {diff:.1f}mm)"
-                    )
+        # Report consecutive joint distances
+        joint_names = list(positions.keys())
+        for i in range(len(joint_names) - 1):
+            j_from = joint_names[i]
+            j_to = joint_names[i + 1]
+            dist = float(np.linalg.norm(positions[j_to] - positions[j_from]))
+            messages.append(f"  {j_from}→{j_to} distance={dist:.1f}mm")
 
     except Exception as e:
         messages.append(f"FK validation failed: {e}")
