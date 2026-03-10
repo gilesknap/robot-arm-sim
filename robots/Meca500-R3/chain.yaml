@@ -19,7 +19,6 @@ links:
     visual_xyz: [0, -0.013, -0.038]  # center A3_4 in Y + lower ~38mm for proximal bore at Z=-40mm
   - name: link_4
     mesh: A5  # A5 is the wrist housing, rotated by J4 (forearm roll)
-    visual_xyz: [0, 0, -0.041]  # lower A5 to match A3_4's lowered distal bore
   - name: link_5
     mesh: null  # virtual link — J5 pitch between A5 and A6
   - name: link_6
@@ -57,7 +56,7 @@ joints:
     child: link_4
     axis: [1, 0, 0]
     limits: [-2.9671, 2.9671]
-    origin: [0.062, 0, 0.076]  # position at A3_4 front bore (distal connection point)
+    origin: [0.062, 0, 0.038]  # lowered 38mm to match A3_4's visual distal bore position
 
   - name: joint_5
     type: revolute

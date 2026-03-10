@@ -33,7 +33,7 @@
   </link>
   <link name="link_4">
     <visual>
-      <origin xyz="-0.000005 0.004871 -0.041093" rpy="0 0 0"/>
+      <origin xyz="-0.000005 0.004871 -0.000093" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A5.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -72,7 +72,7 @@
   <joint name="joint_4" type="revolute">
     <parent link="link_3"/>
     <child link="link_4"/>
-    <origin xyz="0.062000 0 0.076000" rpy="0 0 0"/>
+    <origin xyz="0.062000 0 0.038000" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-2.9671" upper="2.9671" effort="100" velocity="1"/>
   </joint>
