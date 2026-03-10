@@ -136,3 +136,70 @@ Key lessons captured in memory and skills:
 - Always use JavaScript for camera/slider control (never mouse drag)
 - Vue vnode `children` may not be an array — always guard with `Array.isArray`
 - Work base-to-tip: fix base_link first, errors compound along the chain
+
+## Prompt 18: Refine with Reference Image — Wrist Connection Fix
+
+**User:** open a blank window in chrome
+
+**Claude:** Opened a new Chrome tab via `tabs_context_mcp` with `createIfEmpty: true`, creating a blank window ready for browser automation.
+
+**User:** /refine-with-image
+
+**Claude:** Loaded the refine-with-image skill. Asked the user for: (1) a reference image, (2) the joint pose, and (3) the camera view angle.
+
+**User:** see image. keep iterating until you can match the pose and all looks perfect. *(attached reference photo of real Meca500-R3 at zero config, 3/4 front-left view, held in a hand)*
+
+**Claude:** Analysed the reference image — Meca500-R3 at zero config from a 3/4 front view. Started the simulator, navigated Chrome to `localhost:8080`, set camera to match the reference angle using Three.js JavaScript. Took a screenshot and compared.
+
+**Initial comparison revealed A5/A6 floating well above A3_4** with a large gap between the forearm and wrist sections. Diagnosed two root causes:
+
+- `visual_xyz: [0, 0, -0.039]` on link_2 and `visual_xyz: [0, 0, -0.040]` on link_3 were shifting meshes ~40mm downward from their joint origins. The auto-computed offsets already correctly placed proximal bores at joint origins — these manual shifts were counterproductive. Removed both.
+- After removal, gap reduced but ~19mm remained because A3_4 mesh (101mm tall) didn't span the full 120mm to joint_4. Attempted `visual_xyz: [0, 0, 0.019]` on link_3 to close the remaining gap.
+
+Read analysis YAML files for A2, A3_4, A5, A6 to understand bore positions and geometry. Read part renders (front, side, iso views) to understand part shapes. A3_4 is an L-shaped part with J3 bore at bottom (Z-axis) and wrist bore on the front face (X-axis). A5 is a barrel/yoke extending along its X axis.
+
+**User:** part a5 needs to be attached to the front of a3_4 and have a wrist rotation there. in the current view you can see a circle on a3_4 that defines where they should meet and the centre of rotation. The face of a5 currently touching the top of a3_4 has a similar circle that should meet it.
+
+**Claude:** Key insight from the user — the circular bore visible on the front face of A3_4 (X-axis direction, at mesh position [62.1, -8.6, 35.5]mm) is where A5 should connect. The `origin: [0.038, 0, 0.120]` on joint_4 was placing the wrist at Z=120mm (on top), but the actual bore is at approximately [0.062, 0, 0.076] in the link_3 frame.
+
+Changes made:
+- Removed `visual_xyz` from link_3 (reverted to auto-offset only)
+- Changed joint_4 `origin` from `[0.038, 0, 0.120]` to `[0.062, 0, 0.076]` to match the A3_4 distal bore position from the analysis data
+
+Regenerated URDF. FK validation showed joint_4/5 now at (62, 0, 346)mm — position matches the bore. Restarted simulator and verified A5 now connects at the correct bore location.
+
+However, A5 was still pointing upward instead of horizontally. This was because `origin_rpy: [0, -1.5708, 0]` on joint_4 rotated the child frame so child X = parent +Z, making A5 (which extends along its mesh X axis) point up.
+
+**User:** cool the joint position is now good and the rotation is correct. but the orientation of a5 is wrong. It should be pointing to the right in the current view, not up.
+
+**Claude:** The `origin_rpy: [0, -1.5708, 0]` was mapping child X to parent +Z, so A5 extended upward. Fix:
+
+- Removed `origin_rpy` entirely from joint_4
+- Changed joint_4 axis from `[0, 0, 1]` to `[1, 0, 0]` — directly rotating around the X-axis (the bore direction) instead of using frame rotation
+- Changed joint_6 axis from `[0, 0, 1]` to `[1, 0, 0]` for the same reason (wrist roll around forearm axis)
+
+Regenerated URDF. FK now shows joint_6 at (132, 0, 346)mm — wrist extends 70mm along +X from joint_5. Restarted simulator, set camera to match the reference photo angle.
+
+**Result:** Robot silhouette now matches the reference photo. A5/A6 extends horizontally from the front bore of A3_4. The "MECA500" label is visible on the top face, the barrel shape and proportions match.
+
+**User:** ok getting good. lets commit here
+
+**Claude:** Committed as `397e7e9` on `feature/connection-point-detection`:
+
+```
+Fix wrist connection: A5 attaches to front bore of A3_4
+
+- Remove incorrect visual_xyz shifts on link_2 and link_3 that displaced
+  meshes 39-40mm downward from their joint origins
+- Move joint_4 origin to match A3_4 distal bore position [62, 0, 76]mm
+- Remove origin_rpy frame rotation; use axis [1,0,0] directly for J4/J6
+  so wrist extends horizontally along X from the front bore
+- A5/A6 now correctly attach to the circular bore on A3_4's front face
+```
+
+Key lessons:
+- Don't blindly trust DH parameters for visual placement — the STL meshes may not span the exact kinematic distances
+- When a bore exits from the SIDE of a part (X-axis), use `axis: [1, 0, 0]` directly instead of rotating the child frame with `origin_rpy`
+- The A3_4 distal bore position from analysis YAML is the ground truth for where A5 connects
+- Removing `origin_rpy` and using explicit axis directions is simpler and more intuitive than frame rotation
+- The auto-computed visual offsets (negated proximal bore position) are correct — adding manual `visual_xyz` shifts on top typically makes things worse
