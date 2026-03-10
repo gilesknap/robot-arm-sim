@@ -69,3 +69,6 @@ lockfiles/
 
 # ruff cache
 .ruff_cache/
+
+# claude local settings
+.claude/settings.local.json

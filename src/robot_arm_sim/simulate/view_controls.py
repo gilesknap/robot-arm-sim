@@ -377,6 +377,67 @@ _VIEWCUBE_JS = (
             }
         });
     }
+
+    // --- Fit to view button ---
+    const fitBtn = document.getElementById('viewcube-fit-btn');
+    if (fitBtn) {
+        fitBtn.addEventListener('click', () => {
+            const mainCam = mainSC.camera;
+            const ctrl = mainSC.controls;
+            const canvas = mainSC.renderer.domElement;
+            const aspect = canvas.width / canvas.height;
+
+            // Compute bounding box of robot meshes only
+            // (STL meshes have high vertex counts vs primitives)
+            const box = new THREE.Box3();
+            mainSC.scene.traverse((obj) => {
+                if (!obj.isMesh || !obj.visible) return;
+                const geo = obj.geometry;
+                if (!geo || !geo.attributes ||
+                    !geo.attributes.position) return;
+                const vc = geo.attributes.position.count;
+                if (vc < 100) return;  // skip primitives
+                box.expandByObject(obj);
+            });
+            if (box.isEmpty()) return;
+
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            // Point camera at the robot center
+            ctrl.target.copy(center);
+
+            if (mainCam.isPerspectiveCamera) {
+                const fovRad = (mainCam.fov * Math.PI) / 180;
+                let dist = (maxDim / 2) / Math.tan(fovRad / 2);
+                dist *= 1.2;  // margin
+                const dir = new THREE.Vector3();
+                mainCam.getWorldDirection(dir);
+                mainCam.position.copy(
+                    center.clone().sub(dir.multiplyScalar(dist))
+                );
+            } else {
+                // Ortho: adjust frustum to fit robot
+                const pad = 1.2;
+                const frustumH = maxDim * pad;
+                const frustumW = frustumH * aspect;
+                mainCam.left = -frustumW / 2;
+                mainCam.right = frustumW / 2;
+                mainCam.top = frustumH / 2;
+                mainCam.bottom = -frustumH / 2;
+                const dir = new THREE.Vector3();
+                mainCam.getWorldDirection(dir);
+                mainCam.position.copy(
+                    center.clone().sub(dir.multiplyScalar(CAMERA_DIST))
+                );
+                mainCam.updateProjectionMatrix();
+            }
+            ctrl.update();
+        });
+    }
 })();
 """
 )
@@ -407,9 +468,15 @@ def add_view_controls(scene_width: int = 900, scene_height: int = 700) -> None:
                 '<div id="viewcube-container" style="width:192px;height:192px;"></div>'
             )
 
-            # Ortho/Persp toggle button
+            # Button row: Ortho/Persp toggle + Fit to view
             ui.html("""
+                <div style="
+                    display: flex; gap: 4px;
+                    margin-top: -14px;
+                    justify-content: center;
+                ">
                 <button id="viewcube-proj-toggle"
+                    class="viewcube-btn"
                     style="
                         font-size: 11px;
                         font-weight: 600;
@@ -426,6 +493,25 @@ def add_view_controls(scene_width: int = 900, scene_height: int = 700) -> None:
                     onmouseover="this.style.background='rgba(74,144,217,0.8)';this.style.color='#fff'"
                     onmouseout="this.style.background=this.classList.contains('viewcube-ortho-active')?'rgba(74,144,217,0.6)':'rgba(40,40,40,0.7)';this.style.color=this.classList.contains('viewcube-ortho-active')?'#fff':'#ccc'"
                 >Persp</button>
+                <button id="viewcube-fit-btn"
+                    class="viewcube-btn"
+                    style="
+                        font-size: 11px;
+                        font-weight: 600;
+                        padding: 2px 12px;
+                        border: 1px solid rgba(255,255,255,0.4);
+                        border-radius: 10px;
+                        background: rgba(40,40,40,0.7);
+                        color: #ccc;
+                        cursor: pointer;
+                        backdrop-filter: blur(4px);
+                        transition: all 0.2s;
+                        letter-spacing: 0.5px;
+                    "
+                    onmouseover="this.style.background='rgba(74,144,217,0.8)';this.style.color='#fff'"
+                    onmouseout="this.style.background='rgba(40,40,40,0.7)';this.style.color='#ccc'"
+                >Fit</button>
+                </div>
                 <style>
                     .viewcube-ortho-active {
                         background: rgba(74,144,217,0.6) !important;
