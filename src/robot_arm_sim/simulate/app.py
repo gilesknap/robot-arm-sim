@@ -18,6 +18,7 @@ from .kinematics import (
     translation_matrix,
 )
 from .urdf_loader import load_urdf
+from .view_controls import add_view_controls
 
 
 def _load_mesh_centers(robot: URDFRobot, robot_dir: Path) -> dict[str, np.ndarray]:
@@ -366,6 +367,9 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 look_at_z=0.25,
                 duration=0,
             )
+
+            # View controls overlay (top-right corner of viewport)
+            add_view_controls(scene_width=900)
 
             # Post-init: lighting, materials, env map, middle-click pan
             ui.timer(
