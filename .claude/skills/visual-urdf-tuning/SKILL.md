@@ -108,6 +108,8 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
    | Symptom | Likely cause | Fix in chain.yaml |
    |---------|-------------|-------------------|
    | Mesh floating/disconnected from parent | Wrong visual origin (proximal connection point off) | Add `visual_xyz` override on the link |
+   | Part too high after parent was lowered | Parent's visual_xyz moved mesh but child joint origin didn't follow | Lower the child joint origin Z (not visual_xyz) — this moves COR + all downstream parts correctly |
+   | COR visually offset from mesh center | Used visual_xyz to reposition but COR stayed at joint origin | Move the joint origin instead of (or in addition to) visual_xyz — visual_xyz only shifts the render, not the COR |
    | Mesh rotated wrong at zero config | Wrong `visual_rpy` | Adjust `visual_rpy` on the link |
    | Joint rotates around wrong point | Wrong joint origin | Add `origin` override on the joint |
    | Joint rotates in wrong direction | Wrong axis sign | Flip axis sign in joint spec |
