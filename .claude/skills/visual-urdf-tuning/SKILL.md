@@ -182,6 +182,7 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
 - **Use the verify_kinematics.py --json** check after each change to ensure FK positions haven't regressed.
 - **`visual_xyz` in chain.yaml is ADDITIVE** — it's added on top of the auto-computed offset from the proximal connection point. So `visual_xyz: [0, 0, 0.019]` shifts the mesh 19mm up relative to where the auto-detection placed it.
 - **Small visual_xyz adjustments** (< 5mm / 0.005m) are normal for imprecise connection point detection. Larger adjustments (10-20mm) can occur when the mesh doesn't fully span the kinematic link length (e.g., A3_4 is 101mm tall but d4=120mm).
+- **visual_xyz magnitude sanity check**: The pipeline warns if `visual_xyz` magnitude exceeds 10mm. Values >20mm are a red flag — check that the correct connection point was detected and that the mesh geometry is correct. Values >40mm almost certainly indicate a wrong connection point selection.
 
 ## NiceGUI Three.js Access
 

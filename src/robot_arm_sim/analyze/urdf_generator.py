@@ -179,9 +179,13 @@ def _compute_visual_origin(
 
     if proximal is None:
         viz_xyz = link_spec.get("visual_xyz", [0, 0, 0])
+        messages.append(f"  {link_name}: no proximal connection point")
         return viz_xyz, viz_rpy
 
     pos = proximal["position"]
+    messages.append(
+        f"  {link_name}: proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
+    )
 
     if viz_rpy == [0, 0, 0]:
         viz_xyz = [
@@ -202,6 +206,11 @@ def _compute_visual_origin(
     extra_xyz = link_spec.get("visual_xyz")
     if extra_xyz is not None:
         viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz, strict=True)]
+        mag = sum(v**2 for v in extra_xyz) ** 0.5
+        if mag > 0.010:
+            messages.append(
+                f"  WARNING: {link_name} visual_xyz = {mag * 1000:.1f}mm (>10mm)"
+            )
 
     return [round(v, 6) for v in viz_xyz], viz_rpy
 
@@ -235,6 +244,11 @@ def _compute_joint_origin(
 
         if distal is not None:
             pos = distal["position"]
+            messages.append(
+                f"  {joint_spec['name']}: distal="
+                f"({pos[0]:.1f}, {pos[1]:.1f},"
+                f" {pos[2]:.1f})mm"
+            )
             proximal = next(
                 (cp for cp in conn_points if cp["end"] == "proximal"),
                 None,
@@ -287,8 +301,13 @@ def _rpy_to_rotation(rpy: list[float]) -> np.ndarray:
 
 
 def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
-    """Run FK at zero config and report joint positions."""
-    messages = []
+    """Run FK at zero config and report joint positions.
+
+    Also validates inter-joint distances against DH params
+    (comparing distances, not absolute positions, to avoid the
+    DH-to-world mapping pitfall).
+    """
+    messages: list[str] = []
     dh = chain.get("dh_params", {})
     if not dh:
         return messages
@@ -301,6 +320,7 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
         rot = np.eye(3)
         messages.append("FK validation (zero config):")
 
+        positions: dict[str, np.ndarray] = {}
         for joint_el in root.findall("joint"):
             name = joint_el.get("name")
             origin = joint_el.find("origin")
@@ -309,17 +329,34 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
             xyz = np.array([float(v) for v in xyz_str.split()])
             rpy = [float(v) for v in rpy_str.split()]
 
-            # Transform: pos_world = rot_parent @ xyz_local + pos_parent
             pos = pos + rot @ xyz
 
-            # Update cumulative rotation if rpy is non-zero
             if any(abs(v) > 1e-6 for v in rpy):
                 rot = rot @ _rpy_to_rotation(rpy)
 
             pos_mm = pos * 1000
+            assert name is not None
+            positions[name] = pos_mm.copy()
             messages.append(
                 f"  {name}: ({pos_mm[0]:.1f}, {pos_mm[1]:.1f}, {pos_mm[2]:.1f}) mm"
             )
+
+        # Validate inter-joint distances against DH params
+        dh_checks = [
+            ("joint_1", "joint_2", dh.get("d1", 0) - 93),
+            ("joint_2", "joint_3", dh.get("a2", 0)),
+        ]
+        for j_from, j_to, expected_mm in dh_checks:
+            if j_from in positions and j_to in positions:
+                dist = float(np.linalg.norm(positions[j_to] - positions[j_from]))
+                diff = abs(dist - expected_mm)
+                if diff > 5.0:
+                    messages.append(
+                        f"  WARNING: {j_from}→{j_to}"
+                        f" distance={dist:.1f}mm,"
+                        f" DH expects {expected_mm}mm"
+                        f" (off by {diff:.1f}mm)"
+                    )
 
     except Exception as e:
         messages.append(f"FK validation failed: {e}")

@@ -13,10 +13,10 @@ links:
     mesh: A1
   - name: link_2
     mesh: A2
-    visual_xyz: [0, 0, -0.012]  # lower A2 so shoulder bore centers on J2 COR
+    visual_xyz: [0, 0, -0.015]  # lower A2 so shoulder bore centers on J2 COR (3mm more down)
   - name: link_3
     mesh: A3_4
-    visual_xyz: [0, -0.013, 0]  # center A3_4 within A2 (bore is 11mm off-center in Y)
+    visual_xyz: [0, -0.013, -0.003]  # center A3_4 in Y (bore 11mm off-center) + 3mm down at J3
   - name: link_4
     mesh: A5  # A5 is the wrist housing, rotated by J4 (forearm roll)
   - name: link_5
