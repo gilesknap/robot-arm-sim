@@ -7,7 +7,7 @@ description: simulation of robot arm motion
 distribution_name: robot-arm-sim
 docker: true
 docker_debug: false
-docs_type: README
+docs_type: sphinx
 git_platform: github.com
 github_org: gilesknap
 package_name: robot_arm_sim

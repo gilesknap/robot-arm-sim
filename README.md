@@ -12,6 +12,8 @@ The pipeline takes a set of STL files for a robot arm, detects geometric feature
 Source          | <https://github.com/gilesknap/robot-arm-sim>
 :---:           | :---:
 PyPI            | `pip install robot-arm-sim`
+Docker          | `docker run ghcr.io/gilesknap/robot-arm-sim:latest`
+Documentation   | <https://gilesknap.github.io/robot-arm-sim>
 Releases        | <https://github.com/gilesknap/robot-arm-sim/releases>
 
 ## Pipeline overview
@@ -174,3 +176,8 @@ The `analyze` command detects connection points (bore/shaft centers) at each end
 5. Classify as proximal (parent-side) or distal (child-side) based on position along the axis
 
 Special handling exists for base links (distal only), L-shaped multi-joint parts (multiple axes), and non-watertight meshes (vertex-based circle fitting fallback).
+
+
+<!-- README only content. Anything below this line won't be included in index.md -->
+
+See https://gilesknap.github.io/robot-arm-sim for more detailed documentation.
