@@ -110,6 +110,115 @@ _JOINT_OFFSETS = [
 # Position to hide labels (far off screen)
 _HIDDEN_POS = (0, 0, -100)
 
+# JavaScript executed once after the 3D scene initialises.
+# Upgrades materials to PBR metal, generates a studio HDRI env map,
+# tweaks lighting, and sets middle-click to pan.
+_POST_INIT_JS = """
+import('nicegui-scene').then(SceneLib => {
+    const THREE = SceneLib.default
+        ? SceneLib.default.THREE : SceneLib.THREE;
+    if (!THREE) return;
+
+    // Find scene component via Vue tree
+    const appEl = document.getElementById('app');
+    if (!appEl || !appEl.__vue_app__) return;
+    let sc = null;
+    function walk(n, d) {
+        if (d > 30 || sc) return;
+        if (n.component) {
+            const p = n.component.proxy;
+            if (p && p.renderer && p.scene) { sc = p; return; }
+            if (n.component.subTree)
+                walk(n.component.subTree, d+1);
+        }
+        if (Array.isArray(n.children))
+            n.children.forEach(
+                c => c && typeof c === 'object'
+                    && walk(c, d+1));
+    }
+    walk(appEl.__vue_app__._container._vnode, 0);
+    if (!sc) return;
+
+    const renderer = sc.renderer;
+    const scene = sc.scene;
+
+    // Middle-click = pan
+    if (sc.controls) sc.controls.mouseButtons.MIDDLE = 2;
+
+    // --- Studio HDRI environment map ---
+    const w = 256, h = 128;
+    const data = new Float32Array(w * h * 4);
+    for (let y = 0; y < h; y++) {
+        const v = y / (h - 1);
+        for (let x = 0; x < w; x++) {
+            const u = x / (w - 1);
+            const i = (y * w + x) * 4;
+            // Neutral sky gradient (warm top, slightly cool bottom)
+            let r = 0.45 + 0.15 * (1 - v);
+            let g = 0.45 + 0.12 * (1 - v);
+            let b = 0.48 + 0.12 * v;
+            // Subtle horizon rim band
+            const hz = Math.exp(-200 * (v-0.5)*(v-0.5));
+            r += hz*0.8; g += hz*0.8; b += hz*0.7;
+            // Warm key light (soft)
+            const kk = Math.exp(
+                -60*((u-0.25)*(u-0.25)+(v-0.35)*(v-0.35)));
+            r += kk*1.2; g += kk*1.1; b += kk*0.9;
+            // Cool fill light (subtle)
+            const fl = Math.exp(
+                -60*((u-0.75)*(u-0.75)+(v-0.45)*(v-0.45)));
+            r += fl*0.3; g += fl*0.35; b += fl*0.5;
+            data[i]=r; data[i+1]=g; data[i+2]=b; data[i+3]=1;
+        }
+    }
+    const envTex = new THREE.DataTexture(
+        data, w, h, THREE.RGBAFormat, THREE.FloatType);
+    envTex.mapping = THREE.EquirectangularReflectionMapping;
+    envTex.needsUpdate = true;
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    const envMap =
+        pmrem.fromEquirectangular(envTex).texture;
+    pmrem.dispose(); envTex.dispose();
+    scene.environment = envMap;
+
+    // --- Lighting ---
+    scene.traverse(obj => {
+        if (obj.isAmbientLight) obj.intensity = 0.5;
+        if (obj.isDirectionalLight) {
+            obj.intensity = 3.0;
+            obj.position.set(3, -2, 5);
+        }
+    });
+
+    // --- PBR metallic materials (skip ground plane) ---
+    scene.traverse(obj => {
+        if (!obj.isMesh || !obj.material) return;
+        const c = obj.material.color
+            ? obj.material.color.clone()
+            : new THREE.Color(0xb0b0b0);
+        if (obj.position.z < 0) {
+            // Ground plane — matte, no reflections
+            obj.material = new THREE.MeshStandardMaterial({
+                color: new THREE.Color(0x909090),
+                metalness: 0.0,
+                roughness: 1.0,
+                envMapIntensity: 0.0,
+            });
+        } else {
+            obj.material = new THREE.MeshStandardMaterial({
+                color: c,
+                metalness: 0.88,
+                roughness: 0.15,
+                envMap: envMap,
+                envMapIntensity: 0.72,
+            });
+        }
+    });
+});
+"""
+
 
 def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     """Build the simulator UI."""
@@ -142,13 +251,13 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 joint_labels[joint.name] = joint.name
 
     with ui.row().style("flex-wrap: nowrap; gap: 0"):
-        # Left panel: 3D scene
-        with ui.column():
+        # Left panel: 3D scene + toolbar
+        with ui.column().style("gap: 0"):
             with ui.scene(
                 width=900,
                 height=700,
                 grid=(2, 100),
-                background_color="#a0a0a0",
+                background_color="#e0e0e0",
             ) as scene:
                 scene.spot_light(intensity=1.0).move(2, 2, 3)
                 scene.spot_light(intensity=0.6).move(-2, -1, 2)
@@ -258,33 +367,45 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 duration=0,
             )
 
-            # Tweak built-in lighting for better surface contrast.
+            # Post-init: lighting, materials, env map, middle-click pan
             ui.timer(
                 1.0,
-                lambda: ui.run_javascript("""
-                    for (const key of Object.keys(window)) {
-                        if (key.startsWith('scene_')) {
-                            const s = window[key];
-                            if (s && s.isScene) {
-                                s.traverse(obj => {
-                                    if (obj.isAmbientLight) obj.intensity = 0.8;
-                                    if (obj.isDirectionalLight) {
-                                        obj.intensity = 3.0;
-                                        obj.position.set(3, -2, 5);
-                                    }
-                                    if (obj.isMesh && obj.material
-                                        && obj.material.isMeshPhongMaterial) {
-                                        obj.material.shininess = 60;
-                                        obj.material.needsUpdate = true;
-                                    }
-                                });
-                                break;
-                            }
-                        }
-                    }
-                """),
+                lambda: ui.run_javascript(_POST_INIT_JS),
                 once=True,
             )
+
+            # Toolbar below 3D viewport
+            def toggle_labels():
+                labels_visible["value"] = not labels_visible["value"]
+                _update_scene(
+                    robot,
+                    joint_angles,
+                    mesh_objects,
+                    callout_items,
+                    labels_visible,
+                    mesh_centers,
+                )
+                label_btn.text = (
+                    "Hide Labels" if labels_visible["value"] else "Show Labels"
+                )
+
+            def shutdown():
+                import os
+                import signal
+
+                os.kill(os.getpid(), signal.SIGTERM)
+
+            with (
+                ui.row()
+                .classes("q-pa-sm")
+                .style("width: 900px; justify-content: flex-end; gap: 8px;")
+            ):
+                label_btn = ui.button("Show Labels", on_click=toggle_labels).props(
+                    "flat dense"
+                )
+                ui.button("Stop Simulator", on_click=shutdown).props(
+                    "color=red-7 flat dense"
+                )
 
         # Right panel: controls (snug against scene)
         with ui.column().classes("p-4").style("width: 250px; overflow-y: auto"):
@@ -342,37 +463,6 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 )
 
             ui.button("Reset Joints", on_click=reset_joints)
-
-            # Toggle labels button
-            def toggle_labels():
-                labels_visible["value"] = not labels_visible["value"]
-                _update_scene(
-                    robot,
-                    joint_angles,
-                    mesh_objects,
-                    callout_items,
-                    labels_visible,
-                    mesh_centers,
-                )
-                label_btn.text = (
-                    "Hide Labels" if labels_visible["value"] else "Show Labels"
-                )
-
-            label_btn = ui.button("Show Labels", on_click=toggle_labels)
-
-            # Exit button to cleanly shut down the simulator
-            ui.separator()
-
-            def shutdown():
-                import os
-                import signal
-
-                os.kill(os.getpid(), signal.SIGTERM)
-
-            ui.button(
-                "Stop Simulator",
-                on_click=shutdown,
-            ).props("color=red-7 outline")
 
 
 def _update_scene(
