@@ -72,3 +72,4 @@ lockfiles/
 
 # claude local settings
 .claude/settings.local.json
+*.code-workspace

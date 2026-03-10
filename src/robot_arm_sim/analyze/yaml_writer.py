@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -154,10 +155,11 @@ def _infer_role_hint(analysis: PartAnalysis) -> str:
         hints.append(f"{len(cylinders)} cylindrical surface(s)")
 
     name = analysis.part_name
-    if name == "A0":
-        hints.append("likely base link")
-    elif "_" in name:
-        hints.append("combined part (multi-joint)")
+    match = re.search(r"(\d+)", name)
+    if match and int(match.group(1)) == 0:
+        hints.append("first part in sequence (likely base)")
+    if "_" in name:
+        hints.append("combined part (may span multiple joints)")
 
     return "; ".join(hints) if hints else "standard link"
 
@@ -168,15 +170,41 @@ def _generate_assembly_hints(analyses: list[PartAnalysis]) -> list[str]:
     names = sorted(a.part_name for a in analyses)
     hints.append(f"Parts: {', '.join(names)}")
 
-    # Check for sequential naming
-    if all(n.startswith("A") for n in names):
-        hints.append("Parts named A0-A6, suggesting sequential kinematic chain")
+    # Check for sequential naming pattern (any prefix)
+    seq_hint = _detect_sequential_pattern(names)
+    if seq_hint:
+        hints.append(seq_hint)
 
     # Check for combined parts
     combined = [n for n in names if "_" in n]
     if combined:
         hints.append(
-            f"{', '.join(combined)} are combined parts, likely spanning multiple joints"
+            f"{', '.join(combined)} are combined parts, may span multiple joints"
         )
 
     return hints
+
+
+def _detect_sequential_pattern(names: list[str]) -> str | None:
+    """Detect if part names share a prefix with sequential numbers."""
+    pattern = re.compile(r"^(.*?)(\d+)$")
+    parsed = []
+    for n in names:
+        base = n.split("_")[0]  # handle combined parts like A3_4
+        m = pattern.match(base)
+        if m:
+            parsed.append((m.group(1), int(m.group(2))))
+
+    if len(parsed) < 2:
+        return None
+
+    prefixes = {p for p, _ in parsed}
+    if len(prefixes) == 1:
+        nums = sorted(n for _, n in parsed)
+        if nums[-1] - nums[0] <= len(names) + 1:
+            prefix = prefixes.pop()
+            return (
+                f"Parts follow sequential naming ({prefix}*), "
+                "suggesting serial kinematic chain"
+            )
+    return None
