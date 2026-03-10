@@ -153,11 +153,22 @@ For each issue found:
 
 3. **Restart simulator** (URDF changes require process restart, not just F5):
    ```bash
-   pkill -f "robot-arm-sim simulate" 2>/dev/null
-   sleep 3
+   pkill -9 -f "robot-arm-sim simulate" 2>/dev/null
+   sleep 2
+   # Verify port is free before restarting — stale NiceGUI can hold it
+   for i in 1 2 3 4 5; do lsof -i :8080 >/dev/null 2>&1 || break; sleep 1; done
    nohup uv run robot-arm-sim simulate robots/<name>/ > /tmp/sim.log 2>&1 &
    ```
-   Wait ~5 seconds, then F5 the browser tab.
+   Then wait and **verify HTTP is responding** before navigating the browser:
+   ```bash
+   for i in 1 2 3 4 5 6 7 8; do
+     sleep 1
+     curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ | grep -q 200 && break
+   done
+   ```
+   If `curl` still returns 000 or a non-200 code, check `tail -30 /tmp/sim.log` for errors.
+   Common failure: NiceGUI "parent slot deleted" crash from stale browser tabs — use `kill -9` and wait for port to free.
+   Only navigate the browser tab AFTER the curl health-check passes.
 
 4. **Verify kinematics** haven't regressed:
    ```bash
