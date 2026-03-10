@@ -16,13 +16,11 @@ links:
   - name: link_3
     mesh: A3_4
   - name: link_4
-    mesh: null  # virtual link (J4 colocated with J3 end)
+    mesh: A5  # A5 is the wrist housing, rotated by J4 (forearm roll)
   - name: link_5
-    mesh: A5
-    # no additive visual_xyz — auto-offset places bore at joint origin for correct rotation
+    mesh: null  # virtual link — J5 pitch between A5 and A6
   - name: link_6
     mesh: A6
-    # no additive visual_xyz — auto-offset places bore at joint origin for correct rotation
 
 joints:
   - name: joint_1
@@ -63,7 +61,7 @@ joints:
     child: link_5
     axis: [0, 1, 0]
     limits: [-2.0071, 2.0071]
-    origin: [0, 0, 0]  # J4 and J5 are co-located
+    origin: [0.081, 0, 0]  # at A5 distal bore — end of yoke where pitch pivot is
 
   - name: joint_6
     type: revolute
@@ -71,4 +69,4 @@ joints:
     child: link_6
     axis: [1, 0, 0]
     limits: [-3.1416, 3.1416]
-    origin: [0.070, 0, 0]  # d6=70mm along wrist X axis
+    origin: [0, 0, 0]  # J5 and J6 co-located at the pitch/roll point
