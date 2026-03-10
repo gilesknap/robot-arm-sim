@@ -170,16 +170,13 @@ def _generate_assembly_hints(analyses: list[PartAnalysis]) -> list[str]:
 
     # Check for sequential naming
     if all(n.startswith("A") for n in names):
-        hints.append(
-            "Parts named A0-A6, suggesting sequential kinematic chain"
-        )
+        hints.append("Parts named A0-A6, suggesting sequential kinematic chain")
 
     # Check for combined parts
     combined = [n for n in names if "_" in n]
     if combined:
         hints.append(
-            f"{', '.join(combined)} are combined parts, "
-            "likely spanning multiple joints"
+            f"{', '.join(combined)} are combined parts, likely spanning multiple joints"
         )
 
     return hints

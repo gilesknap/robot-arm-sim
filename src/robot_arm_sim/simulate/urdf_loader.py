@@ -69,9 +69,7 @@ def validate_urdf(robot_dir: Path) -> list[str]:
         parent_names = {j.parent for j in robot.joints}
         roots = parent_names - child_names
         if len(roots) != 1:
-            errors.append(
-                f"Expected 1 root link, found {len(roots)}: {roots}"
-            )
+            errors.append(f"Expected 1 root link, found {len(roots)}: {roots}")
 
     return errors
 

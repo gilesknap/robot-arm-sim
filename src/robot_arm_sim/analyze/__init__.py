@@ -94,9 +94,7 @@ def _generate_text_description(analysis: PartAnalysis) -> str:
     lines = [f"Part '{analysis.part_name}' from {analysis.source_file}."]
 
     ext = analysis.bounding_box_extents
-    lines.append(
-        f"Bounding box: {ext[0]:.1f} x {ext[1]:.1f} x {ext[2]:.1f} mm."
-    )
+    lines.append(f"Bounding box: {ext[0]:.1f} x {ext[1]:.1f} x {ext[2]:.1f} mm.")
 
     if analysis.is_watertight:
         lines.append(f"Watertight solid, volume {analysis.volume_mm3:.1f} mm³.")

@@ -99,9 +99,7 @@ def render_views(
             scene.add(camera, pose=cam_pose)
 
             # Light
-            light = pyrender.DirectionalLight(
-                color=np.ones(3), intensity=3.0
-            )
+            light = pyrender.DirectionalLight(color=np.ones(3), intensity=3.0)
             scene.add(light, pose=cam_pose)
 
             # Render
@@ -117,8 +115,6 @@ def render_views(
             imageio.imwrite(str(filepath), color)
             rendered_paths.append(f"renders/{filename}")
         except Exception as e:
-            logger.warning(
-                f"Could not render {view_name} view for {part_name}: {e}"
-            )
+            logger.warning(f"Could not render {view_name} view for {part_name}: {e}")
 
     return rendered_paths

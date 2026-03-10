@@ -43,9 +43,7 @@ def generate_urdf(
                 with open(yaml_path) as f:
                     analyses[mesh_name] = yaml.safe_load(f)
             else:
-                messages.append(
-                    f"WARNING: No analysis YAML for {mesh_name}"
-                )
+                messages.append(f"WARNING: No analysis YAML for {mesh_name}")
 
     robot_name = chain.get("robot_name", "robot")
     robot = ET.Element("robot", name=robot_name)
@@ -65,67 +63,89 @@ def generate_urdf(
             visual = ET.SubElement(link_el, "visual")
 
             viz_xyz, viz_rpy = _compute_visual_origin(
-                analysis, link_spec, link_name,
-                joint_by_child, messages,
+                analysis,
+                link_spec,
+                link_name,
+                joint_by_child,
+                messages,
             )
 
             if viz_xyz != [0, 0, 0] or viz_rpy != [0, 0, 0]:
-                ET.SubElement(visual, "origin", **{
-                    "xyz": _fmt_xyz(viz_xyz),
-                    "rpy": _fmt_xyz(viz_rpy),
-                })
+                ET.SubElement(
+                    visual,
+                    "origin",
+                    **{
+                        "xyz": _fmt_xyz(viz_xyz),
+                        "rpy": _fmt_xyz(viz_rpy),
+                    },
+                )
 
             geom = ET.SubElement(visual, "geometry")
-            ET.SubElement(geom, "mesh", **{
-                "filename": f"stl_files/{mesh_name}.stl",
-                "scale": "0.001 0.001 0.001",
-            })
+            ET.SubElement(
+                geom,
+                "mesh",
+                **{
+                    "filename": f"stl_files/{mesh_name}.stl",
+                    "scale": "0.001 0.001 0.001",
+                },
+            )
 
     # Generate joints
     for joint_spec in chain["joints"]:
-        joint_el = ET.SubElement(robot, "joint", **{
-            "name": joint_spec["name"],
-            "type": joint_spec["type"],
-        })
+        joint_el = ET.SubElement(
+            robot,
+            "joint",
+            **{
+                "name": joint_spec["name"],
+                "type": joint_spec["type"],
+            },
+        )
 
-        ET.SubElement(
-            joint_el, "parent", link=joint_spec["parent"]
-        )
-        ET.SubElement(
-            joint_el, "child", link=joint_spec["child"]
-        )
+        ET.SubElement(joint_el, "parent", link=joint_spec["parent"])
+        ET.SubElement(joint_el, "child", link=joint_spec["child"])
 
         jnt_xyz = _compute_joint_origin(
-            joint_spec, link_specs, analyses,
-            chain.get("dh_params", {}), messages,
+            joint_spec,
+            link_specs,
+            analyses,
+            chain.get("dh_params", {}),
+            messages,
         )
 
         jnt_rpy = joint_spec.get("origin_rpy", [0, 0, 0])
-        ET.SubElement(joint_el, "origin", **{
-            "xyz": _fmt_xyz(jnt_xyz),
-            "rpy": _fmt_xyz(jnt_rpy),
-        })
+        ET.SubElement(
+            joint_el,
+            "origin",
+            **{
+                "xyz": _fmt_xyz(jnt_xyz),
+                "rpy": _fmt_xyz(jnt_rpy),
+            },
+        )
 
         ET.SubElement(
-            joint_el, "axis",
+            joint_el,
+            "axis",
             xyz=_fmt_xyz(joint_spec["axis"]),
         )
 
         if joint_spec["type"] == "revolute" and "limits" in joint_spec:
             limits = joint_spec["limits"]
-            ET.SubElement(joint_el, "limit", **{
-                "lower": str(limits[0]),
-                "upper": str(limits[1]),
-                "effort": str(joint_spec.get("effort", 100)),
-                "velocity": str(joint_spec.get("velocity", 1)),
-            })
+            ET.SubElement(
+                joint_el,
+                "limit",
+                **{
+                    "lower": str(limits[0]),
+                    "upper": str(limits[1]),
+                    "effort": str(joint_spec.get("effort", 100)),
+                    "velocity": str(joint_spec.get("velocity", 1)),
+                },
+            )
 
     # Write pretty-printed XML
     rough_xml = ET.tostring(robot, encoding="unicode")
     dom = xml.dom.minidom.parseString(rough_xml)
-    pretty_xml = (
-        '<?xml version="1.0"?>\n'
-        + dom.documentElement.toprettyxml(indent="  ")
+    pretty_xml = '<?xml version="1.0"?>\n' + dom.documentElement.toprettyxml(
+        indent="  "
     )
     lines = [line for line in pretty_xml.split("\n") if line.strip()]
     final_xml = "\n".join(lines) + "\n"
@@ -153,9 +173,7 @@ def _compute_visual_origin(
     link frame origin.
     """
     conn_points = analysis.get("connection_points", [])
-    proximal = next(
-        (cp for cp in conn_points if cp["end"] == "proximal"), None
-    )
+    proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
 
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
 
@@ -183,7 +201,7 @@ def _compute_visual_origin(
     # Apply additive visual_xyz adjustment from chain spec
     extra_xyz = link_spec.get("visual_xyz")
     if extra_xyz is not None:
-        viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz)]
+        viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz, strict=True)]
 
     return [round(v, 6) for v in viz_xyz], viz_rpy
 
@@ -218,8 +236,7 @@ def _compute_joint_origin(
         if distal is not None:
             pos = distal["position"]
             proximal = next(
-                (cp for cp in conn_points
-                 if cp["end"] == "proximal"),
+                (cp for cp in conn_points if cp["end"] == "proximal"),
                 None,
             )
 
@@ -244,14 +261,12 @@ def _compute_joint_origin(
 
             rounded = [round(v, 4) for v in xyz]
             messages.append(
-                f"  {joint_spec['name']}: "
-                f"origin from connection points = {rounded}"
+                f"  {joint_spec['name']}: origin from connection points = {rounded}"
             )
             return [round(v, 6) for v in xyz]
 
     messages.append(
-        f"  {joint_spec['name']}: no connection point data, "
-        f"using chain spec fallback"
+        f"  {joint_spec['name']}: no connection point data, using chain spec fallback"
     )
     return joint_spec.get("origin", [0, 0, 0])
 
@@ -262,11 +277,13 @@ def _rpy_to_rotation(rpy: list[float]) -> np.ndarray:
     cr, sr = np.cos(roll), np.sin(roll)
     cp, sp = np.cos(pitch), np.sin(pitch)
     cy, sy = np.cos(yaw), np.sin(yaw)
-    return np.array([
-        [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
-        [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
-        [-sp, cp * sr, cp * cr],
-    ])
+    return np.array(
+        [
+            [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
+            [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
+            [-sp, cp * sr, cp * cr],
+        ]
+    )
 
 
 def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
@@ -287,16 +304,8 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
         for joint_el in root.findall("joint"):
             name = joint_el.get("name")
             origin = joint_el.find("origin")
-            xyz_str = (
-                origin.get("xyz", "0 0 0")
-                if origin is not None
-                else "0 0 0"
-            )
-            rpy_str = (
-                origin.get("rpy", "0 0 0")
-                if origin is not None
-                else "0 0 0"
-            )
+            xyz_str = origin.get("xyz", "0 0 0") if origin is not None else "0 0 0"
+            rpy_str = origin.get("rpy", "0 0 0") if origin is not None else "0 0 0"
             xyz = np.array([float(v) for v in xyz_str.split()])
             rpy = [float(v) for v in rpy_str.split()]
 
@@ -309,9 +318,7 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
 
             pos_mm = pos * 1000
             messages.append(
-                f"  {name}: "
-                f"({pos_mm[0]:.1f}, {pos_mm[1]:.1f}, "
-                f"{pos_mm[2]:.1f}) mm"
+                f"  {name}: ({pos_mm[0]:.1f}, {pos_mm[1]:.1f}, {pos_mm[2]:.1f}) mm"
             )
 
     except Exception as e:
@@ -322,7 +329,4 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
 
 def _fmt_xyz(values: list[float]) -> str:
     """Format a list of 3 floats as space-separated string."""
-    return " ".join(
-        f"{v:.6f}" if isinstance(v, float) else str(v)
-        for v in values
-    )
+    return " ".join(f"{v:.6f}" if isinstance(v, float) else str(v) for v in values)

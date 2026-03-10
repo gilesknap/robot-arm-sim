@@ -22,8 +22,8 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-
 # ---------- kinematics helpers ----------
+
 
 def ry(angle: float) -> np.ndarray:
     c, s = np.cos(angle), np.sin(angle)
@@ -34,12 +34,14 @@ def rpy_to_matrix(roll: float, pitch: float, yaw: float) -> np.ndarray:
     cr, sr = np.cos(roll), np.sin(roll)
     cp, sp = np.cos(pitch), np.sin(pitch)
     cy, sy = np.cos(yaw), np.sin(yaw)
-    return np.array([
-        [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr, 0],
-        [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr, 0],
-        [-sp, cp * sr, cp * cr, 0],
-        [0, 0, 0, 1],
-    ])
+    return np.array(
+        [
+            [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr, 0],
+            [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr, 0],
+            [-sp, cp * sr, cp * cr, 0],
+            [0, 0, 0, 1],
+        ]
+    )
 
 
 def translation(x: float, y: float, z: float) -> np.ndarray:
@@ -54,21 +56,26 @@ def rotation_matrix(axis: list[float], angle: float) -> np.ndarray:
     c, s = np.cos(angle), np.sin(angle)
     t = 1 - c
     x, y, z = ax
-    return np.array([
-        [t * x * x + c, t * x * y - s * z, t * x * z + s * y, 0],
-        [t * x * y + s * z, t * y * y + c, t * y * z - s * x, 0],
-        [t * x * z - s * y, t * y * z + s * x, t * z * z + c, 0],
-        [0, 0, 0, 1],
-    ])
+    return np.array(
+        [
+            [t * x * x + c, t * x * y - s * z, t * x * z + s * y, 0],
+            [t * x * y + s * z, t * y * y + c, t * y * z - s * x, 0],
+            [t * x * z - s * y, t * y * z + s * x, t * z * z + c, 0],
+            [0, 0, 0, 1],
+        ]
+    )
 
 
 # ---------- URDF parser ----------
+
 
 def parse_xyz(s: str) -> list[float]:
     return [float(v) for v in s.split()]
 
 
-def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None, quiet: bool = False):
+def verify_urdf(
+    urdf_path: Path, joint_angles: dict[str, float] | None = None, quiet: bool = False
+):
     """Parse URDF and compute forward kinematics."""
     if joint_angles is None:
         joint_angles = {}
@@ -93,10 +100,17 @@ def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None, q
         rpy = parse_xyz(origin.get("rpy", "0 0 0"))
         axis_el = j.find("axis")
         axis = parse_xyz(axis_el.get("xyz")) if axis_el is not None else [0, 0, 1]
-        joints.append({
-            "name": name, "type": jtype, "parent": parent, "child": child,
-            "xyz": xyz, "rpy": rpy, "axis": axis,
-        })
+        joints.append(
+            {
+                "name": name,
+                "type": jtype,
+                "parent": parent,
+                "child": child,
+                "xyz": xyz,
+                "rpy": rpy,
+                "axis": axis,
+            }
+        )
 
     # Parse links with visual origins
     links = {}
@@ -107,8 +121,12 @@ def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None, q
             origin = vis.find("origin")
             mesh = vis.find("geometry/mesh")
             links[name] = {
-                "xyz": parse_xyz(origin.get("xyz", "0 0 0")) if origin is not None else [0, 0, 0],
-                "rpy": parse_xyz(origin.get("rpy", "0 0 0")) if origin is not None else [0, 0, 0],
+                "xyz": parse_xyz(origin.get("xyz", "0 0 0"))
+                if origin is not None
+                else [0, 0, 0],
+                "rpy": parse_xyz(origin.get("rpy", "0 0 0"))
+                if origin is not None
+                else [0, 0, 0],
                 "mesh": mesh.get("filename") if mesh is not None else None,
             }
         else:
@@ -142,10 +160,12 @@ def verify_urdf(urdf_path: Path, joint_angles: dict[str, float] | None = None, q
         # Child frame axes in world
         child_z = child_tf[:3, 2]
         if not quiet:
-            print(f"  {joint['name']:10s} → {joint['child']:10s}  "
-                  f"pos=({world_pos[0]:7.1f}, {world_pos[1]:7.1f}, {world_pos[2]:7.1f})mm  "
-                  f"axis={joint['axis']}  "
-                  f"frame_Z=({child_z[0]:+.2f}, {child_z[1]:+.2f}, {child_z[2]:+.2f})")
+            print(
+                f"  {joint['name']:10s} → {joint['child']:10s}  "
+                f"pos=({world_pos[0]:7.1f}, {world_pos[1]:7.1f}, {world_pos[2]:7.1f})mm  "  # noqa: E501
+                f"axis={joint['axis']}  "
+                f"frame_Z=({child_z[0]:+.2f}, {child_z[1]:+.2f}, {child_z[2]:+.2f})"
+            )
 
     if not quiet:
         print()
@@ -166,26 +186,33 @@ EXPECTED_POSITIONS = {
 }
 
 
-def validate_against_expected(joint_positions: dict, tolerance_mm: float = 5.0) -> list[dict]:
+def validate_against_expected(
+    joint_positions: dict, tolerance_mm: float = 5.0
+) -> list[dict]:
     """Compare computed positions against expected, return per-joint results."""
     results = []
     for name, expected in EXPECTED_POSITIONS.items():
         actual = joint_positions.get(name)
         if actual is None:
-            results.append({"joint": name, "pass": False, "error_mm": None, "reason": "missing"})
+            results.append(
+                {"joint": name, "pass": False, "error_mm": None, "reason": "missing"}
+            )
             continue
         error = np.linalg.norm(np.array(actual) - np.array(expected))
-        results.append({
-            "joint": name,
-            "pass": bool(error <= tolerance_mm),
-            "expected_mm": expected,
-            "actual_mm": [round(v, 1) for v in actual],
-            "error_mm": round(float(error), 2),
-        })
+        results.append(
+            {
+                "joint": name,
+                "pass": bool(error <= tolerance_mm),
+                "expected_mm": expected,
+                "actual_mm": [round(v, 1) for v in actual],
+                "error_mm": round(float(error), 2),
+            }
+        )
     return results
 
 
 # ---------- STL analysis ----------
+
 
 def analyze_stl(stl_dir: Path):
     """Analyze STL meshes to determine bore centers and visual origin offsets."""
@@ -200,17 +227,23 @@ def analyze_stl(stl_dir: Path):
         centroid = mesh.centroid
 
         print(f"\n  {name}:")
-        print(f"    Bounds:   x[{bounds[0][0]:+.1f}, {bounds[1][0]:+.1f}]  "
-              f"y[{bounds[0][1]:+.1f}, {bounds[1][1]:+.1f}]  "
-              f"z[{bounds[0][2]:+.1f}, {bounds[1][2]:+.1f}]")
-        print(f"    Extents:  {extents[0]:.1f} x {extents[1]:.1f} x {extents[2]:.1f} mm")
-        print(f"    Centroid: ({centroid[0]:.1f}, {centroid[1]:.1f}, {centroid[2]:.1f})")
+        print(
+            f"    Bounds:   x[{bounds[0][0]:+.1f}, {bounds[1][0]:+.1f}]  "
+            f"y[{bounds[0][1]:+.1f}, {bounds[1][1]:+.1f}]  "
+            f"z[{bounds[0][2]:+.1f}, {bounds[1][2]:+.1f}]"
+        )
+        print(
+            f"    Extents:  {extents[0]:.1f} x {extents[1]:.1f} x {extents[2]:.1f} mm"
+        )
+        print(
+            f"    Centroid: ({centroid[0]:.1f}, {centroid[1]:.1f}, {centroid[2]:.1f})"
+        )
 
         # Cross-sections along Z (useful for parts with Z up)
         z_min, z_max = bounds[0][2], bounds[1][2]
         z_range = z_max - z_min
         if z_range > 10:
-            print(f"    Z cross-sections:")
+            print("    Z cross-sections:")
             for frac in [0.1, 0.5, 0.9]:
                 z = z_min + frac * z_range
                 try:
@@ -221,20 +254,30 @@ def analyze_stl(stl_dir: Path):
                         if polys:
                             largest = max(polys, key=lambda p: p.area)
                             verts = np.array(largest.exterior.coords)
-                            pts = np.column_stack([verts, np.zeros(len(verts)), np.ones(len(verts))])
+                            pts = np.column_stack(
+                                [verts, np.zeros(len(verts)), np.ones(len(verts))]
+                            )
                             pts_w = (xform @ pts.T).T[:, :3]
                             cx, cy = pts_w[:, 0].mean(), pts_w[:, 1].mean()
-                            print(f"      z={z:+.1f}: center=({cx:+.1f}, {cy:+.1f}), area={largest.area:.0f}mm²")
+                            print(
+                                f"      z={z:+.1f}: center=({cx:+.1f}, {cy:+.1f}), "
+                                f"area={largest.area:.0f}mm²"
+                            )
                 except Exception:
                     pass
 
 
 # ---------- main ----------
 
+
 def main():
     parser = argparse.ArgumentParser(description="Verify URDF kinematics")
-    parser.add_argument("--json", action="store_true", help="Output structured JSON results")
-    parser.add_argument("--tolerance", type=float, default=5.0, help="Tolerance in mm (default: 5)")
+    parser.add_argument(
+        "--json", action="store_true", help="Output structured JSON results"
+    )
+    parser.add_argument(
+        "--tolerance", type=float, default=5.0, help="Tolerance in mm (default: 5)"
+    )
     args = parser.parse_args()
 
     robot_dir = Path(__file__).parent
@@ -271,15 +314,17 @@ def main():
     for r in results:
         status = "PASS" if r["pass"] else "FAIL"
         if r["error_mm"] is not None:
-            print(f"  {r['joint']:10s}: {status}  error={r['error_mm']:.1f}mm  "
-                  f"expected={r['expected_mm']}  actual={r['actual_mm']}")
+            print(
+                f"  {r['joint']:10s}: {status}  error={r['error_mm']:.1f}mm  "
+                f"expected={r['expected_mm']}  actual={r['actual_mm']}"
+            )
         else:
             print(f"  {r['joint']:10s}: {status}  ({r['reason']})")
     print()
 
     # Also verify at a test pose
     test_angles = {"joint_2": 0.5, "joint_3": -0.5}
-    print(f"=== Test pose (J2=0.5rad, J3=-0.5rad) ===")
+    print("=== Test pose (J2=0.5rad, J3=-0.5rad) ===")
     verify_urdf(urdf_path, test_angles)
 
     # STL analysis

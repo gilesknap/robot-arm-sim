@@ -43,9 +43,7 @@ class PartAnalysis:
     face_count: int = 0
     bounding_box_min: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
     bounding_box_max: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
-    bounding_box_extents: list[float] = field(
-        default_factory=lambda: [0.0, 0.0, 0.0]
-    )
+    bounding_box_extents: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
     volume_mm3: float = 0.0
     surface_area_mm2: float = 0.0
     center_of_mass: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
