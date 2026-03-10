@@ -30,16 +30,18 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
 
 4. **Start the simulator** if not already running:
    ```bash
-   uv run robot-arm-sim simulate robots/<name>/ &
-   disown
+   nohup uv run robot-arm-sim simulate robots/<name>/ > /tmp/sim.log 2>&1 &
    ```
    Wait ~5 seconds, then verify with `curl -s -o /dev/null -w "%{http_code}" http://localhost:8080` (expect 200).
+   - The simulator uses `show=False` so it won't auto-open browser tabs.
+   - To stop: click "Stop Simulator" in the UI, or `pgrep -f "robot-arm-sim" | xargs kill`.
+   - Check `/tmp/sim.log` if the process dies unexpectedly.
 
 5. **Set up browser tab:**
-   - Load browser tools first: `ToolSearch("select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__read_page,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__javascript_tool")`
+   - Load browser tools first: `ToolSearch("select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__read_page,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__navigate")`
    - Call `mcp__claude-in-chrome__tabs_context_mcp` with `createIfEmpty: true` to get a tab
-   - **IMPORTANT:** The user must navigate to `http://localhost:8080` in the Claude tab group tab themselves — `mcp__claude-in-chrome__navigate` to localhost may be denied
-   - After the user confirms the page is loaded, call `tabs_context_mcp` again to verify the tab URL shows the simulator
+   - Navigate with `mcp__claude-in-chrome__navigate` to `http://localhost:8080`
+   - After navigation, wait 4 seconds for the 3D scene to load before interacting
 
 6. **Handle WebGL/connection issues:**
    - If `read_page` shows "WebGL context lost" or "Connection lost", press F5 to reload:
@@ -49,7 +51,13 @@ Use this skill when the user says the URDF "doesn't look right", wants to fix me
    - Wait 3 seconds after reload before interacting
    - If "Connection lost" persists, the simulator process may have died — check with `pgrep -f "robot-arm-sim simulate"` and restart if needed
 
-7. **Capture the zero-config pose:**
+7. **Use the label toggle** to identify parts and joints:
+   - Click "Show Labels" button to display callout labels on the 3D model
+   - Blue labels (left side) = part/mesh names (A0, A1, A2, etc.)
+   - Red labels (right side) = joint names (joint_1, joint_2, etc.)
+   - Part labels point to bounding box centers; joint labels point to joint origins
+
+8. **Capture the zero-config pose:**
    - Use `mcp__claude-in-chrome__computer action=screenshot` to capture the full page
    - Use `action=zoom` with a region to inspect specific joints closely
    - This is the baseline to compare against the reference zero-config image

@@ -4,10 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../Robot"
-		},
-		{
-			"path": "../tpi-k3s-ansible"
+			"path": "../builder2ibek"
 		}
 	],
 	"settings": {}
