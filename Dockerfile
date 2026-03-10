@@ -37,8 +37,12 @@ COPY --from=build /python /python
 
 # Copy the environment, but not the source code
 COPY --from=build /app/.venv /app/.venv
+
+# Copy the robot data files needed at runtime
+COPY --from=build /app/robots /app/robots
+
 ENV PATH=/app/.venv/bin:$PATH
 
 # change this entrypoint if it is not the same as the repo
 ENTRYPOINT ["robot-arm-sim"]
-CMD ["--version"]
+CMD ["simulate", "/app/robots/Meca500-R3"]

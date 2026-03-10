@@ -502,11 +502,19 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
 
                 os.kill(os.getpid(), signal.SIGTERM)
 
-            with (
-                ui.row()
-                .classes("q-pa-sm")
-                .style("width: 900px; justify-content: flex-end; gap: 8px;")
-            ):
+            with ui.row().classes("q-pa-sm").style("width: 900px; gap: 8px;"):
+                ui.button(
+                    "About",
+                    on_click=lambda: ui.navigate.to(
+                        "https://gilesknap.github.io/"
+                        "robot-arm-sim/main/"
+                        "explanations/building-with-claude.html",
+                        new_tab=True,
+                    ),
+                ).props("color=green-7 flat dense")
+
+                ui.space()
+
                 label_btn = ui.button("Show Labels", on_click=toggle_labels).props(
                     "flat dense"
                 )
@@ -536,16 +544,6 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     ui.run_javascript(_SCREENSHOT_JS)
 
                 ui.button("Screenshot", on_click=_take_screenshot).props("flat dense")
-
-                ui.button(
-                    "About",
-                    on_click=lambda: ui.navigate.to(
-                        "https://gilesknap.github.io/"
-                        "robot-arm-sim/main/"
-                        "explanations/building-with-claude.html",
-                        new_tab=True,
-                    ),
-                ).props("flat dense")
 
                 ui.button("Stop Simulator", on_click=shutdown).props(
                     "color=red-7 flat dense"

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: robot-arm-sim
+description: A Helm chart for deploying the robot arm simulator
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
