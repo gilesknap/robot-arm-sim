@@ -13,6 +13,7 @@ links:
     mesh: A1
   - name: link_2
     mesh: A2
+    visual_xyz: [0, 0, -0.012]  # lower A2 so shoulder bore centers on J2 COR
   - name: link_3
     mesh: A3_4
     visual_xyz: [0, -0.013, 0]  # center A3_4 within A2 (bore is 11mm off-center in Y)
@@ -22,6 +23,7 @@ links:
     mesh: null  # virtual link — J5 pitch between A5 and A6
   - name: link_6
     mesh: A6
+    visual_xyz: [-0.020, 0, 0]  # shift A6 back 20mm so bore circle centers on COR inside A5 yoke
 
 joints:
   - name: joint_1
@@ -62,7 +64,7 @@ joints:
     child: link_5
     axis: [0, 1, 0]
     limits: [-2.0071, 2.0071]
-    origin: [0.048, 0, 0]  # at A5 pitch bearing (Z-axis cylinder center) — inside the yoke jaws
+    origin: [0.055, 0, 0]  # deeper into A5 yoke so A6 bore circle is hidden between jaws
 
   - name: joint_6
     type: revolute
