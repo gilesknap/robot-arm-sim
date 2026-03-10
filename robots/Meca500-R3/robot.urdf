@@ -17,7 +17,7 @@
   </link>
   <link name="link_2">
     <visual>
-      <origin xyz="-0.000186 0.000776 0.019943" rpy="0 0 0"/>
+      <origin xyz="-0.000186 0.000776 0.001943" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -25,7 +25,7 @@
   </link>
   <link name="link_3">
     <visual>
-      <origin xyz="-0.000491 -0.001918 0.040056" rpy="0 0 0"/>
+      <origin xyz="-0.000491 -0.001918 0.002056" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A3_4.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -72,7 +72,7 @@
   <joint name="joint_4" type="revolute">
     <parent link="link_3"/>
     <child link="link_4"/>
-    <origin xyz="0.062000 0 0.076000" rpy="0 0 0"/>
+    <origin xyz="0.062000 0 0.038000" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-2.9671" upper="2.9671" effort="100" velocity="1"/>
   </joint>

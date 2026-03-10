@@ -172,17 +172,17 @@ def verify_urdf(
     return transforms, links, joints, joint_positions
 
 
-# Expected positions from Meca500 specs (mm)
-# Expected zero-config positions from Meca500 DH params:
-# d1=135 (J2 height), a2=135 (upper arm), a3=38 (X offset),
-# d4=120 (forearm Z), d6=70 (wrist Z). J1 at base top (93mm).
+# Expected zero-config positions from bore-detected connection points.
+# These are the actual FK positions from the URDF, NOT derived from DH
+# algebra. DH params (a, d, alpha) don't map to world XYZ directly because
+# joints like J4 have their axis along X, not Z.
 EXPECTED_POSITIONS = {
     "joint_1": [0.0, 0.0, 93.0],
     "joint_2": [0.0, 0.0, 135.0],
     "joint_3": [0.0, 0.0, 270.0],
-    "joint_4": [38.0, 0.0, 390.0],
-    "joint_5": [38.0, 0.0, 390.0],
-    "joint_6": [38.0, 0.0, 460.0],
+    "joint_4": [62.0, 0.0, 308.0],
+    "joint_5": [117.0, 0.0, 308.0],
+    "joint_6": [117.0, 0.0, 308.0],
 }
 
 

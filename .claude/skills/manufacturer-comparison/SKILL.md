@@ -25,21 +25,29 @@ Use this skill when:
 ### Check local files first
 
 ```bash
+# Check for previously saved reference images
+ls robots/<name>/images/reference_*.png 2>/dev/null
+
 # Look for PDFs, images, and datasheets already in the robot directory
 find robots/<name>/ -type f \( -name "*.pdf" -o -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.svg" \) | head -20
 ```
 
+**If `robots/<name>/images/reference_*.png` files exist**, these were saved from a previous session — use them directly as ground truth. Skip web search and PDF extraction.
+
 Read any PDFs found — manufacturer manuals often contain dimensioned orthographic drawings.
 
-### Web search for technical drawings
+### Web search for reference material
 
 Use `WebSearch` with these queries (in priority order):
 
 1. `"<robot model>" technical drawing dimensions mm` — dimensioned orthographic views
-2. `"<robot model>" datasheet PDF filetype:pdf` — official datasheets
-3. `"<robot model>" user manual PDF` — full manuals with mechanical drawings
-4. `"<robot model>" CAD model STEP` — CAD files may have orthographic renders
-5. `"<robot model>" dimensions specifications` — product pages with dimension diagrams
+2. `"<robot model>" zero position product photo` — actual photos for shape comparison
+3. `"<robot model>" datasheet PDF filetype:pdf` — official datasheets
+4. `"<robot model>" user manual PDF` — full manuals with mechanical drawings
+5. `"<robot model>" CAD model STEP` — CAD files may have orthographic renders
+6. `"<robot model>" dimensions specifications` — product pages with dimension diagrams
+
+**Real photos are as valuable as technical drawings** — they show actual part shapes, gaps, proportions, and surface details that line drawings omit. Collect both.
 
 ### Evaluate and prioritize references
 
@@ -52,15 +60,38 @@ Use `WebSearch` with these queries (in priority order):
 
 **Must-have**: At least one dimensioned drawing showing link lengths. Without dimensions, you can only check silhouettes, not absolute accuracy.
 
-### Save reference data
+### Save reference images to the robot directory
 
-Download or note URLs for:
-- Front view drawing with dimensions
-- Side view drawing with dimensions
-- Top view if available
-- Any DH parameter tables from the manual
+**Always save reference images locally** so they persist across sessions and can be viewed directly without re-extracting from PDFs or re-downloading.
 
-Extract key dimensions into a reference table:
+```bash
+# Create images directory
+mkdir -p robots/<name>/images/
+
+# Extract dimensioned drawings from manufacturer PDF
+pdftoppm -png -r 150 -f <page> -l <page> \
+  robots/<name>/<manual>.pdf /tmp/ref 2>/dev/null
+cp /tmp/ref-<page>.png robots/<name>/images/reference_side_dimensions.png
+
+# Download product photos from web (use curl)
+curl -sL -o robots/<name>/images/reference_photo_side.jpg "<url>"
+```
+
+Use descriptive filenames that encode the source type and view:
+- `reference_side_dimensions.png` — dimensioned technical drawing (side view)
+- `reference_front_dimensions.png` — dimensioned technical drawing (front view)
+- `reference_side_cad.png` — CAD render at zero config
+- `reference_photo_side.jpg` — real photo, side view
+- `reference_photo_3quarter.jpg` — real photo, three-quarter view
+- `reference_photo_front.jpg` — real photo, front view
+
+**Collect both technical drawings AND photos.** Drawings give exact measurements; photos show actual part shapes, gaps, and proportions that drawings may simplify or omit. Both are needed for thorough comparison.
+
+These saved images serve as ground truth for all future comparison sessions.
+
+### Extract key dimensions
+
+From the saved reference images, note the key link lengths:
 
 ```
 Link lengths (from manufacturer):
@@ -273,6 +304,21 @@ At each pose:
 - [ ] `verify_kinematics.py --json` passes all joints
 - [ ] No visible gaps, overlaps, or misaligned parts
 - [ ] `chain.yaml` changes are documented (which visual_xyz/rpy values were added and why)
+
+---
+
+## Common Pitfall: DH Parameters vs Bore Detection
+
+**DH parameters do NOT map directly to world XYZ positions.** DH convention defines link lengths and offsets in each joint's local frame. For joints whose axis is not world-Z (e.g., J4 with axis along X), the DH `d` and `a` parameters produce offsets in the joint-local frame, not world Z/X.
+
+**Wrong approach:** Convert DH params to expected world positions by assuming d→Z and a→X. This fails for any robot where joint axes change orientation (which is most robots).
+
+**Correct approach:**
+1. Use bore-detected connection points as joint origins — these are actual geometric positions measured from the STL meshes
+2. Validate using **inter-joint distances** (which are frame-invariant) rather than absolute world positions
+3. Compare distances against DH `a` and `d` values, which represent link lengths regardless of frame orientation
+
+The `urdf_generator.py` pipeline now warns if inter-joint distances deviate from DH params by >5mm.
 
 ---
 

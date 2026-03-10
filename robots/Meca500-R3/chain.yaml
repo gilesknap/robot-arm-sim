@@ -13,10 +13,10 @@ links:
     mesh: A1
   - name: link_2
     mesh: A2
-    visual_xyz: [0, 0, -0.012]  # lower A2 so shoulder bore centers on J2 COR
+    visual_xyz: [0, 0, -0.030]  # lower A2 ~30mm to compensate proximal bore at Z=-31.9mm
   - name: link_3
     mesh: A3_4
-    visual_xyz: [0, -0.013, 0]  # center A3_4 within A2 (bore is 11mm off-center in Y)
+    visual_xyz: [0, -0.013, -0.038]  # center A3_4 in Y + lower ~38mm for proximal bore at Z=-40mm
   - name: link_4
     mesh: A5  # A5 is the wrist housing, rotated by J4 (forearm roll)
   - name: link_5
@@ -56,7 +56,7 @@ joints:
     child: link_4
     axis: [1, 0, 0]
     limits: [-2.9671, 2.9671]
-    origin: [0.062, 0, 0.076]  # position at A3_4 front bore (distal connection point)
+    origin: [0.062, 0, 0.038]  # lowered 38mm to match A3_4's visual distal bore position
 
   - name: joint_5
     type: revolute
