@@ -1,6 +1,29 @@
 part_name: A3_4
 source_file: stl_files/A3_4.stl
 format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - 0.491
+  - -11.082
+  - -40.056
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 38.3
+  method: cross_section
+- end: distal
+  position:
+  - 62.142
+  - -8.587
+  - 35.522
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 20.0
+  method: cross_section
 geometry:
   vertex_count: 32936
   face_count: 65852

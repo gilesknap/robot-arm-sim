@@ -9,6 +9,7 @@ import trimesh
 
 from robot_arm_sim.models.part import PartAnalysis
 
+from .connections import detect_connection_points
 from .features import detect_features
 from .parsers import get_parser
 from .renderer import render_views
@@ -52,8 +53,20 @@ def run_analysis(robot_dir: Path) -> None:
         # Detect features
         print(f"  Detecting features for {stl_file.name}...")
         mesh = trimesh.load(stl_file, force="mesh")
+        assert isinstance(mesh, trimesh.Trimesh)
         features = detect_features(mesh)
         analysis.features = features
+
+        # Detect connection points
+        print(f"  Detecting connection points for {stl_file.name}...")
+        conn_points = detect_connection_points(mesh, features, analysis.part_name)
+        analysis.connection_points = conn_points
+        if conn_points:
+            for cp in conn_points:
+                print(
+                    f"    {cp.end}: pos={cp.position} "
+                    f"axis={cp.axis} r={cp.radius_mm}mm ({cp.method})"
+                )
 
         # Generate text description
         analysis.text_description = _generate_text_description(analysis)
@@ -82,9 +95,7 @@ def _generate_text_description(analysis: PartAnalysis) -> str:
     lines = [f"Part '{analysis.part_name}' from {analysis.source_file}."]
 
     ext = analysis.bounding_box_extents
-    lines.append(
-        f"Bounding box: {ext[0]:.1f} x {ext[1]:.1f} x {ext[2]:.1f} mm."
-    )
+    lines.append(f"Bounding box: {ext[0]:.1f} x {ext[1]:.1f} x {ext[2]:.1f} mm.")
 
     if analysis.is_watertight:
         lines.append(f"Watertight solid, volume {analysis.volume_mm3:.1f} mm³.")

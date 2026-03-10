@@ -1,6 +1,29 @@
 part_name: A5
 source_file: stl_files/A5.stl
 format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - 0.005
+  - -4.871
+  - 0.093
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 20.0
+  method: cross_section
+- end: distal
+  position:
+  - 81.155
+  - -29.951
+  - 0.426
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 20.0
+  method: cross_section
 geometry:
   vertex_count: 9096
   face_count: 18052

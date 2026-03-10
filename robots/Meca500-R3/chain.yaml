@@ -1,0 +1,75 @@
+robot_name: Meca500-R3
+dh_params:  # from manufacturer specs (mm)
+  d1: 135    # base to J2
+  a2: 135    # upper arm length
+  a3: 38     # elbow offset (X)
+  d4: 120    # forearm length
+  d6: 70     # wrist to flange
+
+links:
+  - name: base_link
+    mesh: A0
+  - name: link_1
+    mesh: A1
+  - name: link_2
+    mesh: A2
+    visual_xyz: [0, 0, -0.012]  # lower A2 so shoulder bore centers on J2 COR
+  - name: link_3
+    mesh: A3_4
+    visual_xyz: [0, -0.013, 0]  # center A3_4 within A2 (bore is 11mm off-center in Y)
+  - name: link_4
+    mesh: A5  # A5 is the wrist housing, rotated by J4 (forearm roll)
+  - name: link_5
+    mesh: null  # virtual link — J5 pitch between A5 and A6
+  - name: link_6
+    mesh: A6
+    visual_xyz: [-0.020, 0, 0]  # shift A6 back 20mm so bore circle centers on COR inside A5 yoke
+
+joints:
+  - name: joint_1
+    type: revolute
+    parent: base_link
+    child: link_1
+    axis: [0, 0, 1]
+    limits: [-3.054, 3.054]
+    origin: [0, 0, 0.093]  # d1_base = 93mm (base height to J1)
+
+  - name: joint_2
+    type: revolute
+    parent: link_1
+    child: link_2
+    axis: [0, 1, 0]
+    limits: [-1.2217, 1.5708]
+    origin: [0, 0, 0.042]  # J1 to J2 = 135 - 93 = 42mm
+
+  - name: joint_3
+    type: revolute
+    parent: link_2
+    child: link_3
+    axis: [0, 1, 0]
+    limits: [-2.3562, 1.2217]
+    origin: [0, 0, 0.135]  # a2 = 135mm (upper arm)
+
+  - name: joint_4
+    type: revolute
+    parent: link_3
+    child: link_4
+    axis: [1, 0, 0]
+    limits: [-2.9671, 2.9671]
+    origin: [0.062, 0, 0.076]  # position at A3_4 front bore (distal connection point)
+
+  - name: joint_5
+    type: revolute
+    parent: link_4
+    child: link_5
+    axis: [0, 1, 0]
+    limits: [-2.0071, 2.0071]
+    origin: [0.055, 0, 0]  # deeper into A5 yoke so A6 bore circle is hidden between jaws
+
+  - name: joint_6
+    type: revolute
+    parent: link_5
+    child: link_6
+    axis: [1, 0, 0]
+    limits: [-3.1416, 3.1416]
+    origin: [0, 0, 0]  # J5 and J6 co-located at the pitch/roll point

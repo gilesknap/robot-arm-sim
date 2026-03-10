@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(*)",
+      "WebSearch",
+      "WebFetch(*)",
+      "mcp__claude-in-chrome__*"
+    ],
+    "prompt": [
+      "Bash(git push --force *)",
+      "Bash(git reset --hard*)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(rsync *)",
+      "Bash(sftp *)",
+      "Bash(wget --post* *)",
+      "Bash(telnet *)",
+      "Bash(mail *)",
+      "Bash(sendmail *)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -z \"$REMOTE_CONTAINERS\" ]; then echo 'BLOCKED: This project requires the devcontainer. Please reopen in the devcontainer before using Claude Code.'; exit 2; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

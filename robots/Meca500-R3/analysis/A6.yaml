@@ -1,6 +1,29 @@
 part_name: A6
 source_file: stl_files/A6.stl
 format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - -22.035
+  - -2.715
+  - 0.302
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 28.1
+  method: cross_section
+- end: distal
+  position:
+  - 69.465
+  - -0.047
+  - 0.321
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 15.2
+  method: cross_section
 geometry:
   vertex_count: 6079
   face_count: 12154
