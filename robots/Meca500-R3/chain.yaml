@@ -16,7 +16,7 @@ links:
     visual_xyz: [0, 0, -0.039]  # shift down 39mm to align bore with joint_2
   - name: link_3
     mesh: A3_4
-    visual_xyz: [0, 0, 0.014]  # shift up 14mm to close gap with A5
+    visual_xyz: [0, 0, -0.040]  # shift down so joint_3 bore aligns with centre of square side plates (Z≈0mm in mesh)
   - name: link_4
     mesh: null  # virtual link (J4 colocated with J3 end)
   - name: link_5
