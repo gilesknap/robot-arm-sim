@@ -15,6 +15,7 @@ links:
     mesh: A2
   - name: link_3
     mesh: A3_4
+    visual_xyz: [0, -0.013, 0]  # center A3_4 within A2 (bore is 11mm off-center in Y)
   - name: link_4
     mesh: A5  # A5 is the wrist housing, rotated by J4 (forearm roll)
   - name: link_5
