@@ -210,3 +210,6 @@ Once all visible parts match the reference:
 - **visual_xyz is additive** — `[0, 0, 0]` means "use auto-computed position". Non-zero values shift relative to that
 - **Never edit robot.urdf** — always edit chain.yaml and regenerate
 - **Always restart the simulator process** after regenerating the URDF — hot reload does NOT pick up URDF file changes
+- **Check connection point detection** — the analyzer may pick a flat face (e.g. bottom plate) as proximal instead of the actual bore. Cross-check with flat_faces centroids in analysis YAML. If `visual_xyz` exceeds ~40mm, the proximal is likely wrong.
+- **Don't assume visual_rpy** — check reference photos for mesh orientation at zero config. Wrist parts (A5/A6) may extend along +X naturally and should NOT be rotated to Z-up if the wrist points horizontally at zero config.
+- **Bore direction matters** — if a bore is on the FRONT face of a part (X-axis), the child part connects from the front, not the top. Check distal axis in analysis YAML.

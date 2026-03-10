@@ -21,11 +21,10 @@ links:
     mesh: null  # virtual link (J4 colocated with J3 end)
   - name: link_5
     mesh: A5
-    visual_rpy: [0, -1.5708, 0]  # STL extends along +X, rotate to Z-up
-    visual_xyz: [0, 0, -0.005]  # shift down 5mm to close gap with A3_4
+    # no additive visual_xyz — auto-offset places bore at joint origin for correct rotation
   - name: link_6
     mesh: A6
-    visual_rpy: [0, -1.5708, 0]  # STL extends along +X, rotate to Z-up
+    # no additive visual_xyz — auto-offset places bore at joint origin for correct rotation
 
 joints:
   - name: joint_1
@@ -59,6 +58,7 @@ joints:
     axis: [0, 0, 1]
     limits: [-2.9671, 2.9671]
     origin: [0.038, 0, 0.120]  # a3=38mm X offset + d4=120mm Z (forearm)
+    origin_rpy: [0, -1.5708, 0]  # rotate frame so Z→+X (wrist bore direction)
 
   - name: joint_5
     type: revolute
@@ -74,4 +74,4 @@ joints:
     child: link_6
     axis: [0, 0, 1]
     limits: [-3.1416, 3.1416]
-    origin: [0, 0, 0.070]  # d6 = 70mm
+    origin: [0.070, 0, 0]  # d6=70mm, expressed in rotated frame (+X = world +Z)

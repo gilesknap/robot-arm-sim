@@ -34,7 +34,7 @@
   <link name="link_4"/>
   <link name="link_5">
     <visual>
-      <origin xyz="0.000093 0.004871 -0.005005" rpy="0 -1.570800 0"/>
+      <origin xyz="-0.000005 0.004871 -0.000093" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A5.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -42,7 +42,7 @@
   </link>
   <link name="link_6">
     <visual>
-      <origin xyz="0.000302 0.002715 0.022035" rpy="0 -1.570800 0"/>
+      <origin xyz="0.022035 0.002715 -0.000302" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A6.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -72,7 +72,7 @@
   <joint name="joint_4" type="revolute">
     <parent link="link_3"/>
     <child link="link_4"/>
-    <origin xyz="0.038000 0 0.120000" rpy="0 0 0"/>
+    <origin xyz="0.038000 0 0.120000" rpy="0 -1.570800 0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-2.9671" upper="2.9671" effort="100" velocity="1"/>
   </joint>
@@ -86,7 +86,7 @@
   <joint name="joint_6" type="revolute">
     <parent link="link_5"/>
     <child link="link_6"/>
-    <origin xyz="0 0 0.070000" rpy="0 0 0"/>
+    <origin xyz="0.070000 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-3.1416" upper="3.1416" effort="100" velocity="1"/>
   </joint>

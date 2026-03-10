@@ -100,9 +100,10 @@ def generate_urdf(
             chain.get("dh_params", {}), messages,
         )
 
+        jnt_rpy = joint_spec.get("origin_rpy", [0, 0, 0])
         ET.SubElement(joint_el, "origin", **{
             "xyz": _fmt_xyz(jnt_xyz),
-            "rpy": "0 0 0",
+            "rpy": _fmt_xyz(jnt_rpy),
         })
 
         ET.SubElement(
@@ -280,6 +281,7 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
         root = tree.getroot()
 
         pos = np.zeros(3)
+        rot = np.eye(3)
         messages.append("FK validation (zero config):")
 
         for joint_el in root.findall("joint"):
@@ -290,8 +292,21 @@ def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
                 if origin is not None
                 else "0 0 0"
             )
+            rpy_str = (
+                origin.get("rpy", "0 0 0")
+                if origin is not None
+                else "0 0 0"
+            )
             xyz = np.array([float(v) for v in xyz_str.split()])
-            pos = pos + xyz
+            rpy = [float(v) for v in rpy_str.split()]
+
+            # Transform: pos_world = rot_parent @ xyz_local + pos_parent
+            pos = pos + rot @ xyz
+
+            # Update cumulative rotation if rpy is non-zero
+            if any(abs(v) > 1e-6 for v in rpy):
+                rot = rot @ _rpy_to_rotation(rpy)
+
             pos_mm = pos * 1000
             messages.append(
                 f"  {name}: "
