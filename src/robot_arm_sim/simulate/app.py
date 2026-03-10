@@ -71,6 +71,10 @@ def create_app(robot_dir: Path, port: int = 8080) -> None:
     if stl_dir.exists():
         app.add_static_files("/stl", str(stl_dir))
 
+    @app.get("/healthz")
+    async def healthz():
+        return {"status": "ok"}
+
     @ui.page("/")
     def index():
         _build_ui(robot, robot_dir)
