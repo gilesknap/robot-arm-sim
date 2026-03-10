@@ -1,0 +1,1097 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Building a Robot Simulator with Claude &#8212; robot-arm-sim 0.1.dev38+ga7e0dd07c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=aebe003c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/building-with-claude';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'main';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Implementation plan" href="implementation-plan.html" />
+    <link rel="prev" title="Explanations" href="../explanations.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="main" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">robot-arm-sim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Building a Robot Simulator with Claude</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="building-a-robot-simulator-with-claude">
+<h1>Building a Robot Simulator with Claude<a class="headerlink" href="#building-a-robot-simulator-with-claude" title="Link to this heading">#</a></h1>
+<p>This is the story of how robot-arm-sim was built from scratch using
+<a class="reference external" href="https://claude.com/claude-code">Claude Code</a> as a pair-programming partner.
+It is aimed at anyone interested in learning how to use Claude to build
+something ambitious — a multi-stage pipeline that analyses CAD meshes, reasons
+about robot kinematics, generates industry-standard URDF files, and renders an
+interactive 3D simulator in the browser.</p>
+<p>The project went through several distinct phases: an initial design
+conversation, a first implementation sprint, a difficult debugging cycle where
+the generated robot didn’t match reality, and a final visual-tuning phase
+using reference photos and browser automation. Each phase taught different
+lessons about how to collaborate with Claude effectively.</p>
+<p>Every prompt shown below is <strong>verbatim</strong> — exactly what was typed into Claude
+Code. The responses are summarised, but the key decisions and reasoning are
+preserved.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#phase-1-the-design-conversation" id="id1">Phase 1: The design conversation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#prompt-1-understanding-the-input" id="id2">Prompt 1 — Understanding the input</a></p></li>
+<li><p><a class="reference internal" href="#prompt-2-ambition-check" id="id3">Prompt 2 — Ambition check</a></p></li>
+<li><p><a class="reference internal" href="#prompt-3-project-structure" id="id4">Prompt 3 — Project structure</a></p></li>
+<li><p><a class="reference internal" href="#prompt-4-the-assembly-reasoning-skill" id="id5">Prompt 4 — The assembly reasoning skill</a></p></li>
+<li><p><a class="reference internal" href="#prompt-5-output-format" id="id6">Prompt 5 — Output format</a></p></li>
+<li><p><a class="reference internal" href="#prompt-6-the-simulator" id="id7">Prompt 6 — The simulator</a></p></li>
+<li><p><a class="reference internal" href="#prompt-7-gui-framework" id="id8">Prompt 7 — GUI framework</a></p></li>
+<li><p><a class="reference internal" href="#prompt-8-making-it-awesome" id="id9">Prompt 8 — Making it awesome</a></p></li>
+<li><p><a class="reference internal" href="#prompt-9-confirming-the-pipeline" id="id10">Prompt 9 — Confirming the pipeline</a></p></li>
+<li><p><a class="reference internal" href="#prompt-10-documentation-and-planning" id="id11">Prompt 10 — Documentation and planning</a></p></li>
+<li><p><a class="reference internal" href="#prompt-11-web-search-fallback" id="id12">Prompt 11 — Web search fallback</a></p></li>
+<li><p><a class="reference internal" href="#prompt-12-package-management" id="id13">Prompt 12 — Package management</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#phase-2-first-implementation" id="id14">Phase 2: First implementation</a></p></li>
+<li><p><a class="reference internal" href="#phase-3-when-the-robot-doesn-t-match-reality" id="id15">Phase 3: When the robot doesn’t match reality</a></p>
+<ul>
+<li><p><a class="reference internal" href="#prompt-13-the-comparison-that-changed-everything" id="id16">Prompt 13 — The comparison that changed everything</a></p></li>
+<li><p><a class="reference internal" href="#prompt-14-implementing-the-fix" id="id17">Prompt 14 — Implementing the fix</a></p></li>
+<li><p><a class="reference internal" href="#prompt-15-documentation" id="id18">Prompt 15 — Documentation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#phase-4-visual-tuning-with-reference-images" id="id19">Phase 4: Visual tuning with reference images</a></p>
+<ul>
+<li><p><a class="reference internal" href="#prompt-16-creating-the-tuning-skill" id="id20">Prompt 16 — Creating the tuning skill</a></p></li>
+<li><p><a class="reference internal" href="#prompt-17-interactive-debugging-session" id="id21">Prompt 17 — Interactive debugging session</a></p></li>
+<li><p><a class="reference internal" href="#prompt-18-the-wrist-connection-breakthrough" id="id22">Prompt 18 — The wrist connection breakthrough</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#lessons-learned" id="id23">Lessons learned</a></p>
+<ul>
+<li><p><a class="reference internal" href="#for-prompting-claude-on-complex-projects" id="id24">For prompting Claude on complex projects</a></p></li>
+<li><p><a class="reference internal" href="#for-splitting-work-between-human-and-ai" id="id25">For splitting work between human and AI</a></p></li>
+<li><p><a class="reference internal" href="#for-iterative-debugging" id="id26">For iterative debugging</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#the-full-commit-history" id="id27">The full commit history</a></p></li>
+<li><p><a class="reference internal" href="#related-documents" id="id28">Related documents</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="phase-1-the-design-conversation">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Phase 1: The design conversation</a><a class="headerlink" href="#phase-1-the-design-conversation" title="Link to this heading">#</a></h2>
+<p>The project started with nothing but a set of STL mesh files for a Meca500-R3
+collaborative robot arm and a blank Python project scaffold. The first ten
+prompts were a rapid-fire design conversation that shaped the entire
+architecture before any code was written.</p>
+<section id="prompt-1-understanding-the-input">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Prompt 1 — Understanding the input</a><a class="headerlink" href="#prompt-1-understanding-the-input" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>what is the best way for you to load stl files into context and understand
+the shapes they describe</strong></p>
+</div></blockquote>
+<p>Claude explained that ASCII STL can be read as text, but binary STL (the
+common format) needs parsing. The recommended approach: use <code class="docutils literal notranslate"><span class="pre">trimesh</span></code> to
+extract geometry properties (bounding box, dimensions, volume, centre of mass)
+and render multi-angle views to PNG for visual inspection. This set the
+pattern for the whole project — give Claude structured data it can reason
+about, not raw binary.</p>
+</section>
+<section id="prompt-2-ambition-check">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Prompt 2 — Ambition check</a><a class="headerlink" href="#prompt-2-ambition-check" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>I want you to be able to do a deep analysis of the models and infer how
+the parts fit together. Do you think you are up to that?</strong></p>
+</div></blockquote>
+<p>This is a useful prompting pattern: <strong>ask Claude whether a task is feasible
+before committing to it</strong>. Claude confirmed it could identify geometric
+features (cylindrical surfaces for joints, flat mating faces, holes and
+shafts) and analyse adjacency between sequentially-named parts to infer
+assembly relationships. This gave confidence to proceed.</p>
+</section>
+<section id="prompt-3-project-structure">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Prompt 3 — Project structure</a><a class="headerlink" href="#prompt-3-project-structure" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>OK we have a python project here. I’d like to change argparse to typer and
+have some sub commands. The firs subcommand is to parse binary stl files (but
+leave open the possibilty of other formats). This parsing should create an
+output that is fully understandable to claude.</strong></p>
+</div></blockquote>
+<p>Two important decisions here. First, the choice of Typer for the CLI — a
+concrete technology steer from the human. Second, the key design insight:
+<strong>the analysis output should be “fully understandable to Claude”</strong>. This meant
+structured YAML with human-readable text descriptions, not just numeric data.
+Every design choice downstream follows from this principle.</p>
+</section>
+<section id="prompt-4-the-assembly-reasoning-skill">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Prompt 4 — The assembly reasoning skill</a><a class="headerlink" href="#prompt-4-the-assembly-reasoning-skill" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>So now I want to write a claude skill that uses the above to reason about
+the parts it can see. I want the skill to infer how the parts fit together
+and where the pivot points are (to make a robot arm - this will always be the
+target, although we will want to add other robot descriptions later)</strong></p>
+</div></blockquote>
+<p>A Claude “skill” is a markdown file that gives Claude specialised instructions
+for a particular task. This prompt established the core architecture: <strong>split
+computation from reasoning</strong>. Python code handles the precise geometry; a
+Claude skill handles the semantic understanding of how parts form a robot.</p>
+</section>
+<section id="prompt-5-output-format">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Prompt 5 — Output format</a><a class="headerlink" href="#prompt-5-output-format" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>Next I want that skill to output a robot description that can be fed into
+a python based simulator. You mentioned a format for that earlier - is there
+a standard format that this could use?</strong></p>
+</div></blockquote>
+<p>Claude recommended URDF (Unified Robot Description Format), the industry
+standard supported by PyBullet, MuJoCo, Drake, and ROS. This was a case of
+<strong>letting Claude pick the standard</strong> rather than prescribing one — Claude’s
+training data includes extensive robotics knowledge, so it was well-placed to
+make this choice.</p>
+</section>
+<section id="prompt-6-the-simulator">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Prompt 6 — The simulator</a><a class="headerlink" href="#prompt-6-the-simulator" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>nice. lets write the intermediate files down in the robot folder. Then lets
+have an additional entrypoint into the python project ‘simulate’. This will
+faithfully render the robot in 3d - with the render including the details
+from the original stl files. The GUI will also supply sliders that can rotate
+each of the joints of the robot so that the simulation is animated
+accordingly.</strong></p>
+</div></blockquote>
+<p>This prompt defined the full pipeline in one sentence:
+<code class="docutils literal notranslate"><span class="pre">analyze</span> <span class="pre">→</span> <span class="pre">skill</span> <span class="pre">→</span> <span class="pre">URDF</span> <span class="pre">→</span> <span class="pre">simulate</span></code>. The key decision was keeping
+intermediate files in the robot folder so each stage is independently
+re-runnable.</p>
+</section>
+<section id="prompt-7-gui-framework">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Prompt 7 — GUI framework</a><a class="headerlink" href="#prompt-7-gui-framework" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>OK I’m not aware of those so would need to take your steer. I’d quite like
+to use nicegui for the overall GUI so that we can make it beautiful and work
+in a browser. Do any of those libraries fit well into that framework?</strong></p>
+</div></blockquote>
+<p>A good example of <strong>combining a human preference with Claude’s knowledge</strong>.
+The human wanted NiceGUI and a browser-based UI; Claude confirmed that
+NiceGUI’s <code class="docutils literal notranslate"><span class="pre">ui.scene</span></code> uses Three.js which loads STL natively, making it an
+excellent fit. No heavy 3D libraries needed.</p>
+</section>
+<section id="prompt-8-making-it-awesome">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Prompt 8 — Making it awesome</a><a class="headerlink" href="#prompt-8-making-it-awesome" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>can you think of anything else that would make this project awesome, or
+improve on any of the choices above?</strong></p>
+</div></blockquote>
+<p>Always worth asking. Claude proposed coordinate frame visualisation, joint
+limit feedback, camera presets, inverse kinematics, collision highlighting,
+and trajectory recording. Not all of these were implemented, but they shaped
+the roadmap.</p>
+</section>
+<section id="prompt-9-confirming-the-pipeline">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Prompt 9 — Confirming the pipeline</a><a class="headerlink" href="#prompt-9-confirming-the-pipeline" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>That all sounds very nice - I definitely intended for the URDF bit to
+happen outside of sim.</strong></p>
+</div></blockquote>
+<p>A short confirmation prompt. These are important — they prevent Claude from
+going down the wrong path on a key architectural decision.</p>
+</section>
+<section id="prompt-10-documentation-and-planning">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Prompt 10 — Documentation and planning</a><a class="headerlink" href="#prompt-10-documentation-and-planning" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>one more thing. I’m hoping that this would be a nice demo of how to set up
+a project with claude (assuming it works!). Write a document /prompt.md
+before you start that lists the prompts above, plus a precis of your
+responses. And write the plan you are about to make into /plan.md. One final
+thing - you can use as much effort as needed to do a good job, make it multi
+agent if that helps.</strong></p>
+</div></blockquote>
+<p>This prompt did three things: (1) created the documentation trail that makes
+this story possible, (2) asked Claude to write a detailed implementation plan
+before coding, and (3) gave explicit permission to use multi-agent execution
+for parallelism. The resulting plan is reproduced in
+<a class="reference internal" href="implementation-plan.html"><span class="doc">Implementation plan</span></a>.</p>
+</section>
+<section id="prompt-11-web-search-fallback">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Prompt 11 — Web search fallback</a><a class="headerlink" href="#prompt-11-web-search-fallback" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>lets add to the skill that it can search for manufacturers info online if
+the stl files are not enough to complete the task.</strong></p>
+</div></blockquote>
+<p>A practical addition. STL files don’t contain joint limits or DH parameters,
+so the assembly-reasoning skill needed the ability to search for manufacturer
+datasheets. This turned out to be essential for getting accurate joint limits.</p>
+</section>
+<section id="prompt-12-package-management">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Prompt 12 — Package management</a><a class="headerlink" href="#prompt-12-package-management" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>please use uv - there is already a venv and add all dependencies into
+pyproject.toml</strong></p>
+</div></blockquote>
+<p>A concrete technology decision from the human. Short prompts like this are
+effective when the intent is clear.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-2-first-implementation">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Phase 2: First implementation</a><a class="headerlink" href="#phase-2-first-implementation" title="Link to this heading">#</a></h2>
+<p>Claude executed the plan from <code class="docutils literal notranslate"><span class="pre">plan.md</span></code> using multi-agent parallelism. The
+commit history tells the story:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a5d0904</span> <span class="n">Add</span> <span class="n">analyze</span><span class="o">/</span><span class="n">simulate</span> <span class="n">pipeline</span> <span class="k">with</span> <span class="n">Typer</span> <span class="n">CLI</span> <span class="p">(</span><span class="n">phases</span> <span class="mi">1</span><span class="o">-</span><span class="mi">4</span><span class="p">)</span>
+<span class="mi">300</span><span class="n">c296</span> <span class="n">Add</span> <span class="n">Meca500</span><span class="o">-</span><span class="n">R3</span> <span class="n">analysis</span> <span class="n">output</span> <span class="p">(</span><span class="n">YAML</span> <span class="o">+</span> <span class="n">renders</span><span class="p">)</span>
+<span class="mi">6</span><span class="n">c736d5</span> <span class="n">Add</span> <span class="n">Meca500</span><span class="o">-</span><span class="n">R3</span> <span class="n">URDF</span> <span class="n">generated</span> <span class="kn">from</span><span class="w"> </span><span class="nn">analysis</span> <span class="o">+</span> <span class="n">manufacturer</span> <span class="n">specs</span>
+</pre></div>
+</div>
+<p>In a single sweep, Claude implemented:</p>
+<ul class="simple">
+<li><p>The Typer CLI with <code class="docutils literal notranslate"><span class="pre">analyze</span></code> and <code class="docutils literal notranslate"><span class="pre">simulate</span></code> subcommands</p></li>
+<li><p>The mesh parser abstraction and STL parser using trimesh</p></li>
+<li><p>Geometric feature detection (flat faces, cylindrical surfaces)</p></li>
+<li><p>Off-screen rendering with pyrender and EGL</p></li>
+<li><p>YAML output with human-readable text descriptions</p></li>
+<li><p>The NiceGUI web application with Three.js 3D scene and joint sliders</p></li>
+<li><p>URDF loading, forward kinematics, and real-time joint control</p></li>
+<li><p>The assembly-reasoning skill</p></li>
+</ul>
+<p>The simulator launched and showed a robot. But there was a problem.</p>
+</section>
+<hr class="docutils" />
+<section id="phase-3-when-the-robot-doesn-t-match-reality">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Phase 3: When the robot doesn’t match reality</a><a class="headerlink" href="#phase-3-when-the-robot-doesn-t-match-reality" title="Link to this heading">#</a></h2>
+<section id="prompt-13-the-comparison-that-changed-everything">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Prompt 13 — The comparison that changed everything</a><a class="headerlink" href="#prompt-13-the-comparison-that-changed-everything" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>we need to have another go at the urdf. See comparison between the sim
+using the urdf and a real image of the robot in a similar pose. There are
+still multiple issues. Can you think of a way to improve the
+assembly-reasoning skill to get perfect results.</strong></p>
+</div></blockquote>
+<p>This was the turning point. When the simulator was compared against a photo of
+the real Meca500-R3, parts were floating, disconnected, and misaligned. The
+assembly-reasoning skill had been <strong>guessing</strong> 3D offsets from text
+descriptions — and small errors compounded along the 6-joint chain.</p>
+<p>Claude proposed the key architectural insight:</p>
+<blockquote>
+<div><p><strong>Connection point detection (finding bore/shaft centres) is a well-defined
+geometric computation that Python can do precisely. Kinematic chain reasoning
+(which parts connect, joint types, axes) requires semantic understanding that
+Claude does well. Split the problem accordingly.</strong></p>
+</div></blockquote>
+<p>This led to plan 2, reproduced in <a class="reference internal" href="connection-point-plan.html"><span class="doc">Connection point detection plan</span></a>.</p>
+</section>
+<section id="prompt-14-implementing-the-fix">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Prompt 14 — Implementing the fix</a><a class="headerlink" href="#prompt-14-implementing-the-fix" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>Implement the following plan: Fix URDF Assembly via Programmatic Connection
+Point Detection.</strong></p>
+</div></blockquote>
+<p>Claude implemented all seven steps from plan 2:</p>
+<ul class="simple">
+<li><p>A <code class="docutils literal notranslate"><span class="pre">ConnectionPoint</span></code> dataclass and detection module that slices cross-sections
+along cylindrical axes and fits circles to find bore centres</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">urdf_generator.py</span></code> that reads <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> plus analysis connection
+points to compute exact transforms</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">generate</span></code> CLI subcommand</p></li>
+<li><p>A rewritten assembly-reasoning skill that outputs <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> instead of
+raw URDF</p></li>
+</ul>
+<p>The new pipeline:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>analyze → connection_points → skill writes chain.yaml → generate → URDF → simulate
+</pre></div>
+</div>
+<p>This was a significant lesson: <strong>when Claude is guessing at something that can
+be computed, write code to compute it instead</strong>. The skill went from writing
+raw URDF XML with hand-estimated offsets to writing a simple topology file,
+while Python handled the precise geometry.</p>
+</section>
+<section id="prompt-15-documentation">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Prompt 15 — Documentation</a><a class="headerlink" href="#prompt-15-documentation" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>Update the readme.md to describe this project and give details of how to
+start the simulator and how to add a new robot.</strong></p>
+</div></blockquote>
+<p>After a big implementation push, it’s worth pausing to document. Claude
+rewrote the README with the pipeline overview, installation instructions,
+and a step-by-step guide for adding new robots.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-4-visual-tuning-with-reference-images">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Phase 4: Visual tuning with reference images</a><a class="headerlink" href="#phase-4-visual-tuning-with-reference-images" title="Link to this heading">#</a></h2>
+<p>Even with programmatic connection point detection, the robot still had visual
+issues — meshes not quite aligned, gaps at joints, parts pointing the wrong
+direction. This phase used a completely different approach: <strong>iterative visual
+comparison against photographs</strong>.</p>
+<section id="prompt-16-creating-the-tuning-skill">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Prompt 16 — Creating the tuning skill</a><a class="headerlink" href="#prompt-16-creating-the-tuning-skill" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>The URDF is still not quite right — still has a few issues with joint
+location and orientation. You mentioned a plan to pose the simulator and
+compare with images online. Can you prepare a new skill to do that and
+refine the URDF.</strong></p>
+</div></blockquote>
+<p>Claude created the <code class="docutils literal notranslate"><span class="pre">visual-urdf-tuning</span></code> skill — a structured workflow for:</p>
+<ol class="arabic simple">
+<li><p>Searching for reference photos of the real robot</p></li>
+<li><p>Launching the simulator and capturing screenshots</p></li>
+<li><p>Comparing side-by-side to diagnose issues</p></li>
+<li><p>Editing <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>, regenerating, and iterating</p></li>
+</ol>
+<p>This established a pattern: <strong>when precision matters, create a skill that
+encodes the debugging methodology</strong>, not just the fix.</p>
+</section>
+<section id="prompt-17-interactive-debugging-session">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Prompt 17 — Interactive debugging session</a><a class="headerlink" href="#prompt-17-interactive-debugging-session" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>Load assembly-reasoning and visual-urdf-tuning skills, then use labels in
+the simulator to talk through where joint mapping is still incorrect and
+update the URDF accordingly.</strong></p>
+</div></blockquote>
+<p>This was the longest and most interactive session. Claude used browser
+automation to control the simulator, toggle labels, set camera angles, and
+capture screenshots. Key discoveries:</p>
+<ul class="simple">
+<li><p><strong>Hot reload doesn’t work for URDF changes</strong> — the simulator process must be
+fully restarted. This was captured in the skill for future sessions.</p></li>
+<li><p><strong>Camera control via JavaScript</strong> is safer than mouse dragging, which can
+accidentally move joint sliders. This led to the <code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code> skill.</p></li>
+<li><p><strong>Working base-to-tip is essential</strong> — fixing a misalignment at joint 2
+automatically fixed apparent issues at joints 3, 4, and 5.</p></li>
+</ul>
+<p>The session also created the <code class="docutils literal notranslate"><span class="pre">refine-with-image</span></code> skill — a comprehensive
+10-step workflow for visual URDF refinement that any future session can follow.</p>
+</section>
+<section id="prompt-18-the-wrist-connection-breakthrough">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Prompt 18 — The wrist connection breakthrough</a><a class="headerlink" href="#prompt-18-the-wrist-connection-breakthrough" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p><strong>open a blank window in chrome</strong></p>
+</div></blockquote>
+<blockquote>
+<div><p><strong>/refine-with-image</strong></p>
+</div></blockquote>
+<blockquote>
+<div><p><strong>see image. keep iterating until you can match the pose and all looks
+perfect.</strong></p>
+</div></blockquote>
+<p>The user provided a reference photo of the real Meca500-R3 held in someone’s
+hand. Claude analysed it, launched the simulator, matched the camera angle,
+and started comparing.</p>
+<p>The critical discovery: <strong>A5 (the wrist) was connecting to the top of A3_4
+instead of its front face</strong>. The A3_4 part is L-shaped — it has a bore at the
+bottom (for J3, Z-axis rotation) and a bore on its front face (for J4, X-axis
+rotation). The URDF generator was using the Z-axis bore for both connections.</p>
+<p>The user provided the key insight:</p>
+<blockquote>
+<div><p><strong>part a5 needs to be attached to the front of a3_4 and have a wrist
+rotation there. in the current view you can see a circle on a3_4 that
+defines where they should meet and the centre of rotation. The face of a5
+currently touching the top of a3_4 has a similar circle that should meet
+it.</strong></p>
+</div></blockquote>
+<p>This led to three changes:</p>
+<ol class="arabic simple">
+<li><p>Move joint_4’s origin to match A3_4’s distal bore position (the front-face
+bore at <code class="docutils literal notranslate"><span class="pre">[62,</span> <span class="pre">0,</span> <span class="pre">76]mm</span></code> instead of the top at <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">120]mm</span></code>)</p></li>
+<li><p>Remove the <code class="docutils literal notranslate"><span class="pre">origin_rpy</span></code> frame rotation — instead of rotating the child
+frame and using Z-axis rotation, use <code class="docutils literal notranslate"><span class="pre">axis:</span> <span class="pre">[1,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> directly</p></li>
+<li><p>Remove manual <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> shifts that were compensating for the wrong
+connection point</p></li>
+</ol>
+<p>After these changes, the robot matched the reference photo.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="lessons-learned">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Lessons learned</a><a class="headerlink" href="#lessons-learned" title="Link to this heading">#</a></h2>
+<section id="for-prompting-claude-on-complex-projects">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">For prompting Claude on complex projects</a><a class="headerlink" href="#for-prompting-claude-on-complex-projects" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Start with a design conversation before writing code.</strong> The first 10
+prompts wrote zero code but established the entire architecture. This
+prevented major rewrites later.</p></li>
+<li><p><strong>Ask Claude if a task is feasible before committing.</strong> Prompt 2 (“Do you
+think you are up to that?”) gave Claude a chance to flag risks and set
+expectations.</p></li>
+<li><p><strong>Give concrete technology steers where you have preferences</strong> (Typer,
+NiceGUI, uv) <strong>and let Claude choose where you don’t</strong> (URDF, trimesh).</p></li>
+<li><p><strong>Ask “can you think of anything else?”</strong> after the core design is
+settled. Claude’s suggestions for camera presets, collision detection, and
+trajectory recording enriched the project roadmap.</p></li>
+<li><p><strong>Write the plan down before implementing.</strong> Prompt 10 asked for both
+<code class="docutils literal notranslate"><span class="pre">prompt.md</span></code> and <code class="docutils literal notranslate"><span class="pre">plan.md</span></code>. This created accountability and made it possible
+to review the plan before execution.</p></li>
+<li><p><strong>Give permission for effort and parallelism.</strong> “Use as much effort as
+needed, make it multi agent if that helps” unlocked Claude’s ability to
+work on multiple files simultaneously.</p></li>
+</ol>
+</section>
+<section id="for-splitting-work-between-human-and-ai">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">For splitting work between human and AI</a><a class="headerlink" href="#for-splitting-work-between-human-and-ai" title="Link to this heading">#</a></h3>
+<ol class="arabic simple" start="7">
+<li><p><strong>Split computation from reasoning.</strong> The biggest improvement came from
+recognising that connection point detection is a computation (Python should
+do it) while kinematic chain topology is reasoning (Claude should do it).</p></li>
+<li><p><strong>When Claude is guessing at something computable, write code instead.</strong>
+The assembly-reasoning skill went from guessing xyz offsets to writing a
+simple topology file. Precision improved dramatically.</p></li>
+<li><p><strong>Create skills that encode debugging methodology.</strong> The <code class="docutils literal notranslate"><span class="pre">refine-with-image</span></code>
+and <code class="docutils literal notranslate"><span class="pre">visual-urdf-tuning</span></code> skills don’t just fix one bug — they capture a
+repeatable process for future sessions.</p></li>
+<li><p><strong>Human visual judgement is essential for visual tasks.</strong> Claude can
+control the simulator, capture screenshots, and make programmatic
+comparisons, but the user’s observation that “A5 needs to attach to the
+front of A3_4” was the breakthrough that no amount of automated analysis
+would have found.</p></li>
+</ol>
+</section>
+<section id="for-iterative-debugging">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">For iterative debugging</a><a class="headerlink" href="#for-iterative-debugging" title="Link to this heading">#</a></h3>
+<ol class="arabic simple" start="11">
+<li><p><strong>Work base-to-tip.</strong> Errors compound along a kinematic chain. Always fix
+the base link first.</p></li>
+<li><p><strong>One change at a time.</strong> Adjust one parameter, regenerate, compare. It’s
+slower but you always know what fixed (or broke) things.</p></li>
+<li><p><strong>Capture lessons in skills and memory</strong>, not just in commit messages. A
+commit message is read once; a skill is used in every future session.</p></li>
+<li><p><strong>Don’t fight the tools.</strong> When hot reload didn’t work for URDF changes,
+the team didn’t try to make it work — they documented the restart
+requirement in the skill and moved on.</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="the-full-commit-history">
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">The full commit history</a><a class="headerlink" href="#the-full-commit-history" title="Link to this heading">#</a></h2>
+<p>For reference, here is the complete sequence of commits that built the project:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d5f4b45</span> <span class="n">initial</span> <span class="n">commit</span>
+<span class="mi">831202</span><span class="n">c</span> <span class="n">planning</span> <span class="n">phase</span>
+<span class="n">a5d0904</span> <span class="n">Add</span> <span class="n">analyze</span><span class="o">/</span><span class="n">simulate</span> <span class="n">pipeline</span> <span class="k">with</span> <span class="n">Typer</span> <span class="n">CLI</span> <span class="p">(</span><span class="n">phases</span> <span class="mi">1</span><span class="o">-</span><span class="mi">4</span><span class="p">)</span>
+<span class="mi">300</span><span class="n">c296</span> <span class="n">Add</span> <span class="n">Meca500</span><span class="o">-</span><span class="n">R3</span> <span class="n">analysis</span> <span class="n">output</span> <span class="p">(</span><span class="n">YAML</span> <span class="o">+</span> <span class="n">renders</span><span class="p">)</span>
+<span class="mi">6</span><span class="n">c736d5</span> <span class="n">Add</span> <span class="n">Meca500</span><span class="o">-</span><span class="n">R3</span> <span class="n">URDF</span> <span class="n">generated</span> <span class="kn">from</span><span class="w"> </span><span class="nn">analysis</span> <span class="o">+</span> <span class="n">manufacturer</span> <span class="n">specs</span>
+<span class="mi">60</span><span class="n">d1fad</span> <span class="n">Fix</span> <span class="n">simulator</span> <span class="n">UI</span><span class="p">:</span> <span class="n">slider</span> <span class="n">events</span><span class="p">,</span> <span class="n">lighting</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="ow">and</span> <span class="n">camera</span>
+<span class="n">eab4327</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">iteration</span> <span class="n">on</span> <span class="n">URDF</span><span class="p">,</span> <span class="n">using</span> <span class="n">a</span> <span class="n">real</span> <span class="n">image</span> <span class="n">to</span> <span class="n">sim</span> <span class="n">compare</span>
+<span class="n">e264c9d</span> <span class="n">Improve</span> <span class="n">simulator</span> <span class="n">UI</span><span class="p">:</span> <span class="n">lighting</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="ow">and</span> <span class="n">slider</span> <span class="n">labels</span>
+<span class="n">a1278db</span> <span class="n">more</span> <span class="n">prompting</span>
+<span class="mi">288</span><span class="n">fb99</span> <span class="n">Add</span> <span class="n">programmatic</span> <span class="n">connection</span> <span class="n">point</span> <span class="n">detection</span> <span class="ow">and</span> <span class="n">URDF</span> <span class="n">generation</span> <span class="n">pipeline</span>
+<span class="n">c8fb4fa</span> <span class="n">Add</span> <span class="n">visual</span><span class="o">-</span><span class="n">urdf</span><span class="o">-</span><span class="n">tuning</span> <span class="n">skill</span> <span class="k">for</span> <span class="n">image</span><span class="o">-</span><span class="n">based</span> <span class="n">URDF</span> <span class="n">refinement</span>
+<span class="n">a5425f8</span> <span class="n">Update</span> <span class="n">prompt</span><span class="o">.</span><span class="n">md</span> <span class="k">with</span> <span class="n">recent</span> <span class="n">conversation</span> <span class="n">history</span>
+<span class="mi">85</span><span class="n">c2aa9</span> <span class="n">Visual</span> <span class="n">URDF</span> <span class="n">tuning</span><span class="p">:</span> <span class="n">close</span> <span class="n">mesh</span> <span class="n">gaps</span> <span class="ow">and</span> <span class="n">improve</span> <span class="n">skill</span> <span class="k">with</span> <span class="n">simulator</span> <span class="n">control</span> <span class="n">docs</span>
+<span class="n">f2a9bce</span> <span class="n">update</span> <span class="n">permissions</span> <span class="k">for</span> <span class="n">autonomous</span> <span class="n">refinement</span> <span class="ow">in</span> <span class="n">devcontainer</span>
+<span class="n">fc0db34</span> <span class="n">Move</span> <span class="n">skills</span> <span class="n">into</span> <span class="n">subfolders</span> <span class="k">for</span> <span class="n">slash</span> <span class="n">command</span> <span class="n">support</span>
+<span class="mi">93</span><span class="n">fe00c</span> <span class="n">Add</span> <span class="n">callout</span> <span class="n">labels</span><span class="p">,</span> <span class="n">stop</span> <span class="n">button</span><span class="p">,</span> <span class="ow">and</span> <span class="n">multi</span><span class="o">-</span><span class="n">tab</span> <span class="n">fixes</span> <span class="n">to</span> <span class="n">simulator</span>
+<span class="mi">76805</span><span class="n">c5</span> <span class="n">Update</span> <span class="n">project</span> <span class="n">config</span><span class="p">:</span> <span class="n">devcontainer</span> <span class="n">hook</span><span class="p">,</span> <span class="n">skill</span> <span class="n">docs</span><span class="p">,</span> <span class="n">workspace</span> <span class="n">paths</span>
+<span class="n">e256f30</span> <span class="n">Visual</span> <span class="n">upgrades</span><span class="p">:</span> <span class="n">PBR</span> <span class="n">metal</span> <span class="n">materials</span><span class="p">,</span> <span class="n">HDRI</span> <span class="n">env</span> <span class="nb">map</span><span class="p">,</span> <span class="n">lighter</span> <span class="n">background</span><span class="p">,</span> <span class="n">UI</span> <span class="n">polish</span>
+<span class="n">f0d0da1</span> <span class="n">Visual</span> <span class="n">joint</span> <span class="n">alignment</span> <span class="n">tuning</span><span class="p">,</span> <span class="n">camera</span> <span class="n">control</span> <span class="ow">and</span> <span class="n">refine</span><span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">image</span> <span class="n">skills</span>
+<span class="mi">8</span><span class="n">a90c50</span> <span class="n">fixing</span> <span class="n">joint</span> <span class="n">locations</span>
+<span class="mi">99</span><span class="n">f0029</span> <span class="n">fixed</span> <span class="n">joint</span> <span class="mi">3</span>
+<span class="mi">6</span><span class="n">fd9afb</span> <span class="n">further</span> <span class="n">visual</span> <span class="n">refinement</span>
+<span class="mf">397e7</span><span class="n">e9</span> <span class="n">Fix</span> <span class="n">wrist</span> <span class="n">connection</span><span class="p">:</span> <span class="n">A5</span> <span class="n">attaches</span> <span class="n">to</span> <span class="n">front</span> <span class="n">bore</span> <span class="n">of</span> <span class="n">A3_4</span>
+</pre></div>
+</div>
+</section>
+<section id="related-documents">
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Related documents</a><a class="headerlink" href="#related-documents" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="implementation-plan.html"><span class="doc">Implementation plan</span></a> — the original plan written before any code</p></li>
+<li><p><a class="reference internal" href="connection-point-plan.html"><span class="doc">Connection point detection plan</span></a> — the plan that fixed the URDF assembly</p></li>
+<li><p><a class="reference internal" href="architecture.html"><span class="doc">Architecture</span></a> — how the final system fits together</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../explanations.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Explanations</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="implementation-plan.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Implementation plan</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-1-the-design-conversation">Phase 1: The design conversation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-1-understanding-the-input">Prompt 1 — Understanding the input</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-2-ambition-check">Prompt 2 — Ambition check</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-3-project-structure">Prompt 3 — Project structure</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-4-the-assembly-reasoning-skill">Prompt 4 — The assembly reasoning skill</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-5-output-format">Prompt 5 — Output format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-6-the-simulator">Prompt 6 — The simulator</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-7-gui-framework">Prompt 7 — GUI framework</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-8-making-it-awesome">Prompt 8 — Making it awesome</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-9-confirming-the-pipeline">Prompt 9 — Confirming the pipeline</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-10-documentation-and-planning">Prompt 10 — Documentation and planning</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-11-web-search-fallback">Prompt 11 — Web search fallback</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-12-package-management">Prompt 12 — Package management</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-2-first-implementation">Phase 2: First implementation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-3-when-the-robot-doesn-t-match-reality">Phase 3: When the robot doesn’t match reality</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-13-the-comparison-that-changed-everything">Prompt 13 — The comparison that changed everything</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-14-implementing-the-fix">Prompt 14 — Implementing the fix</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-15-documentation">Prompt 15 — Documentation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-4-visual-tuning-with-reference-images">Phase 4: Visual tuning with reference images</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-16-creating-the-tuning-skill">Prompt 16 — Creating the tuning skill</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-17-interactive-debugging-session">Prompt 17 — Interactive debugging session</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-18-the-wrist-connection-breakthrough">Prompt 18 — The wrist connection breakthrough</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lessons-learned">Lessons learned</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#for-prompting-claude-on-complex-projects">For prompting Claude on complex projects</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#for-splitting-work-between-human-and-ai">For splitting work between human and AI</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#for-iterative-debugging">For iterative debugging</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-full-commit-history">The full commit history</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-documents">Related documents</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/explanations/building-with-claude.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/explanations/building-with-claude.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
