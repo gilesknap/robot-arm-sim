@@ -94,7 +94,6 @@ def _part_to_dict(analysis: PartAnalysis) -> dict[str, Any]:
         },
         "features": features_dict,
         "text_description": analysis.text_description,
-        "renders": analysis.render_paths,
     }
 
 

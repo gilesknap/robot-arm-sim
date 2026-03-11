@@ -12,7 +12,6 @@ from robot_arm_sim.models.part import PartAnalysis
 from .connections import detect_connection_points
 from .features import detect_features
 from .parsers import get_parser
-from .renderer import render_views
 from .yaml_writer import write_part_yaml, write_summary_yaml
 
 logger = logging.getLogger(__name__)
@@ -33,7 +32,6 @@ def run_analysis(robot_dir: Path) -> None:
         raise FileNotFoundError(f"No STL files found in {stl_dir}")
 
     analysis_dir = robot_dir / "analysis"
-    renders_dir = analysis_dir / "renders"
     analysis_dir.mkdir(parents=True, exist_ok=True)
 
     robot_name = robot_dir.name
@@ -70,11 +68,6 @@ def run_analysis(robot_dir: Path) -> None:
 
         # Generate text description
         analysis.text_description = _generate_text_description(analysis)
-
-        # Render views
-        print(f"  Rendering views for {stl_file.name}...")
-        render_paths = render_views(mesh, renders_dir, analysis.part_name)
-        analysis.render_paths = render_paths
 
         # Write part YAML
         yaml_path = analysis_dir / f"{analysis.part_name}.yaml"
