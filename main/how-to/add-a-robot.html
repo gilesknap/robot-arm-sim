@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Add a new robot &#8212; robot-arm-sim 0.1.0b3.dev7+gdb9da8e2c documentation</title>
+    <title>Add a new robot &#8212; robot-arm-sim 0.1.0b3.dev24+g3bc6b933c documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3282d891"></script>
+    <script src="../_static/documentation_options.js?v=92daf728"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -491,42 +491,27 @@ inside <code class="docutils literal notranslate"><span class="pre">stl_files/</
 <p>Name the files so they sort in kinematic chain order (base to end-effector).
 STL files should be in millimetres with Z pointing up.</p>
 </section>
-<section id="step-2-run-the-analysis">
-<h2>Step 2: Run the analysis<a class="headerlink" href="#step-2-run-the-analysis" title="Link to this heading">#</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>analyze<span class="w"> </span>robots/MyRobot/
-</pre></div>
-</div>
-<p>This produces <code class="docutils literal notranslate"><span class="pre">robots/MyRobot/analysis/</span></code> containing:</p>
-<ul class="simple">
-<li><p>Per-part YAML files with geometry, features, and detected connection points</p></li>
-<li><p>Rendered PNG views of each part (front, side, top, isometric)</p></li>
-<li><p>A <code class="docutils literal notranslate"><span class="pre">summary.yaml</span></code> with assembly hints</p></li>
-</ul>
-<p>Check the output makes sense. Each part YAML should have <code class="docutils literal notranslate"><span class="pre">connection_points</span></code>
-entries showing detected bore/shaft centres.</p>
-</section>
-<section id="step-3-generate-chain-yaml-with-the-assembly-reasoning-skill">
-<h2>Step 3: Generate chain.yaml with the assembly-reasoning skill<a class="headerlink" href="#step-3-generate-chain-yaml-with-the-assembly-reasoning-skill" title="Link to this heading">#</a></h2>
-<p>This is where Claude does the semantic reasoning — figuring out which parts
-connect, what type of joint they form, and what the rotation axes are.</p>
+<section id="step-2-run-auto-build-robot">
+<h2>Step 2: Run auto-build-robot<a class="headerlink" href="#step-2-run-auto-build-robot" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">auto-build-robot</span></code> skill orchestrates the entire pipeline — from STL
+analysis through chain.yaml generation to URDF verification and visual
+comparison.</p>
 <p>In Claude Code, invoke the skill:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">assembly</span><span class="o">-</span><span class="n">reasoning</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">auto</span><span class="o">-</span><span class="n">build</span><span class="o">-</span><span class="n">robot</span>
 </pre></div>
 </div>
 <p>Then tell Claude which robot to work on:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Generate</span> <span class="n">a</span> <span class="n">chain</span><span class="o">.</span><span class="n">yaml</span> <span class="k">for</span> <span class="n">robots</span><span class="o">/</span><span class="n">MyRobot</span><span class="o">/</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Build</span> <span class="n">robots</span><span class="o">/</span><span class="n">MyRobot</span><span class="o">/</span>
 </pre></div>
 </div>
-<p>Claude will:</p>
+<p>Claude will run through 5 stages:</p>
 <ol class="arabic simple">
-<li><p>Read the analysis YAMLs and connection point data</p></li>
-<li><p>Search online for manufacturer specifications (DH parameters, joint limits)</p></li>
-<li><p>Write <code class="docutils literal notranslate"><span class="pre">robots/MyRobot/chain.yaml</span></code> with the kinematic chain topology</p></li>
-<li><p>Run <code class="docutils literal notranslate"><span class="pre">robot-arm-sim</span> <span class="pre">generate</span></code> to produce the URDF</p></li>
-<li><p>Run verification to check FK positions</p></li>
+<li><p><strong>Analyze STLs</strong> — detect connection points, geometry, and assembly hints</p></li>
+<li><p><strong>Research manufacturer specs</strong> — find DH parameters, joint limits online</p></li>
+<li><p><strong>Infer kinematic chain</strong> — write <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> with topology, axes, limits</p></li>
+<li><p><strong>Generate &amp; verify URDF</strong> — produce <code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code> and check FK positions</p></li>
+<li><p><strong>Visual comparison</strong> — compare simulation against reference images</p></li>
 </ol>
-<p>The resulting <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> defines links, joints, axes, and limits. See the
-Meca500-R3 example at <code class="docutils literal notranslate"><span class="pre">robots/Meca500-R3/chain.yaml</span></code> for reference.</p>
 <section id="chain-yaml-key-fields">
 <h3>chain.yaml key fields<a class="headerlink" href="#chain-yaml-key-fields" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -557,20 +542,12 @@ Meca500-R3 example at <code class="docutils literal notranslate"><span class="pr
 </tbody>
 </table>
 </div>
+<p>The resulting <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> defines links, joints, axes, and limits. See the
+Meca500-R3 example at <code class="docutils literal notranslate"><span class="pre">robots/Meca500-R3/chain.yaml</span></code> for reference.</p>
 </section>
 </section>
-<section id="step-4-generate-the-urdf">
-<h2>Step 4: Generate the URDF<a class="headerlink" href="#step-4-generate-the-urdf" title="Link to this heading">#</a></h2>
-<p>If the skill didn’t already do this:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>generate<span class="w"> </span>robots/MyRobot/<span class="w"> </span>robots/MyRobot/chain.yaml
-</pre></div>
-</div>
-<p>This reads the connection points from the analysis data, computes visual and
-joint transforms, and writes <code class="docutils literal notranslate"><span class="pre">robots/MyRobot/robot.urdf</span></code>. It prints the
-zero-config FK position of each joint for validation.</p>
-</section>
-<section id="step-5-launch-the-simulator">
-<h2>Step 5: Launch the simulator<a class="headerlink" href="#step-5-launch-the-simulator" title="Link to this heading">#</a></h2>
+<section id="step-3-launch-the-simulator">
+<h2>Step 3: Launch the simulator<a class="headerlink" href="#step-3-launch-the-simulator" title="Link to this heading">#</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/MyRobot/
 </pre></div>
 </div>
@@ -597,10 +574,10 @@ accurate comparison against technical drawings.</p></li>
 pan.</p></li>
 </ul>
 <p>If the robot looks correct, you are done. If parts are misaligned, continue
-to the visual tuning steps below.</p>
+to the visual tuning step below.</p>
 </section>
-<section id="step-6-visual-tuning-with-reference-images">
-<h2>Step 6: Visual tuning with reference images<a class="headerlink" href="#step-6-visual-tuning-with-reference-images" title="Link to this heading">#</a></h2>
+<section id="step-4-visual-tuning-with-reference-images">
+<h2>Step 4: Visual tuning with reference images<a class="headerlink" href="#step-4-visual-tuning-with-reference-images" title="Link to this heading">#</a></h2>
 <p>This is where the project’s visual skills and claude-in-chrome come together
 to iteratively refine the URDF until the simulation matches reality.</p>
 <section id="setting-up-claude-in-chrome">
@@ -623,50 +600,6 @@ instructions at its repository</p></li>
 <li><p>Snap to orthographic named views via the ViewCube for precise comparison</p></li>
 <li><p>Click the Fit button to auto-zoom the robot into the viewport</p></li>
 </ul>
-</section>
-<section id="using-the-refine-with-image-skill">
-<h3>Using the refine-with-image skill<a class="headerlink" href="#using-the-refine-with-image-skill" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">refine-with-image</span></code> skill is a 10-step workflow for visual URDF
-refinement. It is the most effective way to get a pixel-perfect simulation.</p>
-<ol class="arabic">
-<li><p>Find or take a reference photo of the real robot at a known pose (ideally
-zero config — all joints at zero degrees)</p></li>
-<li><p>In Claude Code, invoke the skill:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">refine</span><span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">image</span>
-</pre></div>
-</div>
-</li>
-<li><p>Claude will ask for:</p>
-<ul class="simple">
-<li><p><strong>Image</strong>: provide the file path or paste the image</p></li>
-<li><p><strong>Pose</strong>: what joint angles the robot is at in the photo</p></li>
-<li><p><strong>View angle</strong>: what direction the camera is looking from</p></li>
-</ul>
-</li>
-<li><p>Claude then:</p>
-<ul class="simple">
-<li><p>Starts the simulator if needed</p></li>
-<li><p>Opens it in Chrome via claude-in-chrome</p></li>
-<li><p>Matches the camera angle and joint pose to the reference photo</p></li>
-<li><p>Takes a screenshot and compares part-by-part from base to tip</p></li>
-<li><p>Edits <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> to fix misalignments</p></li>
-<li><p>Regenerates the URDF and restarts the simulator</p></li>
-<li><p>Repeats until the simulation matches the photo</p></li>
-</ul>
-</li>
-</ol>
-<p>A typical tuning session takes 2-4 iterations.</p>
-</section>
-<section id="using-the-visual-urdf-tuning-skill">
-<h3>Using the visual-urdf-tuning skill<a class="headerlink" href="#using-the-visual-urdf-tuning-skill" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">visual-urdf-tuning</span></code> skill is an alternative when you don’t have a
-reference photo handy. It searches online for images of the robot and uses
-those as reference:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">visual</span><span class="o">-</span><span class="n">urdf</span><span class="o">-</span><span class="n">tuning</span>
-</pre></div>
-</div>
-<p>This skill follows the same compare-diagnose-fix cycle but starts by finding
-reference images via web search.</p>
 </section>
 <section id="using-the-manufacturer-comparison-skill">
 <h3>Using the manufacturer-comparison skill<a class="headerlink" href="#using-the-manufacturer-comparison-skill" title="Link to this heading">#</a></h3>
@@ -750,8 +683,8 @@ before making the next change.</p></li>
 </ul>
 </section>
 </section>
-<section id="step-7-verify-and-commit">
-<h2>Step 7: Verify and commit<a class="headerlink" href="#step-7-verify-and-commit" title="Link to this heading">#</a></h2>
+<section id="step-5-verify-and-commit">
+<h2>Step 5: Verify and commit<a class="headerlink" href="#step-5-verify-and-commit" title="Link to this heading">#</a></h2>
 <p>Once the simulation looks correct:</p>
 <ol class="arabic">
 <li><p>Run kinematics verification if you have a verification script:</p>
@@ -778,23 +711,19 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">assembly-reasoning</span></code></p></td>
-<td><p>Generate <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> from analysis data</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">auto-build-robot</span></code></p></td>
+<td><p>Full pipeline: analyze, infer chain, generate, verify</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/auto-build-robot</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">assembly-reasoning</span></code></p></td>
+<td><p>Generate <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> from analysis data (standalone)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/assembly-reasoning</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">visual-urdf-tuning</span></code></p></td>
-<td><p>Find reference images and tune URDF</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/visual-urdf-tuning</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">refine-with-image</span></code></p></td>
-<td><p>Tune URDF against a provided reference photo</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/refine-with-image</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code></p></td>
 <td><p>Compare against manufacturer technical drawings</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/manufacturer-comparison</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code></p></td>
 <td><p>Position the 3D camera programmatically</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/zoom-rotate-camera</span></code></p></td>
 </tr>
@@ -855,23 +784,19 @@ directly.</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-prepare-stl-files">Step 1: Prepare STL files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-run-the-analysis">Step 2: Run the analysis</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-generate-chain-yaml-with-the-assembly-reasoning-skill">Step 3: Generate chain.yaml with the assembly-reasoning skill</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-run-auto-build-robot">Step 2: Run auto-build-robot</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chain-yaml-key-fields">chain.yaml key fields</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-generate-the-urdf">Step 4: Generate the URDF</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-launch-the-simulator">Step 5: Launch the simulator</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-visual-tuning-with-reference-images">Step 6: Visual tuning with reference images</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-launch-the-simulator">Step 3: Launch the simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-visual-tuning-with-reference-images">Step 4: Visual tuning with reference images</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-claude-in-chrome">Setting up claude-in-chrome</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-refine-with-image-skill">Using the refine-with-image skill</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-visual-urdf-tuning-skill">Using the visual-urdf-tuning skill</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-manufacturer-comparison-skill">Using the manufacturer-comparison skill</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-adjustments">Common adjustments</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#important-rules">Important rules</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-7-verify-and-commit">Step 7: Verify and commit</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-verify-and-commit">Step 5: Verify and commit</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-skills-used">Summary of skills used</a></li>
 </ul>
   </nav></div>
