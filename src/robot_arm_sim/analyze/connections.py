@@ -312,110 +312,123 @@ def _detect_multi_axis_connections(
     axis_groups: list[list[GeometricFeature]],
 ) -> list[ConnectionPoint]:
     """Multi-axis part (e.g., L-shaped): proximal along first dominant axis,
-    distal along second dominant axis."""
+    distal along second dominant axis.
+
+    Uses flat face evidence to determine which end of each axis has the bore
+    opening, rather than assuming min/max — critical for L-shaped parts where
+    bore openings face outward from the junction.
+    """
     points = []
     bounds = mesh.bounds
+    flat_faces = [f for f in features if f.kind == "flat_face" and f.normal]
 
-    # First dominant axis group → proximal end
-    primary_axis = np.array(axis_groups[0][0].axis)
-    primary_norm = np.linalg.norm(primary_axis)
-    if primary_norm > 1e-6:
-        primary_axis = primary_axis / primary_norm
-    axis_idx_p = int(np.argmax(np.abs(primary_axis)))
-    proj_min_p = bounds[0][axis_idx_p]
+    for end, group in [("proximal", axis_groups[0]), ("distal", axis_groups[1])]:
+        axis = np.array(group[0].axis)
+        axis_norm = np.linalg.norm(axis)
+        if axis_norm < 1e-6:
+            continue
+        axis = axis / axis_norm
+        axis_idx = int(np.argmax(np.abs(axis)))
 
-    center_p = _find_circle_center_at_slice(
-        mesh, np.abs(primary_axis) * np.sign(primary_axis), proj_min_p, "above"
-    )
-    if center_p is not None:
-        p_cyl = next((c for c in axis_groups[0] if c.radius_mm is not None), None)
-        radius = p_cyl.radius_mm if p_cyl and p_cyl.radius_mm is not None else 20.0
-        pos = center_p.copy()
-        pos[axis_idx_p] = proj_min_p
-        points.append(
-            ConnectionPoint(
-                end="proximal",
-                position=[round(v, 3) for v in pos],
-                axis=[round(a, 4) for a in primary_axis.tolist()],
-                radius_mm=round(radius, 1),
-                method="cross_section",
-            )
+        # Use flat face evidence to find which end has the bore opening
+        bore_val, direction = _find_bore_end_for_axis(
+            axis, axis_idx, bounds, flat_faces
         )
-    else:
-        # Fallback: use flat face normals opposite to primary axis
-        neg_dir = -primary_axis
-        matching_faces = [
-            f
-            for f in features
-            if f.kind == "flat_face" and f.normal and np.dot(f.normal, neg_dir) > 0.9
-        ]
-        if matching_faces:
-            bf = max(matching_faces, key=lambda f: f.area_mm2 or 0)
-            if bf.centroid:
-                c = bf.centroid
-                pos = list(c)
-                pos[axis_idx_p] = proj_min_p
-                points.append(
-                    ConnectionPoint(
-                        end="proximal",
-                        position=[round(v, 3) for v in pos],
-                        axis=[round(a, 4) for a in primary_axis.tolist()],
-                        radius_mm=20.0,
-                        method="centroid_fallback",
-                    )
-                )
 
-    # Second dominant axis group → distal end
-    secondary_axis = np.array(axis_groups[1][0].axis)
-    secondary_norm = np.linalg.norm(secondary_axis)
-    if secondary_norm > 1e-6:
-        secondary_axis = secondary_axis / secondary_norm
-    axis_idx_s = int(np.argmax(np.abs(secondary_axis)))
-    proj_max_s = bounds[1][axis_idx_s]
-
-    center_s = _find_circle_center_at_slice(
-        mesh, np.abs(secondary_axis) * np.sign(secondary_axis), proj_max_s, "below"
-    )
-    if center_s is not None:
-        s_cyl = next((c for c in axis_groups[1] if c.radius_mm is not None), None)
-        radius = s_cyl.radius_mm if s_cyl and s_cyl.radius_mm is not None else 20.0
-        pos = center_s.copy()
-        pos[axis_idx_s] = proj_max_s
-        points.append(
-            ConnectionPoint(
-                end="distal",
-                position=[round(v, 3) for v in pos],
-                axis=[round(a, 4) for a in secondary_axis.tolist()],
-                radius_mm=round(radius, 1),
-                method="cross_section",
-            )
+        center = _find_circle_center_at_slice(
+            mesh, np.abs(axis) * np.sign(axis), bore_val, direction
         )
-    else:
-        # Fallback: use flat faces along secondary axis direction
-        matching_faces = [
-            f
-            for f in features
-            if f.kind == "flat_face"
-            and f.normal
-            and np.dot(f.normal, secondary_axis) > 0.9
-        ]
-        if matching_faces:
-            rf = max(matching_faces, key=lambda f: f.area_mm2 or 0)
-            if rf.centroid:
-                c = rf.centroid
-                pos = list(c)
-                pos[axis_idx_s] = proj_max_s
-                points.append(
-                    ConnectionPoint(
-                        end="distal",
-                        position=[round(v, 3) for v in pos],
-                        axis=[round(a, 4) for a in secondary_axis.tolist()],
-                        radius_mm=20.0,
-                        method="centroid_fallback",
-                    )
+        if center is not None:
+            cyl = next((c for c in group if c.radius_mm is not None), None)
+            radius = cyl.radius_mm if cyl and cyl.radius_mm is not None else 20.0
+            pos = center.copy()
+            pos[axis_idx] = bore_val
+            points.append(
+                ConnectionPoint(
+                    end=end,
+                    position=[round(v, 3) for v in pos],
+                    axis=[round(a, 4) for a in axis.tolist()],
+                    radius_mm=round(radius, 1),
+                    method="cross_section",
                 )
+            )
+        else:
+            # Fallback: use the largest aligned flat face centroid
+            matching_faces = [
+                f
+                for f in flat_faces
+                if f.normal and abs(float(np.dot(f.normal, axis))) > 0.9 and f.centroid
+            ]
+            # Filter to faces near the bore end
+            mid = (bounds[0][axis_idx] + bounds[1][axis_idx]) / 2.0
+            if direction == "above":
+                matching_faces = [
+                    f
+                    for f in matching_faces
+                    if f.centroid[axis_idx] < mid  # type: ignore[index]
+                ]
+            else:
+                matching_faces = [
+                    f
+                    for f in matching_faces
+                    if f.centroid[axis_idx] >= mid  # type: ignore[index]
+                ]
+            if matching_faces:
+                bf = max(matching_faces, key=lambda f: f.area_mm2 or 0)
+                if bf.centroid:
+                    pos = list(bf.centroid)
+                    pos[axis_idx] = bore_val
+                    points.append(
+                        ConnectionPoint(
+                            end=end,
+                            position=[round(v, 3) for v in pos],
+                            axis=[round(a, 4) for a in axis.tolist()],
+                            radius_mm=20.0,
+                            method="centroid_fallback",
+                        )
+                    )
 
     return points
+
+
+def _find_bore_end_for_axis(
+    axis: np.ndarray,
+    axis_idx: int,
+    bounds: np.ndarray,
+    flat_faces: list[GeometricFeature],
+) -> tuple[float, str]:
+    """Find which end of an axis has the bore opening using flat face evidence.
+
+    For L-shaped parts, bore openings face outward from the junction.  The
+    largest flat face aligned with the axis indicates the bore opening end.
+
+    Returns ``(bound_val, slice_direction)`` where *bound_val* is the bounding
+    box value at the bore opening end and *slice_direction* is ``"above"`` when
+    the bore is at the min end or ``"below"`` when at the max end.
+    """
+    aligned: list[GeometricFeature] = []
+    for f in flat_faces:
+        if f.normal and f.centroid:
+            dot = abs(float(np.dot(f.normal, axis)))
+            if dot > 0.95:
+                aligned.append(f)
+
+    if not aligned:
+        # No flat-face evidence; default to min end
+        return float(bounds[0][axis_idx]), "above"
+
+    # Split into faces at min end vs max end
+    mid = (bounds[0][axis_idx] + bounds[1][axis_idx]) / 2.0
+    min_faces = [f for f in aligned if f.centroid[axis_idx] < mid]  # type: ignore[index]
+    max_faces = [f for f in aligned if f.centroid[axis_idx] >= mid]  # type: ignore[index]
+
+    min_area = max((f.area_mm2 or 0 for f in min_faces), default=0)
+    max_area = max((f.area_mm2 or 0 for f in max_faces), default=0)
+
+    if max_area >= min_area:
+        return float(bounds[1][axis_idx]), "below"
+    else:
+        return float(bounds[0][axis_idx]), "above"
 
 
 def _detect_endpoints_along_axis(

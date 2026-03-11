@@ -34,7 +34,6 @@
   </link>
   <link name="link_4">
     <visual>
-      <origin xyz="0.000437 -0.090655 0.004838" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -42,7 +41,7 @@
   </link>
   <link name="link_5">
     <visual>
-      <origin xyz="0.001581 0.004844 -0.093203" rpy="0 0 0"/>
+      <origin xyz="-0.001021 0.000096 -0.049151" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -50,6 +49,7 @@
   </link>
   <link name="link_6">
     <visual>
+      <origin xyz="0.001144 -0.047325 -0.003450" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist3.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -86,15 +86,15 @@
   <joint name="joint_5" type="revolute">
     <parent link="link_4"/>
     <child link="link_5"/>
-    <origin xyz="0 0.093150 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
+    <origin xyz="0.000205 0.095447 0.047500" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_6" type="revolute">
     <parent link="link_5"/>
     <child link="link_6"/>
-    <origin xyz="0 0 0.094650" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
+    <origin xyz="-0.001769 0.047596 0.047532" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
 </robot>
