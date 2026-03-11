@@ -49,8 +49,6 @@ def generate_urdf(
     robot = ET.Element("robot", name=robot_name)
 
     link_specs = {lk["name"]: lk for lk in chain["links"]}
-    joint_by_child = {j["child"]: j for j in chain["joints"]}
-    joint_by_parent = {j["parent"]: j for j in chain["joints"]}
 
     # Generate links
     for link_spec in chain["links"]:
@@ -67,9 +65,7 @@ def generate_urdf(
                 analysis,
                 link_spec,
                 link_name,
-                joint_by_child,
-                joint_by_parent,
-                messages,
+                messages=messages,
             )
 
             if viz_xyz != [0, 0, 0] or viz_rpy != [0, 0, 0]:
@@ -166,84 +162,45 @@ def _compute_visual_origin(
     analysis: dict,
     link_spec: dict,
     link_name: str,
-    joint_by_child: dict,
-    joint_by_parent: dict,
+    *,
     messages: list[str],
 ) -> tuple[list[float], list[float]]:
-    """Compute visual origin xyz/rpy for a link's mesh.
-
-    Positioning strategy:
-    - Root link (no parent joint): proximal bore at origin (mesh sits on ground)
-    - Non-root with child joint: distal bore at child joint origin (closes gaps)
-    - Terminal link (no child joint): proximal bore at link frame origin
-    """
+    """Compute visual origin xyz/rpy: proximal bore at frame origin."""
     conn_points = analysis.get("connection_points", [])
     proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
-    distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
-
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
 
-    is_root = link_name not in joint_by_child
-    has_child = link_name in joint_by_parent
-
-    # Non-root links with a child joint: distal bore → child joint positioning
-    if not is_root and has_child and distal is not None:
-        child_joint = joint_by_parent[link_name]
-        child_origin = child_joint.get("origin", [0, 0, 0])
-        dpos = distal["position"]
-        messages.append(
-            f"  {link_name}: distal=({dpos[0]:.1f},"
-            f" {dpos[1]:.1f}, {dpos[2]:.1f})mm"
-            f" → child joint"
-        )
-        if viz_rpy == [0, 0, 0]:
-            viz_xyz = [child_origin[i] - dpos[i] / 1000 for i in range(3)]
-        else:
-            rot = _rpy_to_rotation(viz_rpy)
-            dpos_m = np.array(dpos) / 1000
-            viz_xyz = (np.array(child_origin) - rot @ dpos_m).tolist()
-
-        # Apply additive visual_xyz adjustment from chain spec
-        extra_xyz = link_spec.get("visual_xyz")
-        if extra_xyz is not None:
-            viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz, strict=True)]
-
-        return [round(v, 6) for v in viz_xyz], viz_rpy
-
-    # Root link and terminal links: proximal bore at link frame origin
     if proximal is None:
         viz_xyz = link_spec.get("visual_xyz", [0, 0, 0])
         messages.append(f"  {link_name}: no proximal connection point")
         return viz_xyz, viz_rpy
 
-    pos = proximal["position"]
-    label = "(root)" if is_root else "(terminal)"
+    pos = list(proximal["position"])  # copy — don't mutate original
+
+    # Adjust bore-axis component from face to barrel center.
+    # Bore detection reports the face surface (bbox extreme); DH distances
+    # measure center-to-center, so we use the bbox midpoint along the bore
+    # axis to place each mesh centered on its joint axis.
+    bore_axis = proximal.get("axis", [0, 0, 0])
+    axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
+    bbox = analysis.get("geometry", {}).get("bounding_box", {})
+    if bbox and abs(bore_axis[axis_idx]) > 0.5:
+        bmin = bbox["min"][axis_idx]
+        bmax = bbox["max"][axis_idx]
+        pos[axis_idx] = (bmin + bmax) / 2
+
     messages.append(
-        f"  {link_name} {label}: proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
+        f"  {link_name}: proximal @ origin,"
+        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
     )
-
     if viz_rpy == [0, 0, 0]:
-        viz_xyz = [
-            -pos[0] / 1000,
-            -pos[1] / 1000,
-            -pos[2] / 1000,
-        ]
+        viz_xyz = [-pos[i] / 1000 for i in range(3)]
     else:
-        rot = _rpy_to_rotation(viz_rpy)
-        pos_m = np.array(pos) / 1000
-        xyz = -rot @ pos_m
-        viz_xyz = xyz.tolist()
+        viz_xyz = (-_rpy_to_rotation(viz_rpy) @ (np.array(pos) / 1000)).tolist()
 
-    # Apply additive visual_xyz adjustment from chain spec
-    extra_xyz = link_spec.get("visual_xyz")
-    if extra_xyz is not None:
-        viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz, strict=True)]
-        mag = sum(v**2 for v in extra_xyz) ** 0.5
-        if mag > 0.010:
-            messages.append(
-                f"  WARNING: {link_name} visual_xyz = {mag * 1000:.1f}mm (>10mm)"
-            )
-
+    extra = link_spec.get("visual_xyz")
+    if extra is not None:
+        viz_xyz = [v + e for v, e in zip(viz_xyz, extra, strict=True)]
     return [round(v, 6) for v in viz_xyz], viz_rpy
 
 
