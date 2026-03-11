@@ -50,6 +50,7 @@ def generate_urdf(
 
     link_specs = {lk["name"]: lk for lk in chain["links"]}
     joint_by_child = {j["child"]: j for j in chain["joints"]}
+    joint_by_parent = {j["parent"]: j for j in chain["joints"]}
 
     # Generate links
     for link_spec in chain["links"]:
@@ -67,6 +68,7 @@ def generate_urdf(
                 link_spec,
                 link_name,
                 joint_by_child,
+                joint_by_parent,
                 messages,
             )
 
@@ -165,17 +167,40 @@ def _compute_visual_origin(
     link_spec: dict,
     link_name: str,
     joint_by_child: dict,
+    joint_by_parent: dict,
     messages: list[str],
 ) -> tuple[list[float], list[float]]:
     """Compute visual origin xyz/rpy for a link's mesh.
 
-    Places the mesh so its proximal connection point sits at the
-    link frame origin.
+    For child links: places proximal bore at the link frame origin.
+    For root link (no parent joint): places distal bore at the first
+    child joint origin so the base mesh sits correctly.
     """
     conn_points = analysis.get("connection_points", [])
     proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
+    distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
 
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
+
+    is_root = link_name not in joint_by_child
+
+    # Root link: position distal bore at child joint origin
+    if is_root and distal is not None and link_name in joint_by_parent:
+        child_joint = joint_by_parent[link_name]
+        child_origin = child_joint.get("origin", [0, 0, 0])
+        dpos = distal["position"]
+        messages.append(
+            f"  {link_name} (root): distal="
+            f"({dpos[0]:.1f}, {dpos[1]:.1f}, {dpos[2]:.1f})mm"
+        )
+        viz_xyz = [child_origin[i] - dpos[i] / 1000 for i in range(3)]
+
+        # Apply additive visual_xyz adjustment from chain spec
+        extra_xyz = link_spec.get("visual_xyz")
+        if extra_xyz is not None:
+            viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz, strict=True)]
+
+        return [round(v, 6) for v in viz_xyz], viz_rpy
 
     if proximal is None:
         viz_xyz = link_spec.get("visual_xyz", [0, 0, 0])

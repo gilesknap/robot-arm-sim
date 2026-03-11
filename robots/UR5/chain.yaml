@@ -12,10 +12,8 @@ dh_params:  # from manufacturer specs (mm)
 links:
   - name: base_link
     mesh: base
-    visual_xyz: [0, 0.011, 0]  # Y: +11mm shifted here from shoulder — base never rotates, so no COR drift
   - name: link_1
     mesh: shoulder
-    visual_xyz: [0, 0, -0.063]  # Z: shift down to meet base (along rotation axis, no COR effect)
   - name: link_2
     mesh: upperarm
   - name: link_3

@@ -1231,8 +1231,8 @@ def _update_scene(
         show = labels_visible and labels_visible.get("value", False)
         for item in callout_items:
             if not show:
-                item["text"].visible = False  # type: ignore[attr-defined]
-                item["line"].visible = False  # type: ignore[attr-defined]
+                item["text"].move(*_HIDDEN_POS)  # type: ignore[attr-defined]
+                item["line"].move(*_HIDDEN_POS)  # type: ignore[attr-defined]
                 continue
 
             name = item["name"]
@@ -1247,8 +1247,6 @@ def _update_scene(
                 continue
 
             ax, ay, az = anchor
-            item["text"].visible = True  # type: ignore[attr-defined]
-            item["line"].visible = True  # type: ignore[attr-defined]
             item["text"].move(ax + ox, ay + oy, az + oz)
             item["line"].move(ax, ay, az)
 

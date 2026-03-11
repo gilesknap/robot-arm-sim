@@ -4,26 +4,26 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 14.36
-  - -21.756
-  - -59.746
+  - 5.31
+  - 1.699
+  - 0.565
   axis:
   - 0.0
-  - 0.0
   - 1.0
-  radius_mm: 62.0
-  method: cross_section
+  - 0.0
+  radius_mm: 57.2
+  method: barrel_bore_face
 - end: distal
   position:
-  - 0.183
-  - 68.597
-  - 37.957
+  - 2.408
+  - 1.699
+  - 431.133
   axis:
   - 0.0
   - 1.0
   - 0.0
-  radius_mm: 197.0
-  method: cross_section
+  radius_mm: 57.1
+  method: barrel_bore_face
 geometry:
   vertex_count: 598
   face_count: 1176
