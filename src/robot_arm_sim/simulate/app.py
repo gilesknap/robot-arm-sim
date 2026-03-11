@@ -64,8 +64,6 @@ def create_app(robot_dir: Path, port: int = 8080) -> None:
             "Run the assembly-reasoning skill first."
         )
 
-    robot = load_urdf(urdf_path)
-
     # Serve STL files
     stl_dir = robot_dir / "stl_files"
     if stl_dir.exists():
@@ -77,11 +75,12 @@ def create_app(robot_dir: Path, port: int = 8080) -> None:
 
     @ui.page("/")
     def index():
+        robot = load_urdf(urdf_path)
         _build_ui(robot, robot_dir)
 
     ui.run(
         port=port,
-        title=f"Robot Sim: {robot.name}",
+        title=f"Robot Sim: {robot_dir.name}",
         reload=False,
         show=False,  # Don't auto-open a browser tab on startup
         reconnect_timeout=30,  # Keep tabs alive longer when inactive
@@ -321,6 +320,16 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     chain = robot.get_kinematic_chain()
     mesh_centers = _load_mesh_centers(robot, robot_dir)
 
+    # Build ordered chain link names (parent then child, deduped)
+    chain_link_names: list[str] = []
+    seen: set[str] = set()
+    for joint in chain:
+        for lname in (joint.parent, joint.child):
+            if lname not in seen:
+                chain_link_names.append(lname)
+                seen.add(lname)
+    visible_up_to = {"value": len(chain_link_names) - 1}
+
     # Generate callout offsets dynamically based on link/joint counts
     part_count = sum(1 for link in robot.links if link.mesh_path)
     joint_origins = [j.origin_xyz for j in chain]
@@ -451,6 +460,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     callout_items,
                     labels_visible,
                     mesh_centers,
+                    visible_up_to=visible_up_to,
+                    chain_link_names=chain_link_names,
                 )
 
             # Set initial camera to a good viewpoint
@@ -489,16 +500,7 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
             # Toolbar below 3D viewport
             def toggle_labels():
                 labels_visible["value"] = not labels_visible["value"]
-                _update_scene(
-                    robot,
-                    joint_angles,
-                    mesh_objects,
-                    callout_items,
-                    labels_visible,
-                    mesh_centers,
-                    ee_readout_ref[0],
-                    frames_visible,
-                )
+                _update_scene_now()
                 label_btn.text = (
                     "Hide Labels" if labels_visible["value"] else "Show Labels"
                 )
@@ -532,16 +534,7 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     frames_btn.text = "Hide Frames" if show else "Show Frames"
                     ui.run_javascript(f"window.__setAxesVisible({str(show).lower()})")
                     if show:
-                        _update_scene(
-                            robot,
-                            joint_angles,
-                            mesh_objects,
-                            callout_items,
-                            labels_visible,
-                            mesh_centers,
-                            ee_readout_ref[0],
-                            frames_visible,
-                        )
+                        _update_scene_now()
 
                 frames_btn = ui.button("Show Frames", on_click=toggle_frames).props(
                     "flat dense"
@@ -551,6 +544,11 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     ui.run_javascript(_SCREENSHOT_JS)
 
                 ui.button("Screenshot", on_click=_take_screenshot).props("flat dense")
+
+                ui.button(
+                    "Reload URDF",
+                    on_click=lambda: ui.navigate.to("/"),
+                ).props("color=blue-7 flat dense")
 
                 ui.button("Stop Simulator", on_click=shutdown).props(
                     "color=red-7 flat dense"
@@ -574,6 +572,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     mesh_centers,
                     ee_readout_ref[0],
                     frames_visible,
+                    visible_up_to,
+                    chain_link_names,
                 )
 
             def _populate_ik_from_fk():
@@ -607,6 +607,39 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     "dense inline"
                 )
                 ui.button("Reset", on_click=reset_all).props("flat dense")
+
+            # --- "Show up to" slider for progressive assembly ---
+            link_display_names: list[str] = []
+            for lname in chain_link_names:
+                lnk = robot.get_link(lname)
+                if lnk and lnk.mesh_path:
+                    link_display_names.append(Path(lnk.mesh_path).stem)
+                else:
+                    link_display_names.append(lname)
+
+            max_idx = len(chain_link_names) - 1
+            show_label = ui.label(
+                f"Show up to: {link_display_names[max_idx]}"
+                f" ({max_idx + 1}/{max_idx + 1})"
+            )
+
+            def _on_show_up_to(e):
+                idx = int(e.value)
+                visible_up_to["value"] = idx
+                show_label.text = (
+                    f"Show up to: {link_display_names[idx]} ({idx + 1}/{max_idx + 1})"
+                )
+                _update_scene_now()
+
+            ui.slider(
+                min=0,
+                max=max_idx,
+                value=max_idx,
+                step=1,
+                on_change=_on_show_up_to,
+            )
+
+            ui.separator()
 
             # --- Joint control panel ---
             joint_panel = ui.column().classes("w-full")
@@ -726,6 +759,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 labels_visible,
                 mesh_centers,
                 ee_readout,
+                visible_up_to=visible_up_to,
+                chain_link_names=chain_link_names,
             )
 
 
@@ -768,8 +803,16 @@ def _update_scene(
     mesh_centers: dict[str, np.ndarray] | None = None,
     ee_label: ui.label | None = None,
     frames_visible: dict | None = None,
+    visible_up_to: dict | None = None,
+    chain_link_names: list[str] | None = None,
 ) -> None:
     """Recompute FK and update mesh transforms."""
+    # Compute which links are visible based on "Show up to" slider
+    visible_links: set[str] | None = None
+    if visible_up_to is not None and chain_link_names is not None:
+        max_idx = visible_up_to.get("value", len(chain_link_names) - 1)
+        visible_links = set(chain_link_names[: max_idx + 1])
+
     transforms = forward_kinematics(robot, joint_angles)
 
     # Build lookup: joint_name -> world position, link_name -> mesh center world pos
@@ -786,6 +829,10 @@ def _update_scene(
 
         obj = mesh_objects.get(link_name)
         if obj is None:
+            continue
+
+        if visible_links is not None and link_name not in visible_links:
+            obj.move(*_HIDDEN_POS)  # type: ignore[attr-defined]
             continue
 
         link = robot.get_link(link_name)

@@ -311,13 +311,15 @@ After each fix:
 # Regenerate URDF
 uv run robot-arm-sim generate robots/<name>/ robots/<name>/chain.yaml
 
-# Restart simulator (required — browser refresh alone won't pick up URDF changes)
-pkill -9 -f "robot-arm-sim simulate" 2>/dev/null
-for i in 1 2 3 4 5; do lsof -i :8080 >/dev/null 2>&1 || break; sleep 1; done
-nohup uv run robot-arm-sim simulate robots/<name>/ > /tmp/sim.log 2>&1 &
-# Wait for HTTP 200 before navigating browser
-for i in 1 2 3 4 5 6 7 8; do sleep 1; curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ | grep -q 200 && break; done
+# Click "Reload URDF" button in the simulator toolbar — this re-reads the
+# URDF and STL meshes from disk without restarting the server.
+# Ctrl+Shift+R may still be needed to bust browser STL cache after
+# regenerating mesh files.
 ```
+
+**Tip:** Use the "Show up to" slider in the right panel to progressively reveal
+parts from base to tip. This makes it easy to inspect each part's placement
+individually during the fix-verify cycle.
 
 ### 5d: Convergence criteria
 
