@@ -1072,10 +1072,49 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                             with open(yaml_path, "w") as f:
                                 yaml.dump(data, f, default_flow_style=False)
 
+                    # Propagate bore axes to chain.yaml
+                    chain_file = robot_dir / "chain.yaml"
+                    if chain_file.exists():
+                        with open(chain_file) as f:
+                            chain_data = yaml.safe_load(f)
+                        link_meshes = {
+                            lk["name"]: lk.get("mesh")
+                            for lk in chain_data.get("links", [])
+                        }
+                        chain_modified = False
+                        for jnt in chain_data.get("joints", []):
+                            parent_mesh = link_meshes.get(jnt["parent"])
+                            if not parent_mesh:
+                                continue
+                            ay = analysis_dir / f"{parent_mesh}.yaml"
+                            if not ay.exists():
+                                continue
+                            with open(ay) as f:
+                                adata = yaml.safe_load(f)
+                            cps = adata.get("connection_points", [])
+                            distal = next(
+                                (c for c in cps if c["end"] == "distal"),
+                                None,
+                            )
+                            if distal is None:
+                                continue
+                            bore_axis = [
+                                int(v) if v == int(v) else v for v in distal["axis"]
+                            ]
+                            if jnt.get("axis") != bore_axis:
+                                jnt["axis"] = bore_axis
+                                chain_modified = True
+                        if chain_modified:
+                            with open(chain_file, "w") as f:
+                                yaml.dump(
+                                    chain_data,
+                                    f,
+                                    default_flow_style=False,
+                                )
+
                     # Regenerate URDF
                     from robot_arm_sim.analyze.urdf_generator import generate_urdf
 
-                    chain_file = robot_dir / "chain.yaml"
                     if chain_file.exists():
                         generate_urdf(
                             chain_file,

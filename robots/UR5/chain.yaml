@@ -64,14 +64,13 @@ joints:
     type: revolute
     parent: link_4
     child: link_5
-    axis: [0, 1, 0]  # wrist1 distal bore axis
+    axis: [0, 0, 1]  # wrist1 distal bore axis
     limits: [-6.2832, 6.2832]
-    origin: [0, 0.09315, 0]   # wrist2 offset (Y)
 
   - name: joint_6
     type: revolute
     parent: link_5
     child: link_6
-    axis: [0, 0, 1]
+    axis: [0, 1, 0]  # wrist2 distal bore axis
     limits: [-6.2832, 6.2832]
     origin: [0, 0, 0.09465]   # d5: wrist3 offset (Z)

@@ -39,8 +39,8 @@ bore where the child part physically attaches.
 | shoulder   | [0, 1, 0]       | joint_2 | [0, 1, 0]   |
 | upperarm   | [0, 1, 0]       | joint_3 | [0, 1, 0]   |
 | forearm    | [0, 1, 0]       | joint_4 | [0, 1, 0]   |
-| wrist1     | [0, 1, 0]       | joint_5 | [0, 1, 0]   |
-| wrist2     | [0, 0, 1]       | joint_6 | [0, 0, 1]   |
+| wrist1     | [0, 0, 1]       | joint_5 | [0, 0, 1]   |
+| wrist2     | [0, 1, 0]       | joint_6 | [0, 1, 0]   |
 
 ### 4. Compute Joint Origins from DH Parameters
 
@@ -64,7 +64,7 @@ Need `origin_rpy` and may have lateral offsets:
 # J2: origin [0, shoulder_offset/1000, 0], origin_rpy: [0, pi/2, 0]
 # J3: origin [0, elbow_offset/1000, a2/1000]
 # J4: origin [0, 0, a3/1000], origin_rpy: [0, pi/2, 0]
-# J5: origin [0, d4/1000, 0]
+# J5: origin [0, d4/1000, 0]  # may need origin_rpy if DH alpha5 ≠ 0
 # J6: origin [0, 0, d5/1000]
 ```
 
