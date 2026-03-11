@@ -1,0 +1,145 @@
+part_name: shoulder
+source_file: stl_files/shoulder.stl
+format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - -1.796
+  - 6.351
+  - -65.2
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 59.0
+  method: cross_section
+- end: distal
+  position:
+  - -2.616
+  - 70.501
+  - -1.026
+  axis:
+  - 0.0
+  - 1.0
+  - 0.0
+  radius_mm: 62.3
+  method: cross_section
+geometry:
+  vertex_count: 341
+  face_count: 674
+  bounding_box:
+    min:
+    - -59.404014587402344
+    - -59.746360778808594
+    - -65.20015716552734
+    max:
+    - 59.50015640258789
+    - 70.50129699707031
+    - 68.45967864990234
+    extents:
+    - 118.90417098999023
+    - 130.2476577758789
+    - 133.6598358154297
+  volume_mm3: 1548321.261779234
+  surface_area_mm2: 98582.69819036641
+  center_of_mass:
+  - -0.0014801480800450835
+  - 9.344410335910906
+  - -1.8722319114154042
+  is_watertight: true
+inertia:
+  principal_moments:
+  - 3059032414.071786
+  - 3347392115.266565
+  - 3648972868.042396
+  principal_axes:
+  - - -0.0018197032069287994
+    - 0.4255808429191805
+    - 0.9049185791110921
+  - - 0.0026881109618222087
+    - -0.904914726123247
+    - 0.42558443639863663
+  - - -0.9999947313559682
+    - -0.003206958915798688
+    - -0.0005026677001309835
+features:
+  flat_faces:
+  - description: "Large flat face on bottom, area 12149.6 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 0.42
+    - -0.9075
+    area_mm2: 12149.59
+    centroid:
+    - -4.5519
+    - -12.6028
+    - 27.7778
+  - description: "Large flat face on top, area 11526.0 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - -0.4199
+    - 0.9076
+    area_mm2: 11525.98
+    centroid:
+    - -9.2475
+    - -7.7005
+    - 30.0455
+  - description: "Large flat face on front, area 10440.7 mm\xB2, likely mating surface"
+    normal:
+    - -0.0002
+    - 1.0
+    - 0.0002
+    area_mm2: 10440.75
+    centroid:
+    - 1.0718
+    - 70.4956
+    - 7.0463
+  - description: "Large flat face on bottom, area 10322.2 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - 0.0
+    - -1.0
+    area_mm2: 10322.18
+    centroid:
+    - -3.1655
+    - -4.7912
+    - -65.2001
+  - description: "Large flat face on top, area 7071.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0014
+    - -0.1294
+    - 0.9916
+    area_mm2: 7071.08
+    centroid:
+    - 0.1343
+    - 8.7582
+    - 62.6644
+  cylindrical_surfaces:
+  - description: Cylindrical surface along Y axis, radius 62.3 mm, length 120.5 mm
+    axis:
+    - 0
+    - 1
+    - 0
+    radius_mm: 62.34
+    length_mm: 120.54
+    center:
+    - -2.5854
+    - 24.3717
+    - 19.1837
+    concave: false
+  - description: Cylindrical surface along Z axis, radius 59.0 mm, length 128.1 mm
+    axis:
+    - 0
+    - 0
+    - 1
+    radius_mm: 59.03
+    length_mm: 128.11
+    center:
+    - -0.8437
+    - 10.9282
+    - 8.2184
+    concave: false
+  holes: []
+text_description: "Part 'shoulder' from stl_files/shoulder.stl.\nBounding box: 118.9 x 130.2 x 133.7 mm.\nWatertight solid,\
+  \ volume 1548321.3 mm\xB3.\nSurface area: 98582.7 mm\xB2.\nMesh complexity: 341 vertices, 674 faces.\nHas 5 significant\
+  \ flat face(s).\nHas 2 cylindrical surface(s)."

@@ -1,0 +1,27 @@
+robot_name: UR5
+part_count: 7
+parts:
+- name: base
+  file: base.yaml
+  role_hint: large part; flat bottom face (possible base); 1 cylindrical surface(s)
+- name: forearm
+  file: forearm.yaml
+  role_hint: large part; 2 cylindrical surface(s)
+- name: shoulder
+  file: shoulder.yaml
+  role_hint: large part; flat bottom face (possible base); 2 cylindrical surface(s)
+- name: upperarm
+  file: upperarm.yaml
+  role_hint: large part; 3 cylindrical surface(s)
+- name: wrist1
+  file: wrist1.yaml
+  role_hint: large part; 2 cylindrical surface(s)
+- name: wrist2
+  file: wrist2.yaml
+  role_hint: large part; 2 cylindrical surface(s)
+- name: wrist3
+  file: wrist3.yaml
+  role_hint: standard link
+assembly_hints:
+- 'Parts: base, forearm, shoulder, upperarm, wrist1, wrist2, wrist3'
+- Parts follow sequential naming (wrist*), suggesting serial kinematic chain
