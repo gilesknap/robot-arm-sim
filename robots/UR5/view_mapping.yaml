@@ -1,0 +1,21 @@
+views:
+  - manufacturer_label: "Side (DH diagram)"
+    viewcube_face: RIGHT
+    reference_image: "images/ur5_DH_joint_positions.svg"
+    dir: [0, -1, 0]
+    up: [0, 0, 1]
+    notes: "Standard DH parameter diagram - side profile view"
+
+  - manufacturer_label: "Front"
+    viewcube_face: FRONT
+    reference_image: "images/ur5_coincident_joints.svg"
+    dir: [1, 0, 0]
+    up: [0, 0, 1]
+    notes: "Coincident joints diagram - front view"
+
+  - manufacturer_label: "Product photo (3/4 view)"
+    viewcube_face: null
+    reference_image: "images/UR5-robot.png"
+    dir: null
+    up: null
+    notes: "3/4 perspective - for general shape comparison only, not dimensional"

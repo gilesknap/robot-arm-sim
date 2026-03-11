@@ -1,0 +1,78 @@
+robot_name: UR5
+dh_params:  # from manufacturer specs (mm)
+  d1: 89.159       # base height
+  d2: 135.85       # shoulder offset (Y)
+  d3: -119.7       # elbow offset (Y)
+  a2: -425.0       # upper arm length
+  a3: -392.25      # forearm length
+  d4: 109.15       # wrist1 offset
+  d5: 94.65        # wrist2 offset
+  d6: 82.3         # tool flange
+
+links:
+  - name: base_link
+    mesh: base
+  - name: link_1
+    mesh: shoulder
+    visual_xyz: [0, 0.011, -0.063]  # Y: +11mm corrects lateral offset from front; Z: shift down to meet base
+  - name: link_2
+    mesh: upperarm
+  - name: link_3
+    mesh: forearm
+  - name: link_4
+    mesh: wrist1
+  - name: link_5
+    mesh: wrist2
+  - name: link_6
+    mesh: wrist3
+
+joints:
+  - name: joint_1
+    type: revolute
+    parent: base_link
+    child: link_1
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0, 0.089159]  # d1: base height
+
+  - name: joint_2
+    type: revolute
+    parent: link_1
+    child: link_2
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0.13585, 0]   # d2: shoulder offset (Y)
+    origin_rpy: [0, 1.570796327, 0]  # alpha1 = pi/2
+
+  - name: joint_3
+    type: revolute
+    parent: link_2
+    child: link_3
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, -0.1197, 0.425]  # d3: elbow offset (Y), |a2|: upper arm (Z)
+
+  - name: joint_4
+    type: revolute
+    parent: link_3
+    child: link_4
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0, 0.39225]   # |a3|: forearm length (Z)
+    origin_rpy: [0, 1.570796327, 0]  # alpha4 = pi/2
+
+  - name: joint_5
+    type: revolute
+    parent: link_4
+    child: link_5
+    axis: [0, 0, -1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0.09315, 0]   # wrist2 offset (Y)
+
+  - name: joint_6
+    type: revolute
+    parent: link_5
+    child: link_6
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0, 0.09465]   # d5: wrist3 offset (Z)

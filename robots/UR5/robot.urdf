@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<robot name="UR5">
+  <link name="base_link">
+    <visual>
+      <origin xyz="0.000087 0.004519 0.003002" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/base.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_1">
+    <visual>
+      <origin xyz="0.001796 0.004649 0.002200" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/shoulder.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_2">
+    <visual>
+      <origin xyz="-0.014360 0.021756 0.059746" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/upperarm.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_3">
+    <visual>
+      <origin xyz="0.003083 -0.020332 0.057986" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/forearm.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_4">
+    <visual>
+      <origin xyz="0.000437 -0.090655 0.057176" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/wrist1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_5">
+    <visual>
+      <origin xyz="0.001581 0.057188 -0.093203" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/wrist2.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_6">
+    <visual>
+      <geometry>
+        <mesh filename="stl_files/wrist3.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link_1"/>
+    <origin xyz="0 0 0.089159" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_2" type="revolute">
+    <parent link="link_1"/>
+    <child link="link_2"/>
+    <origin xyz="0 0.135850 0" rpy="0 1.570796 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_3" type="revolute">
+    <parent link="link_2"/>
+    <child link="link_3"/>
+    <origin xyz="0 -0.119700 0.425000" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_4" type="revolute">
+    <parent link="link_3"/>
+    <child link="link_4"/>
+    <origin xyz="0 0 0.392250" rpy="0 1.570796 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_5" type="revolute">
+    <parent link="link_4"/>
+    <child link="link_5"/>
+    <origin xyz="0 0.093150 0" rpy="0 0 0"/>
+    <axis xyz="0 0 -1"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_6" type="revolute">
+    <parent link="link_5"/>
+    <child link="link_6"/>
+    <origin xyz="0 0 0.094650" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+</robot>

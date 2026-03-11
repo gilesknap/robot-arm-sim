@@ -12,6 +12,22 @@ The core iteration loop. Called once per link, working base-to-tip. Operates on 
 
 ## Steps
 
+### 0. Pre-Visual Gap Check (BEFORE opening the simulator)
+
+Before looking at any screenshots, **compute expected gaps analytically** using the analysis YAMLs and chain.yaml. For each pair of adjacent links (N-1, N):
+
+1. Read the analysis YAML for both links. Note the **bounding box** Z extents and the **proximal connection point** Z position.
+2. Compute where link N-1's mesh top is in world coords:
+   - The URDF generator aligns the proximal bore with the joint origin, so the mesh extends from `joint_origin_Z + (mesh_Z_min - proximal_Z)` to `joint_origin_Z + (mesh_Z_max - proximal_Z)` (converted mm→m).
+3. Compute where link N's mesh bottom is in world coords (same formula for the next joint).
+4. If there is a **gap > 5mm** between the top of link N-1 and the bottom of link N, the shoulder/child mesh needs a negative `visual_xyz` Z to shift it down to close the gap.
+
+**Common pattern**: When the joint origin height (e.g. DH d1) is significantly taller than the parent mesh, a gap will appear. The child mesh must be shifted down with `visual_xyz` to bridge it. This is expected when the bore connection is at the extreme bottom of a mesh — the auto-detected offset pushes the entire mesh above the joint, leaving empty space below.
+
+**Fix formula**: `visual_xyz Z ≈ -(joint_origin_Z - parent_mesh_top_Z)` (in metres, negative to shift down).
+
+Apply any computed `visual_xyz` fixes to chain.yaml and regenerate BEFORE starting visual comparison. This avoids wasting iteration cycles on obvious geometric gaps.
+
 ### 1. Set "Show up to" Slider
 
 Use the slider JS to show links 0..N only:
@@ -51,11 +67,13 @@ If there's a discrepancy, use this symptom-to-fix table:
 | Symptom | Fix in chain.yaml |
 |---------|-------------------|
 | Mesh floating above joint | Add negative `visual_xyz` Z on this link |
-| Gap between links N and N-1 | Reduce joint `origin` Z/distance |
+| Gap between links N and N-1 (bore at mesh extreme) | Add negative `visual_xyz` Z on link N to bridge the gap (see step 0) |
+| Gap between links N and N-1 (joint origin too large) | Reduce joint `origin` Z/distance |
 | Overlap between links | Increase joint `origin` Z/distance |
 | Part rotated wrong | Adjust `visual_rpy` on this link |
 | COR offset from mesh center | Move `origin` on the joint, NOT `visual_xyz` |
 | Part shifted laterally | Check `origin` Y component or `visual_xyz` X/Y |
+| Overlap visible from FRONT/BACK but not SIDE | Lateral (Y) misalignment — adjust `visual_xyz` Y |
 
 After each fix:
 ```bash
@@ -75,9 +93,11 @@ uv run python robots/<name>/verify_kinematics.py --json
 
 Ensure this link's joint still passes within 2mm.
 
-### 5. Multi-View Consistency
+### 5. Multi-View Consistency (CRITICAL)
 
-Check the fix from at least 2 orthogonal views. A fix that looks right from one view may be wrong from another.
+Check **every** fix from at least 2 orthogonal views (FRONT + RIGHT minimum). A fix that looks right from one view may be wrong from another.
+
+**Common trap**: The SIDE view only shows Z alignment. Lateral (Y) misalignment is invisible from the side — you MUST check FRONT or BACK views to catch it. Always check FRONT/BACK for overlap/clipping between adjacent links, especially at the base-shoulder and shoulder-upperarm junctions.
 
 ## Gate
 

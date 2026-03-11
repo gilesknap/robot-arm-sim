@@ -545,9 +545,51 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
 
                 ui.button("Screenshot", on_click=_take_screenshot).props("flat dense")
 
+                async def _reload_urdf():
+                    # Save current state to sessionStorage before reload
+                    save_js = (
+                        "sessionStorage.setItem("
+                        "'reload_state', JSON.stringify({"
+                        f"visible_up_to: {visible_up_to['value']},"
+                        "joints: {"
+                        + ",".join(f"'{k}': {v}" for k, v in joint_angles.items())
+                        + "},"
+                        "camera: (function() {"
+                        "  function f(v){"
+                        "    if(!v) return null;"
+                        "    if(v.component&&v.component.proxy){"
+                        "      var p=v.component.proxy;"
+                        "      if(p.renderer&&p.scene&&p.controls)"
+                        "        return p;}"
+                        "    if(v.children&&Array.isArray(v.children))"
+                        "      for(var c of v.children){"
+                        "        var r=f(c); if(r) return r;}"
+                        "    if(v.component&&v.component.subTree)"
+                        "      return f(v.component.subTree);"
+                        "    return null;}"
+                        "  var sc=f(document.getElementById("
+                        "    'app').__vue_app__"
+                        "    ._container._vnode);"
+                        "  if(!sc) return null;"
+                        "  var c=sc.camera, t=sc.controls;"
+                        "  return {"
+                        "    px:c.position.x,py:c.position.y,"
+                        "    pz:c.position.z,"
+                        "    tx:t.target.x,ty:t.target.y,"
+                        "    tz:t.target.z,"
+                        "    ux:c.up.x,uy:c.up.y,uz:c.up.z,"
+                        "    isOrtho:!!c.isOrthographicCamera,"
+                        "    left:c.left,right:c.right,"
+                        "    top:c.top,bottom:c.bottom"
+                        "  };"
+                        "})()}))"
+                    )
+                    await ui.run_javascript(save_js)
+                    ui.navigate.to("/")
+
                 ui.button(
                     "Reload URDF",
-                    on_click=lambda: ui.navigate.to("/"),
+                    on_click=_reload_urdf,
                 ).props("color=blue-7 flat dense")
 
                 ui.button("Stop Simulator", on_click=shutdown).props(
@@ -631,7 +673,7 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 )
                 _update_scene_now()
 
-            ui.slider(
+            show_up_to_slider = ui.slider(
                 min=0,
                 max=max_idx,
                 value=max_idx,
@@ -762,6 +804,89 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 visible_up_to=visible_up_to,
                 chain_link_names=chain_link_names,
             )
+
+            # --- Restore state from sessionStorage (after URDF reload) ---
+            async def _restore_state():
+                raw = await ui.run_javascript(
+                    "var s = sessionStorage.getItem('reload_state');"
+                    "sessionStorage.removeItem('reload_state');"
+                    "s"
+                )
+                if not raw:
+                    return
+                import json
+
+                try:
+                    state = json.loads(raw)
+                except (json.JSONDecodeError, TypeError):
+                    return
+
+                # Restore "show up to" slider
+                idx = state.get("visible_up_to")
+                if idx is not None and 0 <= idx <= max_idx:
+                    show_up_to_slider.value = idx
+
+                # Restore joint angles
+                joints_state = state.get("joints", {})
+                for jname, angle_rad in joints_state.items():
+                    if jname in joint_angles and jname in sliders:
+                        joint_angles[jname] = angle_rad
+                        sliders[jname].value = math.degrees(angle_rad)
+                _update_scene_now()
+
+                # Restore camera (after scene is ready)
+                cam = state.get("camera")
+                if cam:
+                    restore_cam_js = (
+                        "function f(v){"
+                        "if(!v)return null;"
+                        "if(v.component&&v.component.proxy){"
+                        "var p=v.component.proxy;"
+                        "if(p.renderer&&p.scene&&p.controls)"
+                        "return p;}"
+                        "if(v.children&&Array.isArray(v.children))"
+                        "for(var c of v.children){"
+                        "var r=f(c);if(r)return r;}"
+                        "if(v.component&&v.component.subTree)"
+                        "return f(v.component.subTree);"
+                        "return null;}"
+                        "var sc=f(document.getElementById("
+                        "'app').__vue_app__._container._vnode);"
+                        "if(sc){"
+                        "var THREE=window.__THREE_REF;"
+                    )
+                    if cam.get("isOrtho") and cam.get("left") is not None:
+                        restore_cam_js += (
+                            "var canvas=sc.renderer.domElement;"
+                            "var aspect=canvas.width/canvas.height;"
+                            "var oc=new THREE.OrthographicCamera("
+                            f"{cam['left']},{cam['right']},"
+                            f"{cam['top']},{cam['bottom']},"
+                            "0.001,100);"
+                            f"oc.position.set("
+                            f"{cam['px']},{cam['py']},{cam['pz']});"
+                            f"oc.up.set("
+                            f"{cam['ux']},{cam['uy']},{cam['uz']});"
+                            "oc.updateProjectionMatrix();"
+                            "sc.camera=oc;"
+                            "sc.controls.object=oc;"
+                        )
+                    else:
+                        restore_cam_js += (
+                            f"sc.camera.position.set("
+                            f"{cam['px']},{cam['py']},{cam['pz']});"
+                            f"sc.camera.up.set("
+                            f"{cam['ux']},{cam['uy']},{cam['uz']});"
+                        )
+                    restore_cam_js += (
+                        f"sc.controls.target.set("
+                        f"{cam['tx']},{cam['ty']},{cam['tz']});"
+                        "sc.controls.update();"
+                        "}"
+                    )
+                    await ui.run_javascript(restore_cam_js)
+
+            ui.timer(3.0, _restore_state, once=True)
 
 
 def _matrix_to_quaternion(m: np.ndarray) -> list[float]:
