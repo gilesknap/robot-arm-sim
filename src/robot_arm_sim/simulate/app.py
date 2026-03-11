@@ -568,12 +568,12 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                                 "pointer-events: none;"
                             ),
                         )
-                        text_obj.visible = False  # type: ignore[attr-defined]
+                        text_obj.visible(False)
                         line_obj = scene.line(
                             [0, 0, 0],
                             [off[0], off[1], off[2]],
                         ).material(color="#1565C0")
-                        line_obj.visible = False  # type: ignore[attr-defined]
+                        line_obj.visible(False)
                         callout_items.append(
                             {
                                 "text": text_obj,
@@ -599,12 +599,12 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                             "pointer-events: none;"
                         ),
                     )
-                    text_obj.visible = False  # type: ignore[attr-defined]
+                    text_obj.visible(False)
                     line_obj = scene.line(
                         [0, 0, 0],
                         [off[0], off[1], off[2]],
                     ).material(color="#C62828")
-                    line_obj.visible = False  # type: ignore[attr-defined]
+                    line_obj.visible(False)
                     callout_items.append(
                         {
                             "text": text_obj,
@@ -1231,6 +1231,8 @@ def _update_scene(
         show = labels_visible and labels_visible.get("value", False)
         for item in callout_items:
             if not show:
+                item["text"].visible(False)
+                item["line"].visible(False)
                 item["text"].move(*_HIDDEN_POS)  # type: ignore[attr-defined]
                 item["line"].move(*_HIDDEN_POS)  # type: ignore[attr-defined]
                 continue
@@ -1247,6 +1249,8 @@ def _update_scene(
                 continue
 
             ax, ay, az = anchor
+            item["text"].visible(True)
+            item["line"].visible(True)
             item["text"].move(ax + ox, ay + oy, az + oz)
             item["line"].move(ax, ay, az)
 

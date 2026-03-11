@@ -35,3 +35,12 @@ Every STL file has a corresponding YAML in `analysis/` with at least one `connec
 ## Caution
 
 Bore detection on low-poly collision meshes can be unreliable — it may find motor housings instead of kinematic bores. Connection points are useful for **validation** but should not be the primary source for joint origins. The DH parameters from `02-research-specs` take precedence.
+
+### Barrel-shaped parts (upperarm, forearm, etc.)
+
+Barrel-shaped parts require special bore detection logic:
+- The bore axis comes from the barrel filter's **removed** face groups (faces that didn't pass the barrel curvature test)
+- Flat face normals aligned with the bore axis reliably indicate bore openings — look for `barrel_bore_face` in the analysis YAML
+- Method: `barrel_bore_face` means the bore was derived from flat-face evidence rather than cross-section analysis
+- Bore positions are placed on the **flat face surface** (face centroid), not at the bbox center — this is consistent with `cross_section` method and ensures bore markers appear at the physical bore opening
+- If barrel bore detection fails, it falls through to standard cross-section detection

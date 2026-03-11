@@ -222,9 +222,6 @@ def _detect_barrel_part_bores(
         if f.centroid[tube_idx] >= tube_mid  # type: ignore[index]
     ]
 
-    bore_axis_idx = int(np.argmax(np.abs(bore_axis)))
-    bore_center_along_axis = (bounds[0][bore_axis_idx] + bounds[1][bore_axis_idx]) / 2.0
-
     points: list[ConnectionPoint] = []
     for end, face_list in [("proximal", proximal_faces), ("distal", distal_faces)]:
         if not face_list:
@@ -232,10 +229,8 @@ def _detect_barrel_part_bores(
         face = max(face_list, key=lambda f: f.area_mm2 or 0)
         centroid = np.array(face.centroid)  # type: ignore[arg-type]
 
-        # Build bore center: tube-axis and perpendicular coords from face centroid,
-        # bore-axis coord from mesh bbox center (bore runs through part center)
+        # Use face centroid directly — bore opening is on the surface
         pos = centroid.copy()
-        pos[bore_axis_idx] = bore_center_along_axis
 
         radius = float(np.sqrt((face.area_mm2 or 0) / np.pi))
         points.append(

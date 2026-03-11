@@ -152,3 +152,4 @@ If ANY of these occur, stop and invoke `review` for human discussion:
 - **Use opposite views for obscured parts** — if FRONT is blocked, try BACK
 - **Use Reload URDF button** — it preserves camera, sliders, and joint angles
 - **Never edit robot.urdf directly** — always edit chain.yaml and regenerate
+- **Root link (base) auto-positioned** — distal bore aligned to first child joint origin; no manual visual_xyz needed for base in most cases

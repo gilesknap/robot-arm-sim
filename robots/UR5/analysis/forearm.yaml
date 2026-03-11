@@ -5,7 +5,7 @@ connection_points:
 - end: proximal
   position:
   - -1.998
-  - -1.333
+  - 54.499
   - -2.403
   axis:
   - 0.0
@@ -16,7 +16,7 @@ connection_points:
 - end: distal
   position:
   - -2.588
-  - -1.333
+  - 47.5
   - 393.384
   axis:
   - 0.0
