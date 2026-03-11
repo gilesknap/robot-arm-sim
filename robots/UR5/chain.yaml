@@ -1,0 +1,78 @@
+robot_name: UR5
+dh_params:  # from manufacturer specs (mm), standard DH convention
+  d1: 89.159     # base to shoulder height
+  a2: 425        # upper arm length
+  a3: 392.25     # forearm length
+  d4: 109.15     # wrist 1 lateral offset
+  d5: 94.65      # wrist 2 axial offset
+  d6: 82.3       # tool flange length
+  # Additional physical offsets (not in standard DH table):
+  shoulder_offset: 135.85   # Y offset from J1 axis to J2 axis
+  elbow_offset: -119.7      # Y offset from J2 to J3 (partial compensation)
+
+links:
+  - name: base_link
+    mesh: base
+  - name: shoulder_link
+    mesh: shoulder
+  - name: upper_arm_link
+    mesh: upperarm
+  - name: forearm_link
+    mesh: forearm
+  - name: wrist_1_link
+    mesh: wrist1
+  - name: wrist_2_link
+    mesh: wrist2
+  - name: wrist_3_link
+    mesh: wrist3
+
+joints:
+  - name: shoulder_pan_joint
+    type: revolute
+    parent: base_link
+    child: shoulder_link
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0, 0.089159]  # d1: base to shoulder
+
+  - name: shoulder_lift_joint
+    type: revolute
+    parent: shoulder_link
+    child: upper_arm_link
+    axis: [0, 1, 0]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0.13585, 0]  # shoulder offset in Y
+    origin_rpy: [0, 1.5707963, 0]  # pi/2 about Y — aligns link Z with arm direction
+
+  - name: elbow_joint
+    type: revolute
+    parent: upper_arm_link
+    child: forearm_link
+    axis: [0, 1, 0]
+    limits: [-3.1416, 3.1416]
+    origin: [0, -0.1197, 0.425]  # elbow offset + upper arm length (a2)
+
+  - name: wrist_1_joint
+    type: revolute
+    parent: forearm_link
+    child: wrist_1_link
+    axis: [0, 1, 0]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0, 0.39225]  # forearm length (a3)
+    origin_rpy: [0, 1.5707963, 0]  # pi/2 about Y — second frame rotation
+
+  - name: wrist_2_joint
+    type: revolute
+    parent: wrist_1_link
+    child: wrist_2_link
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0.10915, 0]  # d4 wrist offset
+
+  - name: wrist_3_joint
+    type: revolute
+    parent: wrist_2_link
+    child: wrist_3_link
+    axis: [0, 1, 0]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0, 0.09465]  # d5 wrist offset

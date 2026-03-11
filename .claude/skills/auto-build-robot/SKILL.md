@@ -11,7 +11,8 @@ Use this skill when:
 
 ## Prerequisites
 
-- STL mesh files in `robots/<name>/stl_files/`, named in kinematic order (A0, A1, ...), in millimetres with Z up
+- STL mesh files in `robots/<name>/stl_files/`, in millimetres with Z up
+- Files can use any naming convention: sequential (A0, A1, ...) or semantic (base, shoulder, upperarm, ...)
 - A working devcontainer with `uv` available
 - Optionally: claude-in-chrome MCP server for visual comparison (Stage 5)
 
@@ -44,7 +45,8 @@ uv run robot-arm-sim analyze robots/<name>/
 
 **If analysis fails or connection points are missing:**
 - Check STL files are valid (not empty, in mm, Z-up)
-- Ensure files are named in order (A0, A1, A2, ... or similar sequential naming)
+- Files can use any naming: sequential (A0, A1, ...) or semantic (base, shoulder, ...)
+- The `mesh` field in chain.yaml must match the STL file stem (e.g., `mesh: shoulder` → `stl_files/shoulder.stl`)
 
 ---
 
@@ -65,10 +67,25 @@ Use `WebSearch` with these queries:
 | Parameter | Example | Where to record |
 |-----------|---------|-----------------|
 | DH parameters (d, a, alpha) | d1=135mm, a2=135mm | `dh_params` in chain.yaml |
+| DH alpha values | α₁=π/2, α₂=0 | Determines if `origin_rpy` needed |
 | Joint limits (radians) | J1: +/-175 deg | `limits` in chain.yaml joints |
-| Zero-config pose description | "straight up" or "folded" | Informs assembly reasoning |
+| Zero-config pose description | "straight up" or "arm horizontal" | Informs assembly reasoning |
 | Link lengths / total reach | 460mm height at zero | Cross-validation target |
 | Number of axes / DOF | 6-axis | Must match STL part count |
+| Physical offsets (shoulder, elbow) | shoulder_offset=135.85mm | `dh_params` + `origin` values |
+
+### DH alpha and origin_rpy
+
+**CRITICAL**: Check the DH alpha (twist) values. If any alpha ≠ 0, the robot needs `origin_rpy` on some joints to align link frames correctly. This is common for UR-family robots and most industrial 6-DOF arms.
+
+- α = π/2 or -π/2 → add `origin_rpy: [0, 1.5707963, 0]` (or appropriate rotation) to the corresponding joint
+- α = 0 → no origin_rpy needed
+- The generator and verify_kinematics both handle origin_rpy correctly
+
+**Also check for physical offsets** not in the standard 4-parameter DH table:
+- `shoulder_offset`: lateral distance between J1 and J2 axes (common in UR robots)
+- `elbow_offset`: lateral distance between J2 and J3 axes
+- These appear as Y components in joint origins
 
 ### Check for local resources
 
@@ -96,9 +113,11 @@ Using the analysis data (Stage 1) and manufacturer specs (Stage 2), write `chain
 
 ### Determine the chain topology
 
-- Parts named sequentially (A0, A1, A2, ...) form a serial chain base-to-tip
+- Parts named sequentially (A0, A1, A2, ...) or semantically (base, shoulder, ...) form a serial chain base-to-tip
+- For semantic names, determine order from: part geometry (base is flat/short), bounding box sizes (arm links are long), and manufacturer documentation
 - Combined parts (e.g., A3_4) span multiple joints — create a virtual link with `mesh: null`
 - Connection point axes tell you the joint rotation axis at each interface
+- **Caution with collision meshes**: bore detection may find lateral motor housings instead of the main kinematic bore. Always cross-validate bore positions against DH parameters
 
 ### Joint axis conventions
 
@@ -107,7 +126,7 @@ Determine each joint's axis from the connection point geometry:
 - Bore axis along Y at the interface → joint axis `[0, 1, 0]` (pitch)
 - Bore axis along X at the interface → joint axis `[1, 0, 0]` (roll)
 
-Cross-validate against manufacturer specs (e.g., typical 6-DOF pattern: Z-Y-Y-X-Y-X or Z-Y-Y-Z-Y-Z).
+Cross-validate against manufacturer specs (e.g., typical 6-DOF pattern: Z-Y-Y-X-Y-X or Z-Y-Y-Z-Y-Z or Z-Y-Y-Y-Z-Y for UR-family).
 
 ### Write chain.yaml
 
@@ -116,13 +135,15 @@ robot_name: <Robot-Name>
 dh_params:  # from manufacturer specs (mm)
   d1: ...
   a2: ...
-  # etc.
+  # Also record physical offsets if they exist:
+  # shoulder_offset: 135.85  # Y offset J1→J2
+  # elbow_offset: -119.7     # Y offset J2→J3
 
 links:
   - name: base_link
-    mesh: A0
+    mesh: base        # matches stl_files/base.stl
   - name: link_1
-    mesh: A1
+    mesh: shoulder    # or A1 — must match actual filename stem
   # ... one entry per link
   # For virtual links (no mesh):
   # - name: link_5
@@ -135,8 +156,9 @@ joints:
     child: link_1
     axis: [0, 0, 1]
     limits: [-3.054, 3.054]  # from manufacturer specs, in radians
-    # Optional: origin override if auto-detection is wrong
-    # origin: [0, 0, 0.093]
+    origin: [0, 0, 0.093]    # ALWAYS use explicit origin from DH params
+    # For joints with DH alpha ≠ 0:
+    # origin_rpy: [0, 1.5707963, 0]  # aligns link frame with arm direction
   # ... one entry per joint
 ```
 
@@ -144,26 +166,53 @@ joints:
 
 | Field | Purpose | When to use |
 |-------|---------|-------------|
-| `links[].mesh` | STL file stem, or `null` for virtual links | Always |
+| `links[].mesh` | STL file stem (e.g., `shoulder`), or `null` for virtual links | Always |
 | `links[].visual_xyz` | Additive offset on top of auto-computed position (metres) | When auto-detection places mesh wrong |
 | `links[].visual_rpy` | Mesh rotation to align STL coords with link frame (radians) | When STL orientation doesn't match link frame |
 | `joints[].axis` | Rotation axis: `[0,0,1]` for yaw/roll, `[0,1,0]` for pitch | Always |
 | `joints[].limits` | Joint angle limits in radians | Always (from manufacturer specs) |
-| `joints[].origin` | Override auto-computed joint position (metres) | Only when auto-detection is wrong |
+| `joints[].origin` | Override auto-computed joint position (metres) | **Always** — auto-detection is unreliable for collision meshes |
+| `joints[].origin_rpy` | Frame rotation at joint (radians, [roll, pitch, yaw]) | When DH alpha ≠ 0 (see below) |
 | `dh_params` | Manufacturer DH parameters for validation | When available |
 
 ### Key rules
 
 - **Never write raw URDF XML** — always write chain.yaml and let the generator handle it
 - **visual_xyz is ADDITIVE** — `[0, 0, 0.005]` means "shift 5mm up from auto-detected position"
-- **Start with origin overrides from DH params** — auto-detected connection points frequently have large Y offsets or wrong Z distances. Use manufacturer DH parameters to compute explicit `origin` values for every joint. This is usually necessary — don't wait for Stage 4 to fail.
-- **How to compute origin values from DH params:**
-  - Identify the base height (d1_base) from the A0 distal connection point Z
-  - joint_1 origin: `[0, 0, d1_base]` (in metres)
-  - joint_2 origin: `[0, 0, d1 - d1_base]` (remaining height to J2)
-  - For subsequent joints, use DH `a` and `d` values as inter-joint distances along the appropriate axis
-  - Cross-reference analysis YAML connection points to validate, but prefer DH-derived values
+- **ALWAYS use explicit origin values** — auto-detected connection points are unreliable, especially for collision meshes where bore detection finds lateral motor housings instead of kinematic bores. Use manufacturer DH parameters to compute explicit `origin` values for every joint.
 - **visual_xyz is usually needed** for parts whose proximal bore is offset from the STL origin. Read each part's `proximal` connection point Z from analysis YAML — if Z is significantly non-zero, add `visual_xyz: [0, 0, -Z_mm/1000]` to compensate.
+
+### How to compute origin values
+
+There are two robot families with different approaches:
+
+#### Simple robots (all DH alpha = 0, e.g., Meca500)
+All joints stack vertically at zero config:
+- joint_1 origin: `[0, 0, d1_base]` (base height)
+- joint_2 origin: `[0, 0, d1 - d1_base]` (remaining height)
+- Subsequent joints: DH `a` and `d` values as Z distances
+- No `origin_rpy` needed
+
+#### Robots with DH alpha rotations (e.g., UR5, most industrial 6-DOF)
+These need `origin_rpy` and may have lateral offsets:
+1. **Identify which joints have α ≠ 0** in the DH table
+2. **For each α = ±π/2**: add `origin_rpy: [0, 1.5707963, 0]` (or appropriate rotation) to that joint
+3. **Origin values follow the official URDF convention** — DH `a` and `d` values go into different origin components depending on the accumulated frame rotation:
+
+**UR-family example (Z-Y-Y-Y-Z-Y axes):**
+```yaml
+# J1: origin [0, 0, d1]                              # height from base
+# J2: origin [0, shoulder_offset, 0]                  # lateral offset
+#     origin_rpy: [0, pi/2, 0]                        # frame rotation
+# J3: origin [0, elbow_offset, a2]                    # in rotated frame
+# J4: origin [0, 0, a3]                               # in rotated frame
+#     origin_rpy: [0, pi/2, 0]                        # second frame rotation
+# J5: origin [0, d4, 0]                               # lateral in double-rotated frame
+# J6: origin [0, 0, d5]                               # axial in double-rotated frame
+```
+
+4. **Verify with FK trace**: compute world-frame positions by applying accumulated rotations to each origin. The inter-joint distances should match DH `a` and `d` values (use Euclidean distance for joints with lateral offsets).
+5. **Record shoulder_offset and elbow_offset** in `dh_params` section — these are NOT in the standard DH table but are essential for correct URDF origins.
 
 ---
 
@@ -184,11 +233,13 @@ uv run python robots/<name>/verify_kinematics.py --json
 ```
 
 **If verify_kinematics.py doesn't exist**, create one that:
-1. Parses the generated URDF
-2. Computes zero-config forward kinematics
+1. Parses the generated URDF (handles both xyz and rpy in joint origins)
+2. Computes zero-config forward kinematics with proper frame accumulation
 3. Prints each joint's world position in mm
-4. Compares against manufacturer DH parameters (if available)
+4. Compares against expected positions computed from DH parameters
 5. Reports PASS/FAIL per joint with a 2mm tolerance
+6. Include an "arm up" test pose for UR-family robots (J2=-π/2) to verify vertical configuration
+7. See `robots/Meca500-R3/verify_kinematics.py` or `robots/UR5/verify_kinematics.py` as templates
 
 ### Interpret results
 
@@ -317,16 +368,22 @@ function clickSlider(idx, degrees, minDeg, maxDeg) {
 
 ## URDF Frame Conventions
 
-- **Z always points up** at zero config — no DH-style frame rotations
-- **Joint origins** are pure translations, no rpy
-- **Mesh rotations** only via `visual_rpy` in chain.yaml
+- **World Z points up** — gravity is -Z
+- **Joint origins** are translations, optionally with `origin_rpy` for DH frame alignment
+- **Simple robots** (Meca500-like): pure translations, no rpy, arm stacks vertically at zero config
+- **Complex robots** (UR-like): `origin_rpy` needed at joints with DH α ≠ 0; zero config may be arm-horizontal
+- **Mesh rotations** via `visual_rpy` in chain.yaml when STL orientation doesn't match link frame
 - **Never edit robot.urdf directly** — always edit chain.yaml and regenerate
 
 ## DH Parameters vs Bore Detection
 
 DH parameters define link lengths in joint-local frames, NOT world XYZ. For joints with non-Z axes, DH `d` and `a` don't map directly to world Z/X.
 
-**Correct approach:** Use bore-detected connection points as joint origins. Validate using **inter-joint distances** (frame-invariant) compared against DH `a` and `d` values.
+**Correct approach:**
+1. Use manufacturer DH parameters + physical offsets for explicit `origin` values
+2. Bore-detected connection points are useful for **validation** but unreliable as primary data, especially for collision meshes
+3. Validate using **inter-joint distances** (frame-invariant) compared against DH `a` and `d` values
+4. Collision meshes often have lateral motor bores that get detected instead of the main kinematic bore — always cross-check
 
 ---
 
