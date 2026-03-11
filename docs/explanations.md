@@ -10,4 +10,5 @@ explanations/implementation-plan
 explanations/connection-point-plan
 explanations/architecture
 explanations/decisions
+explanations/dh_parameters_and_bore_geometry
 ```
