@@ -184,7 +184,7 @@ After setting the view, click the "Fit" button in the ViewCube control bar (or u
 
 ### Systematic comparison procedure
 
-For each joint, working from base to tip:
+For each joint, working from base to tip and using the hide parts slider so as to only show the up to the current joint you are working on:
 
 1. **Screenshot** the ortho view of the simulator at zero config
 2. **Overlay mentally** against the manufacturer drawing
