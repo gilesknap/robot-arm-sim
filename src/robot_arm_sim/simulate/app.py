@@ -55,6 +55,46 @@ def _load_mesh_centers(robot: URDFRobot, robot_dir: Path) -> dict[str, np.ndarra
     return centers
 
 
+def _load_flat_faces(robot: URDFRobot, robot_dir: Path) -> dict[str, list[dict]]:
+    """Load flat face features from analysis YAML files.
+
+    Returns dict mapping link_name -> list of {normal, area_mm2, centroid}.
+    """
+    result: dict[str, list[dict]] = {}
+    analysis_dir = robot_dir / "analysis"
+    if not analysis_dir.exists():
+        return result
+
+    for link in robot.links:
+        if not link.mesh_path:
+            continue
+        part_name = Path(link.mesh_path).stem
+        yaml_path = analysis_dir / f"{part_name}.yaml"
+        if not yaml_path.exists():
+            continue
+        with open(yaml_path) as f:
+            data = yaml.safe_load(f)
+        faces = data.get("features", {}).get("flat_faces", [])
+        if faces:
+            result[link.name] = [
+                {
+                    "normal": ff["normal"],
+                    "area_mm2": ff["area_mm2"],
+                    "centroid": ff["centroid"],
+                }
+                for ff in faces
+            ]
+    return result
+
+
+def _quantize_axis(normal: list[float]) -> list[float]:
+    """Snap a normal vector to the nearest cardinal axis."""
+    idx = max(range(3), key=lambda i: abs(normal[i]))
+    result = [0.0, 0.0, 0.0]
+    result[idx] = 1.0 if normal[idx] > 0 else -1.0
+    return result
+
+
 def _load_connection_points(robot: URDFRobot, robot_dir: Path) -> dict[str, list[dict]]:
     """Load bore connection points from analysis YAML files.
 
@@ -434,6 +474,93 @@ _BORE_INIT_JS = """
 """
 
 
+_FACE_MARKER_INIT_JS = """
+(async function() {
+    const SceneLib = await import('nicegui-scene');
+    const THREE = SceneLib.default
+        ? SceneLib.default.THREE : SceneLib.THREE;
+    if (!THREE) return;
+    const appEl = document.getElementById('app');
+    if (!appEl || !appEl.__vue_app__) return;
+    let sc = null;
+    function walk(n, d) {
+        if (d > 30 || sc) return;
+        if (n.component) {
+            const p = n.component.proxy;
+            if (p && p.renderer && p.scene) {
+                sc = p; return;
+            }
+            if (n.component.subTree)
+                walk(n.component.subTree, d+1);
+        }
+        if (Array.isArray(n.children))
+            n.children.forEach(
+                c => c && typeof c === 'object'
+                    && walk(c, d+1));
+    }
+    walk(appEl.__vue_app__._container._vnode, 0);
+    if (!sc) return;
+
+    const markers = {};
+    const faces = FACE_DATA;
+    for (const f of faces) {
+        const geo = new THREE.SphereGeometry(0.008, 12, 8);
+        const mat = new THREE.MeshStandardMaterial({
+            color: 0xffcc00,
+            metalness: 0.3, roughness: 0.6,
+            transparent: true, opacity: 0.85
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.name = f.id;
+        mesh.visible = false;
+        sc.scene.add(mesh);
+        markers[f.id] = mesh;
+    }
+    window.__faceMarkers = markers;
+    window.__faceEditMode = false;
+    window.__lastFaceClick = null;
+
+    window.__setFaceMarkersVisible = function(show) {
+        window.__faceEditMode = show;
+        Object.values(markers).forEach(
+            m => { m.visible = show; });
+    };
+
+    window.__updateFaceMarkerPoses = function(data) {
+        for (const [id, pos] of Object.entries(data)) {
+            const m = markers[id];
+            if (!m) continue;
+            const vis = pos[3] > 0;
+            m.position.set(pos[0], pos[1], pos[2]);
+            m.visible = vis && window.__faceEditMode;
+        }
+    };
+
+    window.__setFaceMarkerColor = function(id, colorHex) {
+        const m = markers[id];
+        if (m) m.material.color.setHex(colorHex);
+    };
+
+    // Click handler: raycast against face markers
+    sc.renderer.domElement.addEventListener('click', function(e) {
+        if (!window.__faceEditMode) return;
+        const rect = sc.renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1);
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, sc.camera);
+        const markerList = Object.values(window.__faceMarkers)
+            .filter(m => m.visible);
+        const hits = raycaster.intersectObjects(markerList);
+        if (hits.length > 0) {
+            window.__lastFaceClick = hits[0].object.name;
+        }
+    });
+})();
+"""
+
+
 _TRANSPARENCY_INIT_JS = """
 (async function() {
     const SceneLib = await import('nicegui-scene');
@@ -483,10 +610,14 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     frames_visible = {"value": False}
     bores_visible = {"value": False}
     transparent_mode = {"value": False}
+    edit_bores_active = {"value": False}
+    # Track manual bore assignments: {link_name: {face_idx: "proximal"/"distal"}}
+    bore_assignments: dict[str, dict[int, str]] = {}
     callout_items: list[dict] = []
     chain = robot.get_kinematic_chain()
     mesh_centers = _load_mesh_centers(robot, robot_dir)
     connection_points = _load_connection_points(robot, robot_dir)
+    flat_faces = _load_flat_faces(robot, robot_dir)
 
     # Build ordered chain link names (parent then child, deduped)
     chain_link_names: list[str] = []
@@ -677,6 +808,20 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                 once=True,
             )
 
+            # Initialize face marker spheres for Edit Bores mode
+            face_data_list = []
+            for link_name, faces in flat_faces.items():
+                for i, _ff in enumerate(faces):
+                    face_data_list.append({"id": f"face_{link_name}_{i}"})
+            face_js = _FACE_MARKER_INIT_JS.replace(
+                "FACE_DATA", _json.dumps(face_data_list)
+            )
+            ui.timer(
+                2.5,
+                lambda: ui.run_javascript(face_js),
+                once=True,
+            )
+
             # Initialize mesh transparency function
             ui.timer(
                 2.5,
@@ -758,6 +903,13 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
 
                 ui.button("Screenshot", on_click=_take_screenshot).props("flat dense")
 
+                # Edit Bores button — handler defined later, uses lambda indirection
+                edit_bores_handler_ref: list = [lambda: None]
+                edit_bores_btn = ui.button(
+                    "Edit Bores",
+                    on_click=lambda: edit_bores_handler_ref[0](),
+                ).props("color=orange-7 flat dense")
+
                 async def _reload_urdf():
                     # Save current state to sessionStorage before reload
                     vl_json = _json.dumps(visible_links)
@@ -827,6 +979,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                     visible_links=visible_links,
                     connection_points=connection_points,
                     bores_visible=bores_visible,
+                    flat_faces=flat_faces,
+                    edit_bores_active=edit_bores_active,
                 )
 
             link_checkboxes: dict[str, ui.checkbox] = {}
@@ -856,6 +1010,195 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                             on_change=make_vis_handler(lname),
                         ).props("dense")
                         link_checkboxes[lname] = cb
+
+            # --- Edit Bores mode UI ---
+            bore_end_toggle = {"value": "Proximal"}
+            edit_bores_row = (
+                ui.row()
+                .classes("q-pa-sm")
+                .style("width: 900px; gap: 8px; display: none;")
+            )
+            with edit_bores_row:
+                bore_toggle = ui.toggle(["Proximal", "Distal"], value="Proximal").props(
+                    "dense"
+                )
+
+                def _on_bore_toggle(e):
+                    bore_end_toggle["value"] = e.value
+
+                bore_toggle.on_value_change(_on_bore_toggle)
+
+                bore_status_label = ui.label("Click a face marker to assign").style(
+                    "font-size: 0.85rem; color: #666;"
+                )
+
+                ui.space()
+
+                async def _save_and_rebuild():
+                    """Write bore assignments to YAML and regenerate URDF."""
+                    import math as _math
+
+                    analysis_dir = robot_dir / "analysis"
+                    for link_name, assignments in bore_assignments.items():
+                        link = robot.get_link(link_name)
+                        if not link or not link.mesh_path:
+                            continue
+                        part_name = Path(link.mesh_path).stem
+                        yaml_path = analysis_dir / f"{part_name}.yaml"
+                        if not yaml_path.exists():
+                            continue
+                        with open(yaml_path) as f:
+                            data = yaml.safe_load(f)
+                        faces_list = flat_faces.get(link_name, [])
+                        new_cps = []
+                        for face_idx, end in assignments.items():
+                            ff = faces_list[face_idx]
+                            radius = _math.sqrt(ff["area_mm2"] / _math.pi)
+                            new_cps.append(
+                                {
+                                    "end": end,
+                                    "position": [
+                                        round(ff["centroid"][0], 3),
+                                        round(ff["centroid"][1], 3),
+                                        round(ff["centroid"][2], 3),
+                                    ],
+                                    "axis": _quantize_axis(ff["normal"]),
+                                    "radius_mm": round(radius, 1),
+                                    "method": "manual",
+                                }
+                            )
+                        if new_cps:
+                            data["connection_points"] = new_cps
+                            with open(yaml_path, "w") as f:
+                                yaml.dump(data, f, default_flow_style=False)
+
+                    # Regenerate URDF
+                    from robot_arm_sim.analyze.urdf_generator import generate_urdf
+
+                    chain_file = robot_dir / "chain.yaml"
+                    if chain_file.exists():
+                        generate_urdf(
+                            chain_file,
+                            analysis_dir,
+                            robot_dir / "stl_files",
+                            robot_dir / "robot.urdf",
+                        )
+
+                    bore_status_label.text = "Saved! Reloading..."
+                    await _reload_urdf()
+
+                ui.button("Save & Rebuild", on_click=_save_and_rebuild).props(
+                    "color=orange-7 flat dense"
+                )
+
+            def toggle_edit_bores():
+                edit_bores_active["value"] = not edit_bores_active["value"]
+                active = edit_bores_active["value"]
+                edit_bores_btn.text = "Exit Edit" if active else "Edit Bores"
+                edit_bores_row.style(
+                    "width: 900px; gap: 8px; display: flex;"
+                    if active
+                    else "width: 900px; gap: 8px; display: none;"
+                )
+                ui.run_javascript(
+                    f"window.__setFaceMarkersVisible({str(active).lower()})"
+                )
+                if active:
+                    # Also enable transparent mode for better face visibility
+                    ui.run_javascript("window.__setMeshTransparency(0.25)")
+                    bore_status_label.text = "Click a face marker to assign"
+                    _update_scene_now()
+                else:
+                    if not transparent_mode["value"]:
+                        ui.run_javascript("window.__setMeshTransparency(1.0)")
+
+            edit_bores_handler_ref[0] = toggle_edit_bores
+
+            # Polling timer for face marker clicks
+            async def _poll_face_click():
+                if not edit_bores_active["value"]:
+                    return
+                try:
+                    result = await ui.run_javascript(
+                        "(() => { const v = window.__lastFaceClick;"
+                        " window.__lastFaceClick = null; return v; })()",
+                        timeout=0.5,
+                    )
+                except (TimeoutError, RuntimeError):
+                    return
+                if result:
+                    _handle_face_click(result)
+
+            def _handle_face_click(name: str):
+                """Process a face marker click: face_{link}_{idx}."""
+                parts = name.split("_", 1)
+                if len(parts) < 2 or parts[0] != "face":
+                    return
+                # name is face_{link_name}_{idx} — link_name may contain _
+                remainder = parts[1]
+                # Find matching link name
+                matched_link = None
+                matched_idx = None
+                for lname in flat_faces:
+                    prefix = lname + "_"
+                    if remainder.startswith(prefix):
+                        try:
+                            idx = int(remainder[len(prefix) :])
+                            matched_link = lname
+                            matched_idx = idx
+                            break
+                        except ValueError:
+                            continue
+                if matched_link is None or matched_idx is None:
+                    return
+
+                link_name = matched_link
+                face_idx = matched_idx
+                end = bore_end_toggle["value"].lower()
+
+                if link_name not in bore_assignments:
+                    bore_assignments[link_name] = {}
+
+                assigns = bore_assignments[link_name]
+
+                # Check if opposite end is at this face — swap
+                opposite = "distal" if end == "proximal" else "proximal"
+                if assigns.get(face_idx) == opposite:
+                    # Find current face assigned as `end` and swap it
+                    old_face = None
+                    for fi, e in assigns.items():
+                        if e == end:
+                            old_face = fi
+                            break
+                    if old_face is not None:
+                        assigns[old_face] = opposite
+                        old_id = f"face_{link_name}_{old_face}"
+                        color = "0xcc0000" if opposite == "distal" else "0x00cc00"
+                        ui.run_javascript(
+                            f"window.__setFaceMarkerColor('{old_id}', {color})"
+                        )
+
+                assigns[face_idx] = end
+
+                # Recolour all markers for this link
+                faces_list = flat_faces.get(link_name, [])
+                for i in range(len(faces_list)):
+                    fid = f"face_{link_name}_{i}"
+                    if i in assigns:
+                        color = "0x00cc00" if assigns[i] == "proximal" else "0xcc0000"
+                    else:
+                        color = "0xffcc00"
+                    ui.run_javascript(f"window.__setFaceMarkerColor('{fid}', {color})")
+
+                part_link = robot.get_link(link_name)
+                part_name = (
+                    Path(part_link.mesh_path).stem
+                    if part_link and part_link.mesh_path
+                    else link_name
+                )
+                bore_status_label.text = f"Set {part_name} face {face_idx} as {end}"
+
+            ui.timer(0.2, _poll_face_click)
 
         # Right panel: controls (snug against scene)
         with ui.column().classes("p-4").style("width: 280px; overflow-y: auto"):
@@ -1168,6 +1511,8 @@ def _update_scene(
     visible_links: dict[str, bool] | None = None,
     connection_points: dict[str, list[dict]] | None = None,
     bores_visible: dict | None = None,
+    flat_faces: dict[str, list[dict]] | None = None,
+    edit_bores_active: dict | None = None,
 ) -> None:
     """Recompute FK and update mesh transforms."""
     # Compute which links are visible from per-part checkboxes
@@ -1332,3 +1677,29 @@ def _update_scene(
                         1.0,
                     ]
         ui.run_javascript(f"window.__updateBorePoses({_json2.dumps(bore_poses)})")
+
+    # Face marker position updates (Edit Bores mode)
+    show_faces = edit_bores_active and edit_bores_active.get("value", False)
+    if flat_faces and show_faces:
+        import json as _json3
+
+        face_poses: dict[str, list[float]] = {}
+        for link_name, faces in flat_faces.items():
+            tf_vis = visual_transforms.get(link_name)
+            is_vis = vis_set is None or link_name in vis_set
+            for i, ff in enumerate(faces):
+                fid = f"face_{link_name}_{i}"
+                if tf_vis is not None and is_vis:
+                    c = ff["centroid"]
+                    c_m = [c[0] * 0.001, c[1] * 0.001, c[2] * 0.001]
+                    c_homo = np.array([c_m[0], c_m[1], c_m[2], 1.0])
+                    wp = tf_vis @ c_homo
+                    face_poses[fid] = [
+                        float(wp[0]),
+                        float(wp[1]),
+                        float(wp[2]),
+                        1.0,
+                    ]
+                else:
+                    face_poses[fid] = [0.0, 0.0, -100.0, 0.0]
+        ui.run_javascript(f"window.__updateFaceMarkerPoses({_json3.dumps(face_poses)})")
