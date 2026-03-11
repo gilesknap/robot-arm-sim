@@ -93,6 +93,57 @@ def forward_kinematics(
     return transforms
 
 
+def matrix_to_quaternion(m: np.ndarray) -> list[float]:
+    """Convert a 3x3 rotation matrix to quaternion [x, y, z, w]."""
+    trace = m[0, 0] + m[1, 1] + m[2, 2]
+    if trace > 0:
+        s = 0.5 / np.sqrt(trace + 1.0)
+        w = 0.25 / s
+        x = (m[2, 1] - m[1, 2]) * s
+        y = (m[0, 2] - m[2, 0]) * s
+        z = (m[1, 0] - m[0, 1]) * s
+    elif m[0, 0] > m[1, 1] and m[0, 0] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[0, 0] - m[1, 1] - m[2, 2])
+        w = (m[2, 1] - m[1, 2]) / s
+        x = 0.25 * s
+        y = (m[0, 1] + m[1, 0]) / s
+        z = (m[0, 2] + m[2, 0]) / s
+    elif m[1, 1] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[1, 1] - m[0, 0] - m[2, 2])
+        w = (m[0, 2] - m[2, 0]) / s
+        x = (m[0, 1] + m[1, 0]) / s
+        y = 0.25 * s
+        z = (m[1, 2] + m[2, 1]) / s
+    else:
+        s = 2.0 * np.sqrt(1.0 + m[2, 2] - m[0, 0] - m[1, 1])
+        w = (m[1, 0] - m[0, 1]) / s
+        x = (m[0, 2] + m[2, 0]) / s
+        y = (m[1, 2] + m[2, 1]) / s
+        z = 0.25 * s
+    return [float(x), float(y), float(z), float(w)]
+
+
+def axis_to_quaternion(axis: list | np.ndarray) -> list[float]:
+    """Return quaternion [qx,qy,qz,qw] rotating local-Y onto *axis*."""
+    a = np.asarray(axis, dtype=float)
+    norm = np.linalg.norm(a)
+    if norm < 1e-9:
+        return [0.0, 0.0, 0.0, 1.0]
+    a = a / norm
+    # local Y = [0, 1, 0]
+    dot = float(a[1])  # dot([0,1,0], a)
+    if dot > 0.99999:
+        return [0.0, 0.0, 0.0, 1.0]
+    if dot < -0.99999:
+        # 180° around Z
+        return [0.0, 0.0, 1.0, 0.0]
+    # cross([0,1,0], a) = [a[2], 0, -a[0]]  (only Y=0 component)
+    cx, cy, cz = float(a[2]), 0.0, float(-a[0])
+    s = np.sqrt((1.0 + dot) * 2.0)
+    inv_s = 1.0 / s
+    return [cx * inv_s, cy * inv_s, cz * inv_s, s * 0.5]
+
+
 def matrix_to_position_euler(m: np.ndarray) -> tuple[list[float], list[float]]:
     """Decompose a 4x4 matrix into position [x,y,z] and euler angles [rx,ry,rz]."""
     pos = [float(m[0, 3]), float(m[1, 3]), float(m[2, 3])]

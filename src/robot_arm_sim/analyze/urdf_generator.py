@@ -12,8 +12,9 @@ import xml.dom.minidom
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-import numpy as np
 import yaml
+
+from .urdf_transforms import compute_joint_origin, compute_visual_origin, validate_fk
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ def generate_urdf(
             analysis = analyses[mesh_name]
             visual = ET.SubElement(link_el, "visual")
 
-            viz_xyz, viz_rpy = _compute_visual_origin(
+            viz_xyz, viz_rpy = compute_visual_origin(
                 analysis,
                 link_spec,
                 link_name,
@@ -102,7 +103,7 @@ def generate_urdf(
         ET.SubElement(joint_el, "parent", link=joint_spec["parent"])
         ET.SubElement(joint_el, "child", link=joint_spec["child"])
 
-        jnt_xyz = _compute_joint_origin(
+        jnt_xyz = compute_joint_origin(
             joint_spec,
             link_specs,
             analyses,
@@ -152,195 +153,8 @@ def generate_urdf(
     output_path.write_text(final_xml)
     messages.append(f"Wrote URDF to {output_path}")
 
-    fk_messages = _validate_fk(chain, output_path)
+    fk_messages = validate_fk(chain, output_path)
     messages.extend(fk_messages)
-
-    return messages
-
-
-def _compute_visual_origin(
-    analysis: dict,
-    link_spec: dict,
-    link_name: str,
-    *,
-    messages: list[str],
-) -> tuple[list[float], list[float]]:
-    """Compute visual origin xyz/rpy: proximal bore at frame origin."""
-    conn_points = analysis.get("connection_points", [])
-    proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
-    viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
-
-    if proximal is None:
-        viz_xyz = link_spec.get("visual_xyz", [0, 0, 0])
-        messages.append(f"  {link_name}: no proximal connection point")
-        return viz_xyz, viz_rpy
-
-    pos = list(proximal["position"])  # copy — don't mutate original
-
-    # Adjust bore-axis component from face to barrel center.
-    # Bore detection reports the face surface (bbox extreme); DH distances
-    # measure center-to-center, so we use the bbox midpoint along the bore
-    # axis to place each mesh centered on its joint axis.
-    bore_axis = proximal.get("axis", [0, 0, 0])
-    axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
-    bbox = analysis.get("geometry", {}).get("bounding_box", {})
-    method = proximal.get("method", "")
-    if bbox and abs(bore_axis[axis_idx]) > 0.5 and method != "manual":
-        bmin = bbox["min"][axis_idx]
-        bmax = bbox["max"][axis_idx]
-        pos[axis_idx] = (bmin + bmax) / 2
-
-    messages.append(
-        f"  {link_name}: proximal @ origin,"
-        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
-    )
-    if viz_rpy == [0, 0, 0]:
-        viz_xyz = [-pos[i] / 1000 for i in range(3)]
-    else:
-        viz_xyz = (-_rpy_to_rotation(viz_rpy) @ (np.array(pos) / 1000)).tolist()
-
-    extra = link_spec.get("visual_xyz")
-    if extra is not None:
-        viz_xyz = [v + e for v, e in zip(viz_xyz, extra, strict=True)]
-    return [round(v, 6) for v in viz_xyz], viz_rpy
-
-
-def _compute_joint_origin(
-    joint_spec: dict,
-    link_specs: dict,
-    analyses: dict,
-    dh_params: dict,
-    messages: list[str],
-) -> list[float]:
-    """Compute joint origin xyz in parent frame.
-
-    Uses parent mesh's distal connection point if available,
-    falling back to explicit origin in chain spec.
-    """
-    parent_name = joint_spec["parent"]
-    parent_spec = link_specs.get(parent_name, {})
-    parent_mesh = parent_spec.get("mesh")
-
-    if "origin" in joint_spec:
-        return joint_spec["origin"]
-
-    if parent_mesh and parent_mesh in analyses:
-        analysis = analyses[parent_mesh]
-        conn_points = analysis.get("connection_points", [])
-        distal = next(
-            (cp for cp in conn_points if cp["end"] == "distal"),
-            None,
-        )
-
-        if distal is not None:
-            pos = distal["position"]
-            messages.append(
-                f"  {joint_spec['name']}: distal="
-                f"({pos[0]:.1f}, {pos[1]:.1f},"
-                f" {pos[2]:.1f})mm"
-            )
-            proximal = next(
-                (cp for cp in conn_points if cp["end"] == "proximal"),
-                None,
-            )
-
-            if proximal is not None:
-                pp = proximal["position"]
-                xyz = [
-                    (pos[0] - pp[0]) / 1000,
-                    (pos[1] - pp[1]) / 1000,
-                    (pos[2] - pp[2]) / 1000,
-                ]
-            else:
-                xyz = [
-                    pos[0] / 1000,
-                    pos[1] / 1000,
-                    pos[2] / 1000,
-                ]
-
-            parent_rpy = parent_spec.get("visual_rpy", [0, 0, 0])
-            if parent_rpy != [0, 0, 0]:
-                rot = _rpy_to_rotation(parent_rpy)
-                xyz = (rot @ np.array(xyz)).tolist()
-
-            rounded = [round(v, 4) for v in xyz]
-            messages.append(
-                f"  {joint_spec['name']}: origin from connection points = {rounded}"
-            )
-            return [round(v, 6) for v in xyz]
-
-    messages.append(
-        f"  {joint_spec['name']}: no connection point data, using chain spec fallback"
-    )
-    return joint_spec.get("origin", [0, 0, 0])
-
-
-def _rpy_to_rotation(rpy: list[float]) -> np.ndarray:
-    """Convert roll-pitch-yaw to 3x3 rotation matrix."""
-    roll, pitch, yaw = rpy
-    cr, sr = np.cos(roll), np.sin(roll)
-    cp, sp = np.cos(pitch), np.sin(pitch)
-    cy, sy = np.cos(yaw), np.sin(yaw)
-    return np.array(
-        [
-            [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
-            [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
-            [-sp, cp * sr, cp * cr],
-        ]
-    )
-
-
-def _validate_fk(chain: dict, urdf_path: Path) -> list[str]:
-    """Run FK at zero config and report joint positions.
-
-    Also validates inter-joint distances against DH params
-    (comparing distances, not absolute positions, to avoid the
-    DH-to-world mapping pitfall).
-    """
-    messages: list[str] = []
-    dh = chain.get("dh_params", {})
-    if not dh:
-        return messages
-
-    try:
-        tree = ET.parse(urdf_path)
-        root = tree.getroot()
-
-        pos = np.zeros(3)
-        rot = np.eye(3)
-        messages.append("FK validation (zero config):")
-
-        positions: dict[str, np.ndarray] = {}
-        for joint_el in root.findall("joint"):
-            name = joint_el.get("name")
-            origin = joint_el.find("origin")
-            xyz_str = origin.get("xyz", "0 0 0") if origin is not None else "0 0 0"
-            rpy_str = origin.get("rpy", "0 0 0") if origin is not None else "0 0 0"
-            xyz = np.array([float(v) for v in xyz_str.split()])
-            rpy = [float(v) for v in rpy_str.split()]
-
-            pos = pos + rot @ xyz
-
-            if any(abs(v) > 1e-6 for v in rpy):
-                rot = rot @ _rpy_to_rotation(rpy)
-
-            pos_mm = pos * 1000
-            assert name is not None
-            positions[name] = pos_mm.copy()
-            messages.append(
-                f"  {name}: ({pos_mm[0]:.1f}, {pos_mm[1]:.1f}, {pos_mm[2]:.1f}) mm"
-            )
-
-        # Report consecutive joint distances
-        joint_names = list(positions.keys())
-        for i in range(len(joint_names) - 1):
-            j_from = joint_names[i]
-            j_to = joint_names[i + 1]
-            dist = float(np.linalg.norm(positions[j_to] - positions[j_from]))
-            messages.append(f"  {j_from}→{j_to} distance={dist:.1f}mm")
-
-    except Exception as e:
-        messages.append(f"FK validation failed: {e}")
 
     return messages
 
