@@ -12,9 +12,10 @@ dh_params:  # from manufacturer specs (mm)
 links:
   - name: base_link
     mesh: base
+    visual_xyz: [0, 0.011, 0]  # Y: +11mm shifted here from shoulder — base never rotates, so no COR drift
   - name: link_1
     mesh: shoulder
-    visual_xyz: [0, 0.011, -0.063]  # Y: +11mm corrects lateral offset from front; Z: shift down to meet base
+    visual_xyz: [0, 0, -0.063]  # Z: shift down to meet base (along rotation axis, no COR effect)
   - name: link_2
     mesh: upperarm
   - name: link_3
@@ -39,7 +40,7 @@ joints:
     type: revolute
     parent: link_1
     child: link_2
-    axis: [0, 0, 1]
+    axis: [0, 1, 0]  # shoulder distal bore axis
     limits: [-6.2832, 6.2832]
     origin: [0, 0.13585, 0]   # d2: shoulder offset (Y)
     origin_rpy: [0, 1.570796327, 0]  # alpha1 = pi/2
@@ -48,7 +49,7 @@ joints:
     type: revolute
     parent: link_2
     child: link_3
-    axis: [0, 0, 1]
+    axis: [0, 1, 0]  # upperarm distal bore axis
     limits: [-6.2832, 6.2832]
     origin: [0, -0.1197, 0.425]  # d3: elbow offset (Y), |a2|: upper arm (Z)
 
@@ -56,7 +57,7 @@ joints:
     type: revolute
     parent: link_3
     child: link_4
-    axis: [0, 0, 1]
+    axis: [0, 1, 0]  # forearm distal bore axis
     limits: [-6.2832, 6.2832]
     origin: [0, 0, 0.39225]   # |a3|: forearm length (Z)
     origin_rpy: [0, 1.570796327, 0]  # alpha4 = pi/2
@@ -65,7 +66,7 @@ joints:
     type: revolute
     parent: link_4
     child: link_5
-    axis: [0, 0, -1]
+    axis: [0, 1, 0]  # wrist1 distal bore axis
     limits: [-6.2832, 6.2832]
     origin: [0, 0.09315, 0]   # wrist2 offset (Y)
 

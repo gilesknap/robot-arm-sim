@@ -2,7 +2,7 @@
 <robot name="UR5">
   <link name="base_link">
     <visual>
-      <origin xyz="0.000087 0.004519 0.003002" rpy="0 0 0"/>
+      <origin xyz="0.000087 0.015519 0.003002" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/base.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -10,7 +10,7 @@
   </link>
   <link name="link_1">
     <visual>
-      <origin xyz="0.001796 0.004649 0.002200" rpy="0 0 0"/>
+      <origin xyz="0.001796 -0.006351 0.002200" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/shoulder.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -66,28 +66,28 @@
     <parent link="link_1"/>
     <child link="link_2"/>
     <origin xyz="0 0.135850 0" rpy="0 1.570796 0"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0 1 0"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_3" type="revolute">
     <parent link="link_2"/>
     <child link="link_3"/>
     <origin xyz="0 -0.119700 0.425000" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0 1 0"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_4" type="revolute">
     <parent link="link_3"/>
     <child link="link_4"/>
     <origin xyz="0 0 0.392250" rpy="0 1.570796 0"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0 1 0"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_5" type="revolute">
     <parent link="link_4"/>
     <child link="link_5"/>
     <origin xyz="0 0.093150 0" rpy="0 0 0"/>
-    <axis xyz="0 0 -1"/>
+    <axis xyz="0 1 0"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_6" type="revolute">

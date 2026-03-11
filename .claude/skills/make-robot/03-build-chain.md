@@ -21,7 +21,28 @@ Combine analysis data and manufacturer specs to write `chain.yaml`.
 - Combined parts (e.g., A3_4) span multiple joints — create a virtual link with `mesh: null`
 - Connection point axes suggest joint rotation axis at each interface
 
-### 3. Compute Joint Origins from DH Parameters
+### 3. Determine Joint Axes from Bore Detection
+
+Each joint's rotation axis comes from the **parent link's distal bore axis** — the
+bore where the child part physically attaches.
+
+1. For each joint, look up the parent link's analysis YAML
+2. Find the `distal` connection point → its `axis` field is the joint axis
+3. Cross-check: the child link's `proximal` bore axis should agree (same physical bore)
+4. If they disagree, prefer the **distal** axis (proximal detection can pick the wrong
+   cylinder on multi-axis parts like wrist segments)
+
+**Example — UR5:**
+| Parent link | Distal bore axis | Joint   | Axis        |
+|------------|-----------------|---------|-------------|
+| base       | [0, 0, 1]       | joint_1 | [0, 0, 1]   |
+| shoulder   | [0, 1, 0]       | joint_2 | [0, 1, 0]   |
+| upperarm   | [0, 1, 0]       | joint_3 | [0, 1, 0]   |
+| forearm    | [0, 1, 0]       | joint_4 | [0, 1, 0]   |
+| wrist1     | [0, 1, 0]       | joint_5 | [0, 1, 0]   |
+| wrist2     | [0, 0, 1]       | joint_6 | [0, 0, 1]   |
+
+### 4. Compute Joint Origins from DH Parameters
 
 **CRITICAL**: ALWAYS use explicit `origin` values from DH params. Bore-detected connection points are for validation only.
 
@@ -47,7 +68,7 @@ Need `origin_rpy` and may have lateral offsets:
 # J6: origin [0, 0, d5/1000]
 ```
 
-### 4. Write chain.yaml
+### 5. Write chain.yaml
 
 ```yaml
 robot_name: <Robot-Name>
@@ -70,14 +91,22 @@ joints:
     type: revolute
     parent: base_link
     child: link_1
-    axis: [0, 0, 1]
+    axis: [0, 0, 1]           # from parent's distal bore axis
     limits: [-3.054, 3.054]   # from specs.yaml, in radians
     origin: [0, 0, 0.093]    # ALWAYS explicit from DH params
     # origin_rpy: [0, 1.5707963, 0]  # if DH alpha ≠ 0
+  - name: joint_2
+    type: revolute
+    parent: link_1
+    child: link_2
+    axis: [0, 1, 0]           # from parent's distal bore axis (pitch)
+    limits: [-3.054, 3.054]
+    origin: [0, 0.136, 0]
+    origin_rpy: [0, 1.5707963, 0]
   # ... one entry per joint
 ```
 
-### 5. Cross-Validate
+### 6. Cross-Validate
 
 Compare chain.yaml origins against bore-detected connection points:
 - If a joint origin differs from the detected bore by >10mm, investigate
@@ -90,7 +119,7 @@ Compare chain.yaml origins against bore-detected connection points:
 | `links[].mesh` | STL file stem, or `null` for virtual links | Always |
 | `links[].visual_xyz` | Additive visual offset (metres) | When auto-detection places mesh wrong |
 | `links[].visual_rpy` | Mesh rotation (radians) | When STL orientation doesn't match link frame |
-| `joints[].axis` | Rotation axis: `[0,0,1]` for yaw, `[0,1,0]` for pitch | Always |
+| `joints[].axis` | Rotation axis from parent's distal bore axis (e.g. `[0,0,1]` yaw, `[0,1,0]` pitch) | Always |
 | `joints[].limits` | Joint angle limits in radians | Always |
 | `joints[].origin` | Joint position (metres) | **Always** — use DH params |
 | `joints[].origin_rpy` | Frame rotation (radians) | When DH alpha ≠ 0 |
