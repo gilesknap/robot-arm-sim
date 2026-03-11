@@ -1,17 +1,6 @@
 connection_points:
 - axis:
   - 0.0
-  - 0.0
-  - -1.0
-  end: proximal
-  method: manual
-  position:
-  - 1.021
-  - -0.096
-  - 49.151
-  radius_mm: 37.2
-- axis:
-  - 0.0
   - 1.0
   - 0.0
   end: distal
@@ -21,6 +10,17 @@ connection_points:
   - 47.5
   - 96.683
   radius_mm: 37.0
+- axis:
+  - 0.0
+  - 0.0
+  - -1.0
+  end: proximal
+  method: manual
+  position:
+  - 1.021
+  - -0.096
+  - 49.151
+  radius_mm: 37.2
 features:
   cylindrical_surfaces:
   - axis:

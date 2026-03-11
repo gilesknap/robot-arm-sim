@@ -73,4 +73,3 @@ joints:
     child: link_6
     axis: [0, 1, 0]  # wrist2 distal bore axis
     limits: [-6.2832, 6.2832]
-    origin: [0, 0, 0.09465]   # d5: wrist3 offset (Z)
