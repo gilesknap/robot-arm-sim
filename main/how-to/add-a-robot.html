@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Add a new robot &#8212; robot-arm-sim 0.1.0b3.dev24+g3bc6b933c documentation</title>
+    <title>Add a new robot &#8212; robot-arm-sim 0.1.0b3.dev31+ge2a6736eb documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=92daf728"></script>
+    <script src="../_static/documentation_options.js?v=3cd513fc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -572,9 +572,34 @@ accurate comparison against technical drawings.</p></li>
 <li><p><strong>Fit</strong> — auto-zoom to fit the entire robot in the viewport.</p></li>
 <li><p><strong>Camera</strong> — left-click drag to orbit, scroll to zoom, middle-click drag to
 pan.</p></li>
+<li><p><strong>Edit Bores</strong> — enter an interactive mode to manually assign bore connection
+points by clicking on flat face markers. See below for details.</p></li>
 </ul>
 <p>If the robot looks correct, you are done. If parts are misaligned, continue
 to the visual tuning step below.</p>
+<section id="fixing-bore-connection-points-with-edit-bores">
+<h3>Fixing bore connection points with Edit Bores<a class="headerlink" href="#fixing-bore-connection-points-with-edit-bores" title="Link to this heading">#</a></h3>
+<p>Auto-detection of bore connection points works well for most parts, but can
+fail on ambiguous geometries (e.g. wrist links with multiple cylindrical
+surfaces). When bore detection picks the wrong face, the URDF generator
+places joints incorrectly.</p>
+<p>The <strong>Edit Bores</strong> mode lets you fix this interactively:</p>
+<ol class="arabic simple">
+<li><p>Click <strong>Edit Bores</strong> in the toolbar — the meshes go semi-transparent and
+coloured sphere markers appear at every flat face centroid on each part.</p></li>
+<li><p>Use the <strong>Proximal / Distal</strong> toggle to choose which bore end to assign.</p></li>
+<li><p>Click a yellow marker to assign it. Markers turn <strong>green</strong> (proximal) or
+<strong>red</strong> (distal). If the opposite end was already at the same face, they
+swap automatically.</p></li>
+<li><p>Repeat for any parts that need correction.</p></li>
+<li><p>Click <strong>Save &amp; Rebuild</strong> — the updated bore points are written to the
+analysis YAML files (with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">manual</span></code>) and the URDF is regenerated
+and reloaded.</p></li>
+</ol>
+<p>This is particularly useful for robots like the UR5, where wrist parts have
+lateral motor bores that confuse the auto-detector. Manual assignment lets
+you pick the correct kinematic bore faces directly.</p>
+</section>
 </section>
 <section id="step-4-visual-tuning-with-reference-images">
 <h2>Step 4: Visual tuning with reference images<a class="headerlink" href="#step-4-visual-tuning-with-reference-images" title="Link to this heading">#</a></h2>
@@ -788,7 +813,10 @@ directly.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chain-yaml-key-fields">chain.yaml key fields</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-launch-the-simulator">Step 3: Launch the simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-launch-the-simulator">Step 3: Launch the simulator</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixing-bore-connection-points-with-edit-bores">Fixing bore connection points with Edit Bores</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-visual-tuning-with-reference-images">Step 4: Visual tuning with reference images</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-claude-in-chrome">Setting up claude-in-chrome</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-manufacturer-comparison-skill">Using the manufacturer-comparison skill</a></li>

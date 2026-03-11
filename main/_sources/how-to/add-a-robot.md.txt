@@ -97,9 +97,35 @@ The simulator includes several controls for inspecting the model:
 - **Fit** — auto-zoom to fit the entire robot in the viewport.
 - **Camera** — left-click drag to orbit, scroll to zoom, middle-click drag to
   pan.
+- **Edit Bores** — enter an interactive mode to manually assign bore connection
+  points by clicking on flat face markers. See below for details.
 
 If the robot looks correct, you are done. If parts are misaligned, continue
 to the visual tuning step below.
+
+### Fixing bore connection points with Edit Bores
+
+Auto-detection of bore connection points works well for most parts, but can
+fail on ambiguous geometries (e.g. wrist links with multiple cylindrical
+surfaces). When bore detection picks the wrong face, the URDF generator
+places joints incorrectly.
+
+The **Edit Bores** mode lets you fix this interactively:
+
+1. Click **Edit Bores** in the toolbar — the meshes go semi-transparent and
+   coloured sphere markers appear at every flat face centroid on each part.
+2. Use the **Proximal / Distal** toggle to choose which bore end to assign.
+3. Click a yellow marker to assign it. Markers turn **green** (proximal) or
+   **red** (distal). If the opposite end was already at the same face, they
+   swap automatically.
+4. Repeat for any parts that need correction.
+5. Click **Save & Rebuild** — the updated bore points are written to the
+   analysis YAML files (with `method: manual`) and the URDF is regenerated
+   and reloaded.
+
+This is particularly useful for robots like the UR5, where wrist parts have
+lateral motor bores that confuse the auto-detector. Manual assignment lets
+you pick the correct kinematic bore faces directly.
 
 ## Step 4: Visual tuning with reference images
 
