@@ -501,8 +501,8 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
     # Generate callout offsets dynamically based on link/joint counts
     part_count = sum(1 for link in robot.links if link.mesh_path)
     joint_origins = [j.origin_xyz for j in chain]
-    part_offsets = _make_offsets(part_count, -0.18)
-    joint_offsets = _make_offsets(len(chain), 0.18, joint_origins)
+    part_offsets = _make_offsets(part_count, -0.35)
+    joint_offsets = _make_offsets(len(chain), 0.35, joint_origins)
 
     for joint in chain:
         joint_angles[joint.name] = 0.0
@@ -567,15 +567,13 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                                 "border: 1px solid #1565C0; "
                                 "pointer-events: none;"
                             ),
-                        ).move(*_HIDDEN_POS)
-                        line_obj = (
-                            scene.line(
-                                [0, 0, 0],
-                                [off[0], off[1], off[2]],
-                            )
-                            .material(color="#1565C0")
-                            .move(*_HIDDEN_POS)
                         )
+                        text_obj.visible = False  # type: ignore[attr-defined]
+                        line_obj = scene.line(
+                            [0, 0, 0],
+                            [off[0], off[1], off[2]],
+                        ).material(color="#1565C0")
+                        line_obj.visible = False  # type: ignore[attr-defined]
                         callout_items.append(
                             {
                                 "text": text_obj,
@@ -600,15 +598,13 @@ def _build_ui(robot: URDFRobot, robot_dir: Path) -> None:
                             "border: 1px solid #C62828; "
                             "pointer-events: none;"
                         ),
-                    ).move(*_HIDDEN_POS)
-                    line_obj = (
-                        scene.line(
-                            [0, 0, 0],
-                            [off[0], off[1], off[2]],
-                        )
-                        .material(color="#C62828")
-                        .move(*_HIDDEN_POS)
                     )
+                    text_obj.visible = False  # type: ignore[attr-defined]
+                    line_obj = scene.line(
+                        [0, 0, 0],
+                        [off[0], off[1], off[2]],
+                    ).material(color="#C62828")
+                    line_obj.visible = False  # type: ignore[attr-defined]
                     callout_items.append(
                         {
                             "text": text_obj,
@@ -1235,8 +1231,8 @@ def _update_scene(
         show = labels_visible and labels_visible.get("value", False)
         for item in callout_items:
             if not show:
-                item["text"].move(*_HIDDEN_POS)
-                item["line"].move(*_HIDDEN_POS)
+                item["text"].visible = False  # type: ignore[attr-defined]
+                item["line"].visible = False  # type: ignore[attr-defined]
                 continue
 
             name = item["name"]
@@ -1251,6 +1247,8 @@ def _update_scene(
                 continue
 
             ax, ay, az = anchor
+            item["text"].visible = True  # type: ignore[attr-defined]
+            item["line"].visible = True  # type: ignore[attr-defined]
             item["text"].move(ax + ox, ay + oy, az + oz)
             item["line"].move(ax, ay, az)
 
