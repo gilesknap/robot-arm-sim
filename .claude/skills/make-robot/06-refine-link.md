@@ -16,11 +16,9 @@ The core iteration loop. Called once per link, working base-to-tip. Operates on 
 
 Before looking at any screenshots, **compute expected gaps analytically in all three axes** using the analysis YAMLs and chain.yaml. For each pair of adjacent links (N-1, N):
 
-1. Read the analysis YAML for both links. Note the **bounding box** extents in X, Y, and Z, and the **proximal connection point** position.
-2. For each axis, compute where link N-1's mesh boundary is in world coords:
-   - The URDF generator aligns the proximal bore with the joint origin, so the mesh extends from `joint_origin + (mesh_min - proximal) / 1000` to `joint_origin + (mesh_max - proximal) / 1000` along each axis.
-3. Compute where link N's mesh boundary is in world coords (same formula for the next joint).
-4. Check for **gaps > 5mm** or **overlaps** along each axis.
+1. Read the analysis YAML for both links. Note the **bounding box** extents in X, Y, and Z, and the **proximal/distal connection point** positions.
+2. For each axis, compute where each link's mesh boundary is in world coords. The URDF generator uses **distal bore → child joint** positioning for non-root/non-terminal links, and **proximal bore at origin** for root and terminal links.
+3. Check for **gaps > 5mm** or **overlaps** along each axis.
 
 **Common pattern**: When the joint origin height (e.g. DH d1) is significantly taller than the parent mesh, a Z gap will appear. But also check Y and X — lateral misalignment between meshes is common and only visible from FRONT/BACK (Y) or LEFT/RIGHT (X) views.
 
@@ -152,4 +150,4 @@ If ANY of these occur, stop and invoke `review` for human discussion:
 - **Use opposite views for obscured parts** — if FRONT is blocked, try BACK
 - **Use Reload URDF button** — it preserves camera, sliders, and joint angles
 - **Never edit robot.urdf directly** — always edit chain.yaml and regenerate
-- **Root link (base) auto-positioned** — distal bore aligned to first child joint origin; no manual visual_xyz needed for base in most cases
+- **Visual positioning strategy** — root link: proximal bore at origin (sits on ground); non-root with child joint: distal bore at child joint origin (closes gaps); terminal link: proximal bore at origin

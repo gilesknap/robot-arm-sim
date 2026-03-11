@@ -172,9 +172,10 @@ def _compute_visual_origin(
 ) -> tuple[list[float], list[float]]:
     """Compute visual origin xyz/rpy for a link's mesh.
 
-    For child links: places proximal bore at the link frame origin.
-    For root link (no parent joint): places distal bore at the first
-    child joint origin so the base mesh sits correctly.
+    Positioning strategy:
+    - Root link (no parent joint): proximal bore at origin (mesh sits on ground)
+    - Non-root with child joint: distal bore at child joint origin (closes gaps)
+    - Terminal link (no child joint): proximal bore at link frame origin
     """
     conn_points = analysis.get("connection_points", [])
     proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
@@ -183,17 +184,24 @@ def _compute_visual_origin(
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
 
     is_root = link_name not in joint_by_child
+    has_child = link_name in joint_by_parent
 
-    # Root link: position distal bore at child joint origin
-    if is_root and distal is not None and link_name in joint_by_parent:
+    # Non-root links with a child joint: distal bore → child joint positioning
+    if not is_root and has_child and distal is not None:
         child_joint = joint_by_parent[link_name]
         child_origin = child_joint.get("origin", [0, 0, 0])
         dpos = distal["position"]
         messages.append(
-            f"  {link_name} (root): distal="
-            f"({dpos[0]:.1f}, {dpos[1]:.1f}, {dpos[2]:.1f})mm"
+            f"  {link_name}: distal=({dpos[0]:.1f},"
+            f" {dpos[1]:.1f}, {dpos[2]:.1f})mm"
+            f" → child joint"
         )
-        viz_xyz = [child_origin[i] - dpos[i] / 1000 for i in range(3)]
+        if viz_rpy == [0, 0, 0]:
+            viz_xyz = [child_origin[i] - dpos[i] / 1000 for i in range(3)]
+        else:
+            rot = _rpy_to_rotation(viz_rpy)
+            dpos_m = np.array(dpos) / 1000
+            viz_xyz = (np.array(child_origin) - rot @ dpos_m).tolist()
 
         # Apply additive visual_xyz adjustment from chain spec
         extra_xyz = link_spec.get("visual_xyz")
@@ -202,14 +210,16 @@ def _compute_visual_origin(
 
         return [round(v, 6) for v in viz_xyz], viz_rpy
 
+    # Root link and terminal links: proximal bore at link frame origin
     if proximal is None:
         viz_xyz = link_spec.get("visual_xyz", [0, 0, 0])
         messages.append(f"  {link_name}: no proximal connection point")
         return viz_xyz, viz_rpy
 
     pos = proximal["position"]
+    label = "(root)" if is_root else "(terminal)"
     messages.append(
-        f"  {link_name}: proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
+        f"  {link_name} {label}: proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
     )
 
     if viz_rpy == [0, 0, 0]:
@@ -219,9 +229,6 @@ def _compute_visual_origin(
             -pos[2] / 1000,
         ]
     else:
-        # world_point = R @ mesh_point + xyz
-        # 0 = R @ proximal_mm2m + xyz
-        # xyz = -R @ proximal_mm2m
         rot = _rpy_to_rotation(viz_rpy)
         pos_m = np.array(pos) / 1000
         xyz = -rot @ pos_m
