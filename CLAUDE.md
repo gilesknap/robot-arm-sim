@@ -2,7 +2,7 @@
 
 ## Python environment
 - Use `uv` as the package manager
-- Run Python with: `uv run python` or `.venv/bin/python`
+- Run Python with: `uv run python` only
 - Always run `uv run tox -p` and fix errors before pushing code
 
 ## CRITICAL

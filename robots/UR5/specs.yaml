@@ -1,0 +1,143 @@
+# UR5 Robot Specifications
+# Universal Robots UR5 - 6-DOF Collaborative Robot Arm
+#
+# DH Parameters verified from official Universal Robots documentation:
+#   https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
+#
+# Convention: Standard Denavit-Hartenberg (UR convention where 'a' = Wikipedia 'r')
+#
+# Reference images in images/ directory:
+#   - ur5_DH_joint_positions.svg: DH frame assignments (from alexanderelias.com/ur5-ik/)
+#   - ur5_coincident_joints.svg: Adjusted coincident joint frames
+#   - UR5-robot.png: Product reference image (from RoboDK)
+
+robot_name: UR5
+manufacturer: Universal Robots
+type: collaborative
+dof: 6
+total_reach_mm: 850
+payload_kg: 5
+weight_kg: 18.4
+repeat_precision_mm: 0.1
+
+# DH Parameters (Standard DH convention)
+# All linear dimensions in mm, angles in degrees
+#
+# Joint naming: base, shoulder, elbow, wrist1, wrist2, wrist3
+#
+# Note on alpha values:
+#   - Joints 1 and 4 have alpha = 90 deg (pi/2)
+#   - Joint 5 has alpha = -90 deg (-pi/2)
+#   - These require origin_rpy in the URDF chain definition
+
+dh_params:
+  # Joint 1 (Base): rotates about Z, alpha rotates next frame 90 deg
+  - joint: 1
+    name: base
+    d_mm: 89.159
+    a_mm: 0
+    alpha_deg: 90
+    theta_offset_deg: 0
+
+  # Joint 2 (Shoulder): long upper arm link, a = -425mm, d = 135.85mm (shoulder offset)
+  - joint: 2
+    name: shoulder
+    d_mm: 135.85
+    a_mm: -425.0
+    alpha_deg: 0
+    theta_offset_deg: 0
+
+  # Joint 3 (Elbow): forearm link, a = -392.25mm, d = -119.7mm (elbow offset)
+  - joint: 3
+    name: elbow
+    d_mm: -119.7
+    a_mm: -392.25
+    alpha_deg: 0
+    theta_offset_deg: 0
+
+  # Joint 4 (Wrist 1): offset d = 109.15mm, alpha = 90 deg
+  - joint: 4
+    name: wrist1
+    d_mm: 109.15
+    a_mm: 0
+    alpha_deg: 90
+    theta_offset_deg: 0
+
+  # Joint 5 (Wrist 2): offset d = 94.65mm, alpha = -90 deg
+  - joint: 5
+    name: wrist2
+    d_mm: 94.65
+    a_mm: 0
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  # Joint 6 (Wrist 3 / Tool flange): offset d = 82.3mm
+  - joint: 6
+    name: wrist3
+    d_mm: 82.3
+    a_mm: 0
+    alpha_deg: 0
+    theta_offset_deg: 0
+
+# Physical offsets (from official ur_description URDF)
+physical_offsets:
+  shoulder_offset_mm: 135.85   # lateral offset J1→J2 (d2)
+  elbow_offset_mm: -119.7      # lateral offset J2→J3 (d3)
+
+# Joint limits (all joints identical)
+joint_limits:
+  - joint: 1
+    name: base
+    min_deg: -360
+    max_deg: 360
+    max_speed_deg_s: 180
+  - joint: 2
+    name: shoulder
+    min_deg: -360
+    max_deg: 360
+    max_speed_deg_s: 180
+  - joint: 3
+    name: elbow
+    min_deg: -360
+    max_deg: 360
+    max_speed_deg_s: 180
+  - joint: 4
+    name: wrist1
+    min_deg: -360
+    max_deg: 360
+    max_speed_deg_s: 180
+  - joint: 5
+    name: wrist2
+    min_deg: -360
+    max_deg: 360
+    max_speed_deg_s: 180
+  - joint: 6
+    name: wrist3
+    min_deg: -360
+    max_deg: 360
+    max_speed_deg_s: 180
+
+# Zero configuration description:
+# All joints at 0 degrees - arm extends straight up from base,
+# then folds. The shoulder and elbow links (425mm + 392.25mm)
+# are the dominant dimensions determining reach.
+
+# Key geometry notes for chain.yaml construction:
+#   - Joints with non-zero alpha need origin_rpy in URDF:
+#     Joint 1: alpha = pi/2  -> rpy = [pi/2, 0, 0]
+#     Joint 4: alpha = pi/2  -> rpy = [pi/2, 0, 0]
+#     Joint 5: alpha = -pi/2 -> rpy = [-pi/2, 0, 0]
+#   - Negative 'a' values (joints 2, 3) mean the link extends
+#     in the -X direction of the joint frame
+#   - The wrist is a spherical wrist (joints 4, 5, 6 axes intersect
+#     approximately at a point)
+
+references:
+  - url: https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
+    description: Official Universal Robots DH parameters documentation
+  - url: https://alexanderelias.com/ur5-ik/
+    description: UR5 inverse kinematics with DH frame diagrams
+  - url: https://robodk.com/robot/Universal-Robots/UR5
+    description: RoboDK UR5 specifications and simulation
+  - url: https://courses.ideate.cmu.edu/60-428/s2018/ref/text/resrc/UR5-technical.html
+    description: CMU UR5 technical notes (reach, payload, joint specs)

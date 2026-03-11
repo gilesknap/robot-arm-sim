@@ -15,8 +15,7 @@ Use this skill when:
 - `chain.yaml` and `robot.urdf` exist in the robot directory
 - Browser automation tools (claude-in-chrome) available
 - The `zoom-rotate-camera` skill (for camera JS templates and named view table)
-- The `visual-urdf-tuning` skill (for diagnosis table and chain.yaml editing patterns)
-- The `refine-with-image` skill (for simulator restart and slider control patterns)
+- The `auto-build-robot` skill (for diagnosis table, chain.yaml editing patterns, and simulator restart procedures)
 
 ---
 
@@ -171,7 +170,7 @@ See `zoom-rotate-camera` skill for the complete JS template — do not duplicate
 
 ### Match the joint pose
 
-Set joints to match the manufacturer drawing's pose. Most technical drawings show zero config (all joints at 0°). Use the slider JavaScript from the `refine-with-image` skill.
+Set joints to match the manufacturer drawing's pose. Most technical drawings show zero config (all joints at 0°). Use the slider JavaScript from the `auto-build-robot` skill (Camera Control Reference section).
 
 If the manufacturer drawing shows a non-zero pose, set each joint to match before comparing.
 
@@ -185,7 +184,7 @@ After setting the view, click the "Fit" button in the ViewCube control bar (or u
 
 ### Systematic comparison procedure
 
-For each joint, working from base to tip:
+For each joint, working from base to tip and using the hide parts slider so as to only show the up to the current joint you are working on:
 
 1. **Screenshot** the ortho view of the simulator at zero config
 2. **Overlay mentally** against the manufacturer drawing
@@ -218,7 +217,7 @@ Click "Show Labels" in the simulator to see part names (blue, left) and joint na
 
 ### Edit chain.yaml
 
-For each discrepancy found in Phase 4, apply the appropriate fix. See the diagnosis table in the `visual-urdf-tuning` skill for the mapping from symptoms to chain.yaml changes.
+For each discrepancy found in Phase 4, apply the appropriate fix. See the diagnosis table in the `auto-build-robot` skill (Stage 5c) for the mapping from symptoms to chain.yaml changes.
 
 Key reminders:
 - **`visual_xyz` is ADDITIVE** to the auto-computed offset — `[0, 0, 0.005]` means "shift 5mm up from auto-detected position"
@@ -231,9 +230,9 @@ Key reminders:
 # Regenerate URDF
 uv run robot-arm-sim generate robots/<name>/ robots/<name>/chain.yaml
 
-# Restart simulator (see refine-with-image skill for full restart procedure)
+# Restart simulator (see auto-build-robot skill for full restart procedure)
 pkill -9 -f "robot-arm-sim simulate" 2>/dev/null
-# Wait for port to free, then relaunch — see refine-with-image skill
+# Wait for port to free, then relaunch — see auto-build-robot skill
 ```
 
 ### Verify kinematics after each change
@@ -325,7 +324,7 @@ The `urdf_generator.py` pipeline now warns if inter-joint distances deviate from
 ## Key Design Principles
 
 - **Ortho-only comparison**: Never compare a perspective simulator view against an orthographic technical drawing. Always switch to ortho mode first.
-- **References not duplicates**: This skill cross-references `zoom-rotate-camera` for JS camera templates, `visual-urdf-tuning` for diagnosis tables and chain.yaml patterns, and `refine-with-image` for simulator restart and slider control procedures. Do not duplicate those instructions here.
+- **References not duplicates**: This skill cross-references `zoom-rotate-camera` for JS camera templates, and `auto-build-robot` for diagnosis tables, chain.yaml patterns, simulator restart, and slider control procedures. Do not duplicate those instructions here.
 - **Explicit view mapping**: Always establish the manufacturer-to-ViewCube mapping before comparing. Skipping this step leads to comparing the wrong views and chasing phantom errors.
 - **Measurable convergence**: Use the manufacturer's own dimensions (DH parameters, link lengths) as ground truth, with a 2mm tolerance. Don't rely solely on "looks right."
 - **Base to tip**: Always work from the base upward. A 2mm error at the base becomes a 5mm error at the wrist due to compounding.

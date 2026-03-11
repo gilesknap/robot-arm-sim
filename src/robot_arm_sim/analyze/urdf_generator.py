@@ -49,7 +49,6 @@ def generate_urdf(
     robot = ET.Element("robot", name=robot_name)
 
     link_specs = {lk["name"]: lk for lk in chain["links"]}
-    joint_by_child = {j["child"]: j for j in chain["joints"]}
 
     # Generate links
     for link_spec in chain["links"]:
@@ -66,8 +65,7 @@ def generate_urdf(
                 analysis,
                 link_spec,
                 link_name,
-                joint_by_child,
-                messages,
+                messages=messages,
             )
 
             if viz_xyz != [0, 0, 0] or viz_rpy != [0, 0, 0]:
@@ -164,17 +162,12 @@ def _compute_visual_origin(
     analysis: dict,
     link_spec: dict,
     link_name: str,
-    joint_by_child: dict,
+    *,
     messages: list[str],
 ) -> tuple[list[float], list[float]]:
-    """Compute visual origin xyz/rpy for a link's mesh.
-
-    Places the mesh so its proximal connection point sits at the
-    link frame origin.
-    """
+    """Compute visual origin xyz/rpy: proximal bore at frame origin."""
     conn_points = analysis.get("connection_points", [])
     proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
-
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
 
     if proximal is None:
@@ -182,36 +175,32 @@ def _compute_visual_origin(
         messages.append(f"  {link_name}: no proximal connection point")
         return viz_xyz, viz_rpy
 
-    pos = proximal["position"]
+    pos = list(proximal["position"])  # copy — don't mutate original
+
+    # Adjust bore-axis component from face to barrel center.
+    # Bore detection reports the face surface (bbox extreme); DH distances
+    # measure center-to-center, so we use the bbox midpoint along the bore
+    # axis to place each mesh centered on its joint axis.
+    bore_axis = proximal.get("axis", [0, 0, 0])
+    axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
+    bbox = analysis.get("geometry", {}).get("bounding_box", {})
+    if bbox and abs(bore_axis[axis_idx]) > 0.5:
+        bmin = bbox["min"][axis_idx]
+        bmax = bbox["max"][axis_idx]
+        pos[axis_idx] = (bmin + bmax) / 2
+
     messages.append(
-        f"  {link_name}: proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
+        f"  {link_name}: proximal @ origin,"
+        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
     )
-
     if viz_rpy == [0, 0, 0]:
-        viz_xyz = [
-            -pos[0] / 1000,
-            -pos[1] / 1000,
-            -pos[2] / 1000,
-        ]
+        viz_xyz = [-pos[i] / 1000 for i in range(3)]
     else:
-        # world_point = R @ mesh_point + xyz
-        # 0 = R @ proximal_mm2m + xyz
-        # xyz = -R @ proximal_mm2m
-        rot = _rpy_to_rotation(viz_rpy)
-        pos_m = np.array(pos) / 1000
-        xyz = -rot @ pos_m
-        viz_xyz = xyz.tolist()
+        viz_xyz = (-_rpy_to_rotation(viz_rpy) @ (np.array(pos) / 1000)).tolist()
 
-    # Apply additive visual_xyz adjustment from chain spec
-    extra_xyz = link_spec.get("visual_xyz")
-    if extra_xyz is not None:
-        viz_xyz = [v + e for v, e in zip(viz_xyz, extra_xyz, strict=True)]
-        mag = sum(v**2 for v in extra_xyz) ** 0.5
-        if mag > 0.010:
-            messages.append(
-                f"  WARNING: {link_name} visual_xyz = {mag * 1000:.1f}mm (>10mm)"
-            )
-
+    extra = link_spec.get("visual_xyz")
+    if extra is not None:
+        viz_xyz = [v + e for v, e in zip(viz_xyz, extra, strict=True)]
     return [round(v, 6) for v in viz_xyz], viz_rpy
 
 
