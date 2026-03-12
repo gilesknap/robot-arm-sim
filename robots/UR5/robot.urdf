@@ -41,7 +41,7 @@
   </link>
   <link name="link_5">
     <visual>
-      <origin xyz="-0.001021 0.000096 -0.091267" rpy="0 0 0"/>
+      <origin xyz="-0.001021 0.000096 -0.049151" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -49,7 +49,7 @@
   </link>
   <link name="link_6">
     <visual>
-      <origin xyz="0.001144 -0.064575 -0.003450" rpy="0 0 0"/>
+      <origin xyz="0.001144 -0.047325 -0.003450" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist3.stl" scale="0.001 0.001 0.001"/>
       </geometry>

@@ -21,6 +21,7 @@ connection_points:
   - -0.096
   - 49.151
   radius_mm: 37.2
+  centering: surface
 features:
   cylindrical_surfaces:
   - axis:

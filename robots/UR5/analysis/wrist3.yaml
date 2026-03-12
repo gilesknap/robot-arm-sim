@@ -10,6 +10,7 @@ connection_points:
   - 47.325
   - 3.45
   radius_mm: 37.4
+  centering: surface
 features:
   cylindrical_surfaces: []
   flat_faces:
