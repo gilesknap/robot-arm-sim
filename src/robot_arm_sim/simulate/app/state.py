@@ -89,7 +89,7 @@ class SimulatorState:
         self.ik_sliders: dict[str, Any] = {}
         self.ik_labels: dict[str, Any] = {}
         self.link_checkboxes: dict[str, Any] = {}
-        self.ee_readout_ref: list[ui.label | None] = [None]
+        self.ee_readout_ref: list[ui.label | None] = [None, None]
         self.bore_status_label: Any = None
         self.edit_bores_btn: Any = None
         self.edit_bores_row: Any = None

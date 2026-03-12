@@ -132,8 +132,9 @@ def _update_callouts(
 def _update_ee_readout(
     state: SimulatorState, transforms: dict[str, np.ndarray]
 ) -> None:
-    ee_label = state.ee_readout_ref[0]
-    if ee_label is None:
+    trans_label = state.ee_readout_ref[0]
+    rot_label = state.ee_readout_ref[1]
+    if trans_label is None or rot_label is None:
         return
     chain = state.robot.get_kinematic_chain()
     if not chain:
@@ -147,11 +148,9 @@ def _update_ee_readout(
     rx_deg = math.degrees(ee_euler[0])
     ry_deg = math.degrees(ee_euler[1])
     rz_deg = math.degrees(ee_euler[2])
-    ee_label.text = (
-        f"X: {x_mm:.1f}  Y: {y_mm:.1f}"
-        f"  Z: {z_mm:.1f} mm\n"
-        f"Rx: {rx_deg:.1f}\u00b0  Ry: {ry_deg:.1f}\u00b0"
-        f"  Rz: {rz_deg:.1f}\u00b0"
+    trans_label.text = f"X: {x_mm:.1f}\nY: {y_mm:.1f}\nZ: {z_mm:.1f} mm"
+    rot_label.text = (
+        f"Rx: {rx_deg:.1f}\u00b0\nRy: {ry_deg:.1f}\u00b0\nRz: {rz_deg:.1f}\u00b0"
     )
 
 

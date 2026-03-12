@@ -31,6 +31,12 @@ def build_toolbar(state: SimulatorState) -> None:
 
         os.kill(os.getpid(), signal.SIGTERM)
 
+    with ui.dialog() as stop_dialog, ui.card():
+        ui.label("Are you sure you want to stop the simulator?")
+        with ui.row().classes("w-full justify-end"):
+            ui.button("Cancel", on_click=stop_dialog.close).props("flat")
+            ui.button("Stop", on_click=shutdown).props("color=red")
+
     with ui.row().classes("q-pa-sm items-center").style("width: 900px; gap: 8px;"):
         # --- View group ---
         def toggle_labels():
@@ -99,7 +105,9 @@ def build_toolbar(state: SimulatorState) -> None:
             on_click=lambda: state.reset_all(),
         ).props("dense color=orange-7")
 
-        ui.button("Stop Simulator", on_click=shutdown).props("color=red-7 flat dense")
+        ui.button("Stop Simulator", on_click=stop_dialog.open).props(
+            "color=red-7 flat dense"
+        )
 
         ui.space()
 

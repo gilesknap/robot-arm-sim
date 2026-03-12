@@ -67,16 +67,11 @@ def build_controls_panel(state: SimulatorState) -> None:
             upper_deg = math.degrees(joint.limit_upper)
             display = state.joint_labels[joint.name]
 
-            with ui.row().classes("w-full items-center no-wrap").style("gap: 4px"):
-                ui.label(display).style(
-                    "width: 80px; flex-shrink: 0; text-align: left; "
-                    "font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; "
-                    "white-space: nowrap;"
-                )
-
-                angle_label = ui.label("0.0°").style(
-                    "width: 50px; flex-shrink: 0; text-align: right; font-size: 0.8rem;"
-                )
+            with ui.column().classes("w-full").style("gap: 0"):
+                with ui.row().classes("w-full items-center no-wrap"):
+                    ui.label(display).style("font-size: 0.8rem;")
+                    ui.space()
+                    angle_label = ui.label("0.0°").style("font-size: 0.8rem;")
 
                 def make_handler(jname, albl):
                     def on_change():
@@ -93,7 +88,7 @@ def build_controls_panel(state: SimulatorState) -> None:
                     value=0,
                     step=0.5,
                     on_change=make_handler(joint.name, angle_label),
-                ).style("flex: 1")
+                )
                 state.sliders[joint.name] = slider
 
     # --- IK control panel ---
@@ -189,13 +184,18 @@ def build_controls_panel(state: SimulatorState) -> None:
     mode_radio.on_value_change(on_mode_change)
 
     # --- End-effector readout ---
+    mono = "font-family: monospace; font-size: 0.75rem;"
     with ui.card().props("flat bordered").classes("w-full q-pa-sm"):
         ui.label("End Effector").classes("text-caption")
-        ee_readout = ui.label(
-            "X: 0.0  Y: 0.0  Z: 0.0 mm\nRx: 0.0°  Ry: 0.0°  Rz: 0.0°"
-        ).style("white-space: pre; font-family: monospace; font-size: 0.75rem;")
+        with ui.row().classes("w-full").style("gap: 16px"):
+            ee_trans_label = ui.label("X: 0.0\nY: 0.0\nZ: 0.0 mm").style(
+                f"white-space: pre; {mono}"
+            )
+            ee_rot_label = ui.label("Rx: 0.0°\nRy: 0.0°\nRz: 0.0°").style(
+                f"white-space: pre; {mono}"
+            )
 
-    state.ee_readout_ref[0] = ee_readout
+    state.ee_readout_ref = [ee_trans_label, ee_rot_label]
 
     # Initial EE readout update
     from .scene_update import update_scene
