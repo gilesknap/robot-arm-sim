@@ -95,9 +95,6 @@ def update_scene(state: SimulatorState) -> None:
     # Bore markers
     _update_bores(state, visual_transforms, vis_set)
 
-    # Face markers (Edit Bores mode)
-    _update_face_markers(state, visual_transforms, vis_set)
-
 
 def _update_callouts(
     state: SimulatorState,
@@ -206,33 +203,3 @@ def _update_bores(
             else:
                 bore_poses[bid] = [0.0, 0.0, -100.0, 0.0, 0.0, 0.0, 0.0, 1.0]
     ui.run_javascript(f"window.__updateBorePoses({json.dumps(bore_poses)})")
-
-
-def _update_face_markers(
-    state: SimulatorState,
-    visual_transforms: dict[str, np.ndarray],
-    vis_set: set[str] | None,
-) -> None:
-    show_faces = state.edit_bores_active and state.edit_bores_active.get("value", False)
-    if not (state.flat_faces and show_faces):
-        return
-    face_poses: dict[str, list[float]] = {}
-    for link_name, faces in state.flat_faces.items():
-        tf_vis = visual_transforms.get(link_name)
-        is_vis = vis_set is None or link_name in vis_set
-        for i, ff in enumerate(faces):
-            fid = f"face_{link_name}_{i}"
-            if tf_vis is not None and is_vis:
-                c = ff["centroid"]
-                c_m = [c[0] * 0.001, c[1] * 0.001, c[2] * 0.001]
-                c_homo = np.array([c_m[0], c_m[1], c_m[2], 1.0])
-                wp = tf_vis @ c_homo
-                face_poses[fid] = [
-                    float(wp[0]),
-                    float(wp[1]),
-                    float(wp[2]),
-                    1.0,
-                ]
-            else:
-                face_poses[fid] = [0.0, 0.0, -100.0, 0.0]
-    ui.run_javascript(f"window.__updateFaceMarkerPoses({json.dumps(face_poses)})")

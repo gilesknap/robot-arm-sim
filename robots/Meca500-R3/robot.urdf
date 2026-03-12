@@ -9,7 +9,7 @@
   </link>
   <link name="link_1">
     <visual>
-      <origin xyz="0.000415 0.002514 -0.001030" rpy="0 0 0"/>
+      <origin xyz="-0.000494 0.000065 -0.009530" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -17,7 +17,7 @@
   </link>
   <link name="link_2">
     <visual>
-      <origin xyz="-0.000186 0.000776 0.001943" rpy="0 0 0"/>
+      <origin xyz="0.000113 -0.000190 0.000586" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -25,7 +25,7 @@
   </link>
   <link name="link_3">
     <visual>
-      <origin xyz="-0.000491 -0.001918 0.002056" rpy="0 0 0"/>
+      <origin xyz="0.000037 0.000227 -0.002063" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A3_4.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -33,7 +33,7 @@
   </link>
   <link name="link_4">
     <visual>
-      <origin xyz="-0.000005 0.004871 -0.000093" rpy="0 0 0"/>
+      <origin xyz="-0.000155 0.000826 -0.001166" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A5.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -42,7 +42,7 @@
   <link name="link_5"/>
   <link name="link_6">
     <visual>
-      <origin xyz="0.002035 0.002715 -0.000302" rpy="0 0 0"/>
+      <origin xyz="-0.000162 0.000026 -0.001179" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A6.stl" scale="0.001 0.001 0.001"/>
       </geometry>

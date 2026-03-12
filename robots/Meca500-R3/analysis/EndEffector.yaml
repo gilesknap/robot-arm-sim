@@ -1,0 +1,90 @@
+part_name: EndEffector
+source_file: stl_files/EndEffector.stl
+format: binary_stl
+connection_points:
+- end: distal
+  position:
+  - -0.052
+  - -0.027
+  - 15.894
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 7.7
+  method: centroid_fallback
+geometry:
+  vertex_count: 263543
+  face_count: 526716
+  bounding_box:
+    min:
+    - -11.26622486114502
+    - -9.986210823059082
+    - -8.355224609375
+    max:
+    - 9.551482200622559
+    - 10.124348640441895
+    - 15.893804550170898
+    extents:
+    - 20.817707061767578
+    - 20.110559463500977
+    - 24.2490291595459
+  volume_mm3: 0.0
+  surface_area_mm2: 1401.5487744474633
+  center_of_mass:
+  - -0.8327397573310065
+  - 0.06845133519390181
+  - -2.968818447284146
+  is_watertight: false
+inertia:
+  principal_moments:
+  - 53703.270747414164
+  - 56244.353599663955
+  - 90463.31827367636
+  principal_axes:
+  - - 0.7295680413599742
+    - 0.6631777998616333
+    - -0.1671097806738247
+  - - -0.6402663026457415
+    - 0.7481968255976625
+    - 0.1739556606205491
+  - - -0.24039453971029015
+    - 0.019917729194443456
+    - -0.970470890517183
+features:
+  flat_faces:
+  - description: "Large flat face on bottom, area 314.0 mm\xB2, likely mating surface"
+    normal:
+    - -0.2392
+    - 0.0198
+    - -0.9708
+    area_mm2: 313.99
+    centroid:
+    - -1.5552
+    - 0.1116
+    - -5.9561
+  - description: "Large flat face on top, area 186.8 mm\xB2, likely mating surface"
+    normal:
+    - 0.2392
+    - -0.0198
+    - 0.9708
+    area_mm2: 186.83
+    centroid:
+    - -0.052
+    - -0.0271
+    - 0.2092
+  - description: "Large flat face on top, area 61.0 mm\xB2, likely mating surface"
+    normal:
+    - 0.2392
+    - -0.0198
+    - 0.9708
+    area_mm2: 61.04
+    centroid:
+    - -0.6619
+    - 0.0478
+    - -1.867
+  cylindrical_surfaces: []
+  holes: []
+text_description: "Part 'EndEffector' from stl_files/EndEffector.stl.\nBounding box: 20.8 x 20.1 x 24.2 mm.\nNon-watertight\
+  \ mesh (volume not computed).\nSurface area: 1401.5 mm\xB2.\nMesh complexity: 263543 vertices, 526716 faces.\nHas 3 significant\
+  \ flat face(s)."

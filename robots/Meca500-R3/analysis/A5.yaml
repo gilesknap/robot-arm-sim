@@ -4,26 +4,26 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 0.005
-  - -4.871
-  - 0.093
+  - 0.155
+  - -0.826
+  - 1.166
   axis:
-  - 1.0
+  - -1.0
   - 0.0
   - 0.0
-  radius_mm: 20.0
-  method: cross_section
+  radius_mm: 5.0
+  method: manual
 - end: distal
   position:
-  - 81.155
-  - -29.951
-  - 0.426
+  - 58.537
+  - 33.032
+  - -0.543
   axis:
+  - 0.0
   - 1.0
   - 0.0
-  - 0.0
-  radius_mm: 20.0
-  method: cross_section
+  radius_mm: 5.0
+  method: manual
 geometry:
   vertex_count: 9096
   face_count: 18052
@@ -55,7 +55,7 @@ inertia:
   principal_axes:
   - - -0.26309043604930626
     - 0.9647711674080687
-    - 0.0001303743011766916
+    - 0.00013037430117669146
   - - 0.9647711627427107
     - 0.26309045255794605
     - -0.00013157862085688894
@@ -230,11 +230,7 @@ features:
     - 0.3163
     concave: false
   holes: []
-text_description: "Part 'A5' from stl_files/A5.stl.\nBounding box: 81.2 x 69.5 x 45.0 mm.\nNon-watertight mesh (volume not\
-  \ computed).\nSurface area: 21816.4 mm\xB2.\nMesh complexity: 9096 vertices, 18052 faces.\nHas 14 significant flat face(s).\n\
+text_description: "Part 'A5' from stl_files/A5.stl.\nBounding box: 81.2 x 69.5 x 45.0\
+  \ mm.\nNon-watertight mesh (volume not computed).\nSurface area: 21816.4 mm\xB2\
+  .\nMesh complexity: 9096 vertices, 18052 faces.\nHas 14 significant flat face(s).\n\
   Has 2 cylindrical surface(s)."
-renders:
-- renders/A5_front.png
-- renders/A5_side.png
-- renders/A5_top.png
-- renders/A5_iso.png

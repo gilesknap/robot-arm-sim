@@ -43,14 +43,14 @@ inertia:
   - 1022022049.9444753
   principal_axes:
   - - 0.8891025922116036
-    - 0.004987624221198639
+    - 0.004987624221198528
     - 0.4576807884620402
   - - -0.45757753096378156
-    - -0.014184566901249362
-    - 0.889056579312539
-  - - 0.010926283892351592
-    - -0.9998869544435769
-    - -0.010329310424788574
+    - -0.014184566901250584
+    - 0.8890565793125391
+  - - 0.010926283892352083
+    - -0.9998869544435768
+    - -0.010329310424789632
 features:
   flat_faces:
   - description: "Large flat face on bottom, area 7589.2 mm\xB2, likely mating surface"
@@ -147,8 +147,3 @@ features:
   holes: []
 text_description: "Part 'A0' from stl_files/A0.stl.\nBounding box: 131.0 x 90.0 x 93.0 mm.\nWatertight solid, volume 679290.3\
   \ mm\xB3.\nSurface area: 53461.4 mm\xB2.\nMesh complexity: 24840 vertices, 49664 faces.\nHas 9 significant flat face(s)."
-renders:
-- renders/A0_front.png
-- renders/A0_side.png
-- renders/A0_top.png
-- renders/A0_iso.png

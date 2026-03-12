@@ -1,9 +1,9 @@
 robot_name: Meca500-R3
-part_count: 6
+part_count: 7
 parts:
 - name: A0
   file: A0.yaml
-  role_hint: large part; flat bottom face (possible base); likely base link
+  role_hint: large part; flat bottom face (possible base); first part in sequence (likely base)
 - name: A1
   file: A1.yaml
   role_hint: large part; flat bottom face (possible base); 1 cylindrical surface(s)
@@ -12,14 +12,17 @@ parts:
   role_hint: large part; 2 cylindrical surface(s)
 - name: A3_4
   file: A3_4.yaml
-  role_hint: large part; 1 cylindrical surface(s); combined part (multi-joint)
+  role_hint: large part; 1 cylindrical surface(s); combined part (may span multiple joints)
 - name: A5
   file: A5.yaml
   role_hint: 2 cylindrical surface(s)
 - name: A6
   file: A6.yaml
   role_hint: 2 cylindrical surface(s)
+- name: EndEffector
+  file: EndEffector.yaml
+  role_hint: flat bottom face (possible base)
 assembly_hints:
-- 'Parts: A0, A1, A2, A3_4, A5, A6'
-- Parts named A0-A6, suggesting sequential kinematic chain
-- A3_4 are combined parts, likely spanning multiple joints
+- 'Parts: A0, A1, A2, A3_4, A5, A6, EndEffector'
+- Parts follow sequential naming (A*), suggesting serial kinematic chain
+- A3_4 are combined parts, may span multiple joints
