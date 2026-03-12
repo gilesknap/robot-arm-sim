@@ -180,6 +180,8 @@ def build_edit_bores(state: SimulatorState) -> None:
 def _show_existing_bore_markers(state: SimulatorState) -> None:
     """Show existing bore assignments as colored markers on enter."""
     for link_name, assigns in state.bore_assignments.items():
+        if not state.visible_links.get(link_name, True):
+            continue
         for end, bore_data in assigns.items():
             _place_bore_marker(state, link_name, end, bore_data["centroid"])
 
