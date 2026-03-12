@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Implementation plan &#8212; robot-arm-sim 0.1.0b3.dev41+g420006422 documentation</title>
+    <title>Implementation plan &#8212; robot-arm-sim 1.0.1.dev5+gefc4912fa documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=5d99bffb"></script>
+    <script src="../_static/documentation_options.js?v=0df5ba3a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -497,7 +497,6 @@ approach of writing raw URDF did not — that was replaced by the
 <span class="w">    </span><span class="s2">&quot;pyyaml&gt;=6.0&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="s2">&quot;numpy&gt;=1.24&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="s2">&quot;nicegui&gt;=1.4&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;ikpy&gt;=3.3&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 </pre></div>
 </div>
@@ -783,7 +782,7 @@ approach of writing raw URDF did not — that was replaced by the
 <section id="d-inverse-kinematics">
 <h3>5d. Inverse kinematics<a class="headerlink" href="#d-inverse-kinematics" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ikpy.chain.Chain.from_urdf_file()</span></code> to build chain</p></li>
+<li><p>Custom damped least-squares solver on the geometric Jacobian</p></li>
 <li><p>Click in 3D scene → raycaster → IK solve → animate joints to solution</p></li>
 <li><p>Draggable target sphere</p></li>
 </ul>
@@ -813,7 +812,7 @@ approach of writing raw URDF did not — that was replaced by the
 <li><p><strong>NiceGUI 4x4 transforms</strong>: <code class="docutils literal notranslate"><span class="pre">ui.scene</span></code> may not expose <code class="docutils literal notranslate"><span class="pre">set_matrix()</span></code>. Mitigate with <code class="docutils literal notranslate"><span class="pre">ui.run_javascript()</span></code> or decompose to position+euler.</p></li>
 <li><p><strong>STL coordinate origins</strong>: Parts may have inconsistent origins. The analysis detects this; URDF must account for mesh offsets.</p></li>
 <li><p><strong>Cylindrical detection accuracy</strong>: Tessellated meshes need tolerance (~5 degrees) for normal clustering. Tune on actual data.</p></li>
-<li><p><strong>ikpy URDF compatibility</strong>: Generated URDF must specify active/passive joints correctly.</p></li>
+<li><p><strong>IK solver convergence</strong>: Damping factor and iteration limits must be tuned to balance speed and accuracy for different arm geometries.</p></li>
 </ol>
 </section>
 <section id="implementation-order">

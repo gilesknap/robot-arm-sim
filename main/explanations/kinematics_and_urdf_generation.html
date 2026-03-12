@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Kinematics and URDF Generation &#8212; robot-arm-sim 0.1.0b3.dev41+g420006422 documentation</title>
+    <title>Kinematics and URDF Generation &#8212; robot-arm-sim 1.0.1.dev5+gefc4912fa documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=5d99bffb"></script>
+    <script src="../_static/documentation_options.js?v=0df5ba3a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -674,16 +674,17 @@ point with different elbow/wrist configurations).</p></li>
 <li><p>For general robots the problem is solved <strong>numerically</strong> rather than
 analytically.</p></li>
 </ul>
-<p>This project uses the <a class="reference external" href="https://github.com/Phmusic/ikpy">ikpy</a> library, which
-builds an IK chain directly from the URDF file and solves numerically via
-iterative optimization.  The solver takes:</p>
+<p>This project uses a custom <strong>damped least-squares</strong> (DLS) solver built on the
+geometric Jacobian.  It computes the 6×N Jacobian analytically from the URDF
+joint chain and iteratively drives both position and orientation error to zero.
+The solver takes:</p>
 <ol class="arabic simple">
-<li><p>A <strong>target position</strong> <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y,</span> <span class="pre">z]</span></code> in world coordinates (meters).</p></li>
-<li><p>The <strong>current joint angles</strong> as an initial guess to seed the optimizer and
+<li><p>A <strong>4×4 target pose matrix</strong> (position + orientation) in world coordinates.</p></li>
+<li><p>The <strong>current joint angles</strong> as an initial guess to seed the iteration and
 bias toward nearby solutions.</p></li>
 </ol>
 <p>It returns a new set of joint angles whose FK result places the end-effector
-at (or near) the target.</p>
+at (or near) the target pose, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the solver does not converge.</p>
 <section id="how-ik-relates-to-the-other-concepts-on-this-page">
 <h3>How IK relates to the other concepts on this page<a class="headerlink" href="#how-ik-relates-to-the-other-concepts-on-this-page" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -697,10 +698,10 @@ at (or near) the target.</p>
 <td><p>Define the kinematic model that IK must invert — link lengths and twists determine the reachable workspace</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>FK</strong></p></td>
-<td><p>IK solvers evaluate FK internally on every iteration to measure how close the current guess is to the target</p></td>
+<td><p>The IK solver evaluates FK internally on every iteration to compute the Jacobian and measure the current error</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>URDF</strong></p></td>
-<td><p>ikpy reads the URDF to build its internal chain, so correct joint origins (from DH) are essential for accurate IK</p></td>
+<td><p>The solver reads joint origins, axes, and limits directly from the URDF model — correct joint origins (from DH) are essential for accurate IK</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Bore geometry</strong></p></td>
 <td><p>Not directly involved — IK operates on joint-space kinematics, not visual mesh positioning</p></td>

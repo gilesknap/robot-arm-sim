@@ -136,24 +136,25 @@ down the chain — IK is generally harder:
 - For general robots the problem is solved **numerically** rather than
   analytically.
 
-This project uses the [ikpy](https://github.com/Phmusic/ikpy) library, which
-builds an IK chain directly from the URDF file and solves numerically via
-iterative optimization.  The solver takes:
+This project uses a custom **damped least-squares** (DLS) solver built on the
+geometric Jacobian.  It computes the 6×N Jacobian analytically from the URDF
+joint chain and iteratively drives both position and orientation error to zero.
+The solver takes:
 
-1. A **target position** `[x, y, z]` in world coordinates (meters).
-2. The **current joint angles** as an initial guess to seed the optimizer and
+1. A **4×4 target pose matrix** (position + orientation) in world coordinates.
+2. The **current joint angles** as an initial guess to seed the iteration and
    bias toward nearby solutions.
 
 It returns a new set of joint angles whose FK result places the end-effector
-at (or near) the target.
+at (or near) the target pose, or ``None`` if the solver does not converge.
 
 ### How IK relates to the other concepts on this page
 
 | Concept | Role in IK |
 |---------|-----------|
 | **DH parameters** | Define the kinematic model that IK must invert — link lengths and twists determine the reachable workspace |
-| **FK** | IK solvers evaluate FK internally on every iteration to measure how close the current guess is to the target |
-| **URDF** | ikpy reads the URDF to build its internal chain, so correct joint origins (from DH) are essential for accurate IK |
+| **FK** | The IK solver evaluates FK internally on every iteration to compute the Jacobian and measure the current error |
+| **URDF** | The solver reads joint origins, axes, and limits directly from the URDF model — correct joint origins (from DH) are essential for accurate IK |
 | **Bore geometry** | Not directly involved — IK operates on joint-space kinematics, not visual mesh positioning |
 
 The IK solver lives in `src/robot_arm_sim/simulate/ik_solver.py`.

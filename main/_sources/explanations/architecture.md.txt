@@ -99,7 +99,7 @@ The browser-based simulator uses several layers:
 | nicegui | Web UI framework (Vue.js + Quasar frontend) |
 | typer | CLI argument parsing |
 | pyyaml | YAML configuration parsing |
-| ikpy | Inverse kinematics solver |
+| numpy | Also used for the custom damped least-squares IK solver |
 
 ## Robot directory layout
 
