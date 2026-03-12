@@ -174,4 +174,4 @@ def build_scene(state: SimulatorState) -> None:
     ui.timer(2.5, lambda: ui.run_javascript(TRANSPARENCY_INIT_JS), once=True)
 
     # Resize scene to fill its wrapper when the window is resized
-    ui.timer(1.5, lambda: ui.run_javascript(SCENE_RESIZE_JS), once=True)
+    ui.timer(0.1, lambda: ui.run_javascript(SCENE_RESIZE_JS), once=True)
