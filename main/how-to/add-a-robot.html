@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Add a new robot &#8212; robot-arm-sim 0.1.0b3.dev31+ge2a6736eb documentation</title>
+    <title>Add a new robot &#8212; robot-arm-sim 0.1.0b3.dev41+g420006422 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3cd513fc"></script>
+    <script src="../_static/documentation_options.js?v=5d99bffb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -493,11 +493,11 @@ STL files should be in millimetres with Z pointing up.</p>
 </section>
 <section id="step-2-run-auto-build-robot">
 <h2>Step 2: Run auto-build-robot<a class="headerlink" href="#step-2-run-auto-build-robot" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">auto-build-robot</span></code> skill orchestrates the entire pipeline — from STL
+<p>The <code class="docutils literal notranslate"><span class="pre">make-robot</span></code> skill orchestrates the entire pipeline — from STL
 analysis through chain.yaml generation to URDF verification and visual
 comparison.</p>
 <p>In Claude Code, invoke the skill:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">auto</span><span class="o">-</span><span class="n">build</span><span class="o">-</span><span class="n">robot</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">make</span><span class="o">-</span><span class="n">robot</span>
 </pre></div>
 </div>
 <p>Then tell Claude which robot to work on:</p>
@@ -736,19 +736,15 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">auto-build-robot</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">make-robot</span></code></p></td>
 <td><p>Full pipeline: analyze, infer chain, generate, verify</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/auto-build-robot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/make-robot</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">assembly-reasoning</span></code></p></td>
-<td><p>Generate <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> from analysis data (standalone)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/assembly-reasoning</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code></p></td>
 <td><p>Compare against manufacturer technical drawings</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/manufacturer-comparison</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code></p></td>
 <td><p>Position the 3D camera programmatically</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/zoom-rotate-camera</span></code></p></td>
 </tr>

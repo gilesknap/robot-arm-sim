@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Architecture &#8212; robot-arm-sim 0.1.0b3.dev31+ge2a6736eb documentation</title>
+    <title>Architecture &#8212; robot-arm-sim 0.1.0b3.dev41+g420006422 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3cd513fc"></script>
+    <script src="../_static/documentation_options.js?v=5d99bffb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -406,7 +406,7 @@
 <li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="dh_parameters_and_bore_geometry.html">DH Parameters and Bore Geometry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kinematics_and_urdf_generation.html">Kinematics and URDF Generation</a></li>
 </ul>
 </div>
 </nav></div>
@@ -497,13 +497,10 @@ mesh ends, and fitting circles to the profiles. Each connection point is
 classified as <em>proximal</em> (parent-side) or <em>distal</em> (child-side).</p></li>
 <li><p><strong>URDF generation</strong> (<code class="docutils literal notranslate"><span class="pre">urdf_generator.py</span></code>) — combines a hand-authored
 <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> kinematic specification with the per-part analysis results to
-compute exact joint origins and produce a valid URDF XML file.</p></li>
-<li><p><strong>Off-screen rendering</strong> (<code class="docutils literal notranslate"><span class="pre">renderer.py</span></code>) — uses pyrender with EGL to render
-four standard views of each part (front, side, top, isometric) for
-documentation purposes.</p></li>
+compute exact joint origins and produce a valid URDF XML file.
+Analysis results are written as YAML files into an <code class="docutils literal notranslate"><span class="pre">analysis/</span></code> directory
+alongside the source meshes.</p></li>
 </ul>
-<p>Analysis results are written as YAML files into an <code class="docutils literal notranslate"><span class="pre">analysis/</span></code> directory
-alongside the source meshes.</p>
 </section>
 <section id="data-models-robot-arm-sim-models">
 <h3>Data models (<code class="docutils literal notranslate"><span class="pre">robot_arm_sim.models</span></code>)<a class="headerlink" href="#data-models-robot-arm-sim-models" title="Link to this heading">#</a></h3>
@@ -527,7 +524,8 @@ and resolves mesh file paths.</p></li>
 transforms for every link using axis-angle rotation (Rodrigues’ formula)
 and RPY conventions. The chain is traversed from root to tip on each
 joint-angle update.</p></li>
-<li><p><strong>Web application</strong> (<code class="docutils literal notranslate"><span class="pre">app.py</span></code>) — a NiceGUI application that builds the
+<li><p><strong>Web application</strong> (<code class="docutils literal notranslate"><span class="pre">app/</span></code>) — a NiceGUI application split across several
+modules (scene, controls, toolbar, state, edit-bores) that builds the
 interactive 3D scene, joint-angle sliders, and toolbar controls. STL
 meshes are served as static files and loaded into a Three.js scene via
 NiceGUI’s <code class="docutils literal notranslate"><span class="pre">ui.scene()</span></code> component.</p></li>
@@ -564,8 +562,6 @@ and configures camera controls.</p></li>
 server-side FK computation; the resulting transforms are broadcast to
 the browser over WebSocket.</p></li>
 </ol>
-<p>For off-screen rendering during the analysis stage, <strong>pyrender</strong> with
-<strong>EGL</strong> is used for headless OpenGL rendering without a display server.</p>
 </section>
 <section id="key-dependencies">
 <h2>Key dependencies<a class="headerlink" href="#key-dependencies" title="Link to this heading">#</a></h2>
@@ -588,14 +584,11 @@ the browser over WebSocket.</p></li>
 <tr class="row-odd"><td><p>typer</p></td>
 <td><p>CLI argument parsing</p></td>
 </tr>
-<tr class="row-even"><td><p>pyrender</p></td>
-<td><p>Off-screen mesh rendering</p></td>
-</tr>
-<tr class="row-odd"><td><p>pyyaml</p></td>
+<tr class="row-even"><td><p>pyyaml</p></td>
 <td><p>YAML configuration parsing</p></td>
 </tr>
-<tr class="row-even"><td><p>ikpy</p></td>
-<td><p>Inverse kinematics (future use)</p></td>
+<tr class="row-odd"><td><p>ikpy</p></td>
+<td><p>Inverse kinematics solver</p></td>
 </tr>
 </tbody>
 </table>
@@ -603,20 +596,16 @@ the browser over WebSocket.</p></li>
 </section>
 <section id="robot-directory-layout">
 <h2>Robot directory layout<a class="headerlink" href="#robot-directory-layout" title="Link to this heading">#</a></h2>
-<p>Each robot lives in its own directory under <code class="docutils literal notranslate"><span class="pre">robots/</span></code>. A typical layout:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>robots/Meca500-R3/
+<p>Each robot lives in its own directory under <code class="docutils literal notranslate"><span class="pre">robots/</span></code>. The core files are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>robots/&lt;RobotName&gt;/
 ├── stl_files/          # Source STL meshes (one per link)
-│   ├── A0.stl
-│   ├── A1.stl
-│   └── ...
 ├── analysis/           # Generated analysis YAML per part
-│   ├── A0.yaml
-│   ├── summary.yaml
-│   └── renders/        # Off-screen rendered views
-├── chain.yaml          # Hand-authored kinematic chain spec
+├── chain.yaml          # Kinematic chain specification
 └── robot.urdf          # Generated URDF model
 </pre></div>
 </div>
+<p>Individual robots may also contain specs files, verification scripts,
+reference images, or view mappings — the exact set varies by robot.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> file defines joint types, rotation axes, angle limits, and
 which mesh files map to which links. This is the only file that requires
 manual authoring — the rest is generated by the pipeline.</p>

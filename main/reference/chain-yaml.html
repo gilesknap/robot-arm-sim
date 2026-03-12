@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>chain.yaml specification &#8212; robot-arm-sim 0.1.0b3.dev31+ge2a6736eb documentation</title>
+    <title>chain.yaml specification &#8212; robot-arm-sim 0.1.0b3.dev41+g420006422 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3cd513fc"></script>
+    <script src="../_static/documentation_options.js?v=5d99bffb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -671,13 +671,15 @@ auto-computation from the parent mesh’s distal connection point.</p>
 <hr class="docutils" />
 <section id="complete-example">
 <h2>Complete example<a class="headerlink" href="#complete-example" title="Link to this heading">#</a></h2>
+<p>The Meca500-R3 chain.yaml demonstrates most features — <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> offsets,
+virtual links (<code class="docutils literal notranslate"><span class="pre">mesh:</span> <span class="pre">null</span></code>), varied joint axes, and explicit origins:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robot_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Meca500-R3</span>
-<span class="nt">dh_params</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">d1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">135</span>
-<span class="w">  </span><span class="nt">a2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">135</span>
-<span class="w">  </span><span class="nt">a3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">38</span>
-<span class="w">  </span><span class="nt">d4</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">120</span>
-<span class="w">  </span><span class="nt">d6</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">70</span>
+<span class="nt">dh_params</span><span class="p">:</span><span class="w">  </span><span class="c1"># from manufacturer specs (mm)</span>
+<span class="w">  </span><span class="nt">d1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">135</span><span class="w">    </span><span class="c1"># base to J2</span>
+<span class="w">  </span><span class="nt">a2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">135</span><span class="w">    </span><span class="c1"># upper arm length</span>
+<span class="w">  </span><span class="nt">a3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">38</span><span class="w">     </span><span class="c1"># elbow offset (X)</span>
+<span class="w">  </span><span class="nt">d4</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">120</span><span class="w">    </span><span class="c1"># forearm length</span>
+<span class="w">  </span><span class="nt">d6</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">70</span><span class="w">     </span><span class="c1"># wrist to flange</span>
 
 <span class="nt">links</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">base_link</span>
@@ -686,14 +688,17 @@ auto-computation from the parent mesh’s distal connection point.</p>
 <span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A1</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_2</span>
 <span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A2</span>
+<span class="w">    </span><span class="nt">visual_xyz</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-0.030</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># lower A2 ~30mm to compensate proximal bore at Z=-31.9mm</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_3</span>
 <span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A3_4</span>
+<span class="w">    </span><span class="nt">visual_xyz</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-0.013</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-0.038</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># center A3_4 in Y + lower ~38mm for proximal bore at Z=-40mm</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_4</span>
-<span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A5</span><span class="w">  </span><span class="c1"># A5 is the wrist housing, rotated by J4 (forearm roll)</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_5</span>
-<span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A5</span>
+<span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w">  </span><span class="c1"># virtual link — J5 pitch between A5 and A6</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_6</span>
 <span class="w">    </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A6</span>
+<span class="w">    </span><span class="nt">visual_xyz</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-0.020</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># shift A6 back 20mm so bore circle centers on COR inside A5 yoke</span>
 
 <span class="nt">joints</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_1</span>
@@ -702,7 +707,7 @@ auto-computation from the parent mesh’s distal connection point.</p>
 <span class="w">    </span><span class="nt">child</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_1</span>
 <span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-3.054</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3.054</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.093</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.093</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># d1_base = 93mm (base height to J1)</span>
 
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_2</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revolute</span>
@@ -710,7 +715,7 @@ auto-computation from the parent mesh’s distal connection point.</p>
 <span class="w">    </span><span class="nt">child</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_2</span>
 <span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-1.2217</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.5708</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.042</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.042</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># J1 to J2 = 135 - 93 = 42mm</span>
 
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_3</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revolute</span>
@@ -718,16 +723,15 @@ auto-computation from the parent mesh’s distal connection point.</p>
 <span class="w">    </span><span class="nt">child</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_3</span>
 <span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-2.3562</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.2217</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.135</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.135</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># a2 = 135mm (upper arm)</span>
 
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_4</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revolute</span>
 <span class="w">    </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_3</span>
 <span class="w">    </span><span class="nt">child</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_4</span>
-<span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-2.9671</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2.9671</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.038</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.120</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">origin_rpy</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-1.5708</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.062</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.038</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># lowered 38mm to match A3_4&#39;s visual distal bore position</span>
 
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_5</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revolute</span>
@@ -735,15 +739,15 @@ auto-computation from the parent mesh’s distal connection point.</p>
 <span class="w">    </span><span class="nt">child</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_5</span>
 <span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-2.0071</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2.0071</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.055</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># deeper into A5 yoke so A6 bore circle is hidden between jaws</span>
 
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_6</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revolute</span>
 <span class="w">    </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_5</span>
 <span class="w">    </span><span class="nt">child</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_6</span>
-<span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-3.1416</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3.1416</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.070</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># J5 and J6 co-located at the pitch/roll point</span>
 </pre></div>
 </div>
 </section>
