@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
 part_name: forearm
 source_file: stl_files/forearm.stl
 format: binary_stl
@@ -49,19 +50,19 @@ geometry:
   is_watertight: true
 inertia:
   principal_moments:
-  - 2391141325.57154
-  - 54954586360.34097
+  - 2391141325.571541
+  - 54954586360.34098
   - 55119738482.20827
   principal_axes:
-  - - -3.7460479587858586e-05
-    - 0.05321062382626185
-    - -0.9985833105498674
-  - - -0.00331122959841475
+  - - -3.746047958777532e-05
+    - 0.05321062382626174
+    - -0.9985833105498673
+  - - -0.0033112295984148925
     - 0.9985778302809769
-    - 0.05321045602025514
+    - 0.05321045602025509
   - - -0.999994517162599
-    - -0.003308531903577304
-    - -0.00013878538813548444
+    - -0.003308531903577462
+    - -0.00013878538813553738
 features:
   flat_faces:
   - description: "Large flat face on front, area 10447.2 mm\xB2, likely mating surface"
@@ -147,9 +148,9 @@ features:
   cylindrical_surfaces:
   - description: Cylindrical surface along Y axis, radius 181.0 mm, length 101.7 mm
     axis:
-    - 0
-    - 1
-    - 0
+    - 0.0
+    - 1.0
+    - 0.0
     radius_mm: 181.03
     length_mm: 101.75
     center:
@@ -159,9 +160,9 @@ features:
     concave: false
   - description: Cylindrical surface along Z axis, radius 45.8 mm, length 453.8 mm
     axis:
-    - 0
-    - 0
-    - 1
+    - 0.0
+    - 0.0
+    - 1.0
     radius_mm: 45.77
     length_mm: 453.85
     center:

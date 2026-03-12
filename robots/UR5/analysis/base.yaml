@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
 part_name: base
 source_file: stl_files/base.stl
 format: binary_stl
@@ -53,15 +54,15 @@ inertia:
   - 453814948.184387
   - 848920335.2704664
   principal_axes:
-  - - -0.005719926131614802
-    - 0.9999826978975566
-    - 0.0013734447834874179
+  - - -0.005719926131614803
+    - 0.9999826978975561
+    - 0.0013734447834874985
   - - 0.9999836315965558
-    - 0.005720109925070446
-    - -0.00012992847507778185
-  - - 0.00013778248217955817
-    - -0.001372679121109166
-    - 0.9999990483835564
+    - 0.005720109925070447
+    - -0.00012992847507778036
+  - - 0.00013778248217955808
+    - -0.001372679121109388
+    - 0.9999990483835562
 features:
   flat_faces:
   - description: "Large flat face on bottom, area 16479.1 mm\xB2, likely mating surface"
@@ -127,9 +128,9 @@ features:
   cylindrical_surfaces:
   - description: Cylindrical surface along Z axis, radius 66.7 mm, length 21.3 mm
     axis:
-    - 0
-    - 0
-    - 1
+    - 0.0
+    - 0.0
+    - 1.0
     radius_mm: 66.7
     length_mm: 21.32
     center:

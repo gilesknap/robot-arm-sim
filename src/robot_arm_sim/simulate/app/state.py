@@ -58,8 +58,8 @@ class SimulatorState:
         self.bore_assignments: dict[str, dict[str, Any]] = {}
         self.bore_end_toggle = {"value": "Proximal"}
         self.keep_kinematics = {"value": True}
-        self.bore_center = {"value": True}
-        self.bore_center_cb: Any = None  # set by edit_bores UI
+        self.bore_centering = {"value": "surface_bbox"}
+        self.bore_centering_select: Any = None  # set by edit_bores UI
         self.bore_center_target: tuple[str, str] | None = None
         self.bore_dirty_links: set[str] = set()
 

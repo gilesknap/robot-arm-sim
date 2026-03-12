@@ -1,100 +1,89 @@
-connection_points:
-- axis:
-  - 0.0
-  - -1.0
-  - 0.0
-  end: proximal
-  method: manual
-  position:
-  - -1.144
-  - 47.325
-  - 3.45
-  radius_mm: 37.4
-features:
-  cylindrical_surfaces: []
-  flat_faces:
-  - area_mm2: 4384.37
-    centroid:
-    - -1.1436
-    - 47.325
-    - 3.4504
-    description: "Large flat face on back, area 4384.4 mm\xB2, likely mating surface"
-    normal:
-    - -0.0
-    - -1.0
-    - 0.0
-  - area_mm2: 2245.98
-    centroid:
-    - -0.347
-    - 81.8249
-    - 0.6014
-    description: "Large flat face on front, area 2246.0 mm\xB2, likely mating surface"
-    normal:
-    - -0.0
-    - 1.0
-    - 0.0
-  - area_mm2: 1294.43
-    centroid:
-    - 1.0578
-    - 74.8248
-    - 0.2575
-    description: "Large flat face on front, area 1294.4 mm\xB2, likely mating surface"
-    normal:
-    - -0.0
-    - 1.0
-    - -0.0001
-  - area_mm2: 729.1
-    centroid:
-    - -0.3133
-    - 75.8248
-    - 0.9015
-    description: "Large flat face on front, area 729.1 mm\xB2, likely mating surface"
-    normal:
-    - 0.0
-    - 1.0
-    - 0.0
-  holes: []
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: wrist3
+source_file: stl_files/wrist3.stl
 format: binary_stl
+connection_points: []
 geometry:
+  vertex_count: 233
+  face_count: 446
   bounding_box:
-    extents:
-    - 75.03142547607422
-    - 34.50031661987305
-    - 80.51565170288086
-    max:
-    - 37.51572036743164
-    - 81.82505798339844
-    - 42.99998474121094
     min:
     - -37.51570510864258
     - 47.32474136352539
     - -37.51566696166992
+    max:
+    - 37.51572036743164
+    - 81.82505798339844
+    - 42.99998474121094
+    extents:
+    - 75.03142547607422
+    - 34.50031661987305
+    - 80.51565170288086
+  volume_mm3: 138276.6346077436
+  surface_area_mm2: 19201.76103962838
   center_of_mass:
   - -0.008431823513149236
   - 63.096961160161165
   - 0.1842733579118191
-  face_count: 446
   is_watertight: true
-  surface_area_mm2: 19201.76103962838
-  vertex_count: 233
-  volume_mm3: 138276.6346077436
 inertia:
-  principal_axes:
-  - - 0.02586428795094174
-    - -0.0007444755739048903
-    - 0.9996651861322926
-  - - 0.999665448806987
-    - 0.00018981897772604728
-    - -0.025864153384188487
-  - - 0.00017050019326568896
-    - -0.9999997048623943
-    - -0.000749136041412361
   principal_moments:
-  - 58950209.730856635
+  - 58950209.730856605
   - 59641679.44548368
-  - 94804433.58938469
-part_name: wrist3
-source_file: stl_files/wrist3.stl
-text_description: "Part 'wrist3' from stl_files/wrist3.stl.\nBounding box: 75.0 x\
-  \ 34.5 x 80.5 mm.\nWatertight solid, volume 138276.6 mm\xB3.\nSurface area: 19201.8\
-  \ mm\xB2.\nMesh complexity: 233 vertices, 446 faces.\nHas 4 significant flat face(s)."
+  - 94804433.58938462
+  principal_axes:
+  - - 0.02586428795094062
+    - -0.00074447557390378
+    - 0.9996651861322924
+  - - 0.999665448806987
+    - 0.00018981897772601605
+    - -0.02586415338418737
+  - - 0.00017050019326568855
+    - -0.9999997048623943
+    - -0.0007491360414112469
+features:
+  flat_faces:
+  - description: "Large flat face on back, area 4384.4 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - -1.0
+    - 0.0
+    area_mm2: 4384.37
+    centroid:
+    - -1.1436
+    - 47.325
+    - 3.4504
+  - description: "Large flat face on front, area 2246.0 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - 1.0
+    - 0.0
+    area_mm2: 2245.98
+    centroid:
+    - -0.347
+    - 81.8249
+    - 0.6014
+  - description: "Large flat face on front, area 1294.4 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - 1.0
+    - -0.0001
+    area_mm2: 1294.43
+    centroid:
+    - 1.0578
+    - 74.8248
+    - 0.2575
+  - description: "Large flat face on front, area 729.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 1.0
+    - 0.0
+    area_mm2: 729.1
+    centroid:
+    - -0.3133
+    - 75.8248
+    - 0.9015
+  cylindrical_surfaces: []
+  holes: []
+text_description: "Part 'wrist3' from stl_files/wrist3.stl.\nBounding box: 75.0 x 34.5 x 80.5 mm.\nWatertight solid, volume\
+  \ 138276.6 mm\xB3.\nSurface area: 19201.8 mm\xB2.\nMesh complexity: 233 vertices, 446 faces.\nHas 4 significant flat face(s)."

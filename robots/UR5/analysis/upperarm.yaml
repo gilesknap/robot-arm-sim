@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
 part_name: upperarm
 source_file: stl_files/upperarm.stl
 format: binary_stl
@@ -55,13 +56,13 @@ inertia:
   principal_axes:
   - - 2.966113326086095e-05
     - 3.923278863438018e-05
-    - -0.9999999987905025
-  - - 0.00011355939316020074
+    - -0.9999999987905026
+  - - 0.00011355939316020073
     - 0.9999999927823942
-    - 3.9236156698922374e-05
+    - 3.923615669887415e-05
   - - -0.9999999931122405
     - 0.0001135605568117231
-    - -2.965667779519946e-05
+    - -2.965667779519947e-05
 features:
   flat_faces:
   - description: "Large flat face on back, area 12080.8 mm\xB2, likely mating surface"
@@ -177,9 +178,9 @@ features:
   cylindrical_surfaces:
   - description: Cylindrical surface along X axis, radius 197.6 mm, length 117.2 mm
     axis:
-    - 1
-    - 0
-    - 0
+    - 1.0
+    - 0.0
+    - 0.0
     radius_mm: 197.63
     length_mm: 117.24
     center:
@@ -189,9 +190,9 @@ features:
     concave: false
   - description: Cylindrical surface along Y axis, radius 197.0 mm, length 128.3 mm
     axis:
-    - 0
-    - 1
-    - 0
+    - 0.0
+    - 1.0
+    - 0.0
     radius_mm: 196.97
     length_mm: 128.27
     center:
@@ -201,9 +202,9 @@ features:
     concave: false
   - description: Cylindrical surface along Z axis, radius 62.0 mm, length 528.2 mm
     axis:
-    - 0
-    - 0
-    - 1
+    - 0.0
+    - 0.0
+    - 1.0
     radius_mm: 62.05
     length_mm: 528.19
     center:

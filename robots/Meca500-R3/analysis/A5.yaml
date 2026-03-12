@@ -13,6 +13,7 @@ connection_points:
   - 0.0
   radius_mm: 5.0
   method: manual
+  centering: surface
 - end: distal
   position:
   - 58.537
@@ -24,6 +25,7 @@ connection_points:
   - 0.0
   radius_mm: 5.0
   method: manual
+  centering: surface
 geometry:
   vertex_count: 9096
   face_count: 18052

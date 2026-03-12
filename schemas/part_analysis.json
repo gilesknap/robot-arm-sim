@@ -75,6 +75,23 @@
           ],
           "default": null,
           "title": "Center"
+        },
+        "centering": {
+          "anyOf": [
+            {
+              "enum": [
+                "center",
+                "surface",
+                "surface_bbox"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Centering"
         }
       },
       "required": [
