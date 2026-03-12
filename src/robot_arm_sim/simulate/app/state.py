@@ -168,4 +168,4 @@ class SimulatorState:
             "})()}))"
         )
         await ui.run_javascript(save_js)
-        ui.navigate.to("/")
+        ui.navigate.to(f"/{self.robot_dir.name}")
