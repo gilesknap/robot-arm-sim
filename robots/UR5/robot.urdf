@@ -26,7 +26,7 @@
   </link>
   <link name="link_3">
     <visual>
-      <origin xyz="0.001998 0.001333 0.002403" rpy="0 0 0"/>
+      <origin xyz="0.001998 0.001339 0.002403" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/forearm.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -58,43 +58,43 @@
   <joint name="joint_1" type="revolute">
     <parent link="base_link"/>
     <child link="link_1"/>
-    <origin xyz="0 0 0.089159" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
+    <origin xyz="0.000000 0.000000 0.089159" rpy="0 0 0"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_2" type="revolute">
     <parent link="link_1"/>
     <child link="link_2"/>
-    <origin xyz="0 0.135850 0" rpy="0 1.570796 0"/>
-    <axis xyz="0 1 0"/>
+    <origin xyz="0.000000 0.135850 0.000000" rpy="0.000000 1.570796 0.000000"/>
+    <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_3" type="revolute">
     <parent link="link_2"/>
     <child link="link_3"/>
-    <origin xyz="0 -0.119700 0.425000" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
+    <origin xyz="0.000000 -0.119700 0.425000" rpy="0 0 0"/>
+    <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_4" type="revolute">
     <parent link="link_3"/>
     <child link="link_4"/>
-    <origin xyz="0 0 0.392250" rpy="0 1.570796 0"/>
-    <axis xyz="0 1 0"/>
+    <origin xyz="0.000000 0.000000 0.392250" rpy="0.000000 1.570796 0.000000"/>
+    <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_5" type="revolute">
     <parent link="link_4"/>
     <child link="link_5"/>
     <origin xyz="0.000205 0.095447 0.047500" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_6" type="revolute">
     <parent link="link_5"/>
     <child link="link_6"/>
     <origin xyz="-0.001769 0.047596 0.047532" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
+    <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
 </robot>

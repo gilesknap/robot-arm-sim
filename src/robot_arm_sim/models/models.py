@@ -42,7 +42,8 @@ class ConnectionPoint(BaseModel):
     axis: list[float]
     radius_mm: float
     method: str  # "cross_section", "cylinder_fit", "manual", etc.
-    center: bool | None = None
+    center: bool | None = None  # deprecated — use centering instead
+    centering: Literal["center", "surface", "surface_bbox"] | None = None
 
 
 class GeometricFeature(BaseModel):

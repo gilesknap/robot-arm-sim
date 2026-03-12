@@ -1,3 +1,11 @@
+---
+name: yaml
+description: YAML & JSON Schema Conventions
+---
+
+> **Generic skill** — This skill is project-agnostic. Do not add project-specific
+> references, paths, or terminology here.
+
 # YAML & JSON Schema Conventions
 
 Consult this when reading, writing, or modifying any YAML or JSON files in a project.

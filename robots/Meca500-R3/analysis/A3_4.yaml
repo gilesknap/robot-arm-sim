@@ -13,7 +13,7 @@ connection_points:
   - 0.0
   radius_mm: 5.0
   method: manual
-  center: true
+  centering: center
 - end: distal
   position:
   - 61.289
@@ -25,7 +25,7 @@ connection_points:
   - 0.0
   radius_mm: 5.0
   method: manual
-  center: true
+  centering: center
 geometry:
   vertex_count: 32936
   face_count: 65852

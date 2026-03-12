@@ -141,6 +141,18 @@ If ANY of these occur, stop and invoke `review` for human discussion:
 - 5 iterations without convergence — likely a deeper issue
 - Kinematics verification fails after visual changes (should never happen with visual_xyz only)
 
+## Connection Point Centering Modes
+
+Each bore marker in analysis YAML has a `centering` field controlling how the visual origin is computed:
+
+| Mode | When to use | Algorithm |
+|------|------------|-----------|
+| `surface_bbox` (default) | Auto-detected markers on cylindrical parts (bore spans part) | Midpoint of marker and bbox opposite edge along bore axis |
+| `surface` | Manual markers on irregular parts (shallow bore on one face) | Uses `_find_opposite_face` with depth limit; no adjustment if no face found |
+| `center` | Marker manually placed at bore center (not on surface) | Uses `_find_opposite_face` with no depth limit |
+
+**Critical**: `compute_visual_origin` applies centering but `compute_joint_origin` uses raw connection point positions. If you change the default centering mode, **diff the full URDF against main** to verify no visual origins shifted unexpectedly. Manual markers that previously had no centering will break if a new default applies centering to them — mark them with explicit `centering: surface` to preserve behavior.
+
 ## Key Rules
 
 - **One change at a time** — adjust one value, regenerate, re-compare

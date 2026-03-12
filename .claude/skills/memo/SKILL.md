@@ -3,6 +3,9 @@ name: memo
 description: Save current task state to auto-memory, then promote reusable lessons to skills and trim memory.
 ---
 
+> **Generic skill** — This skill is project-agnostic. Do not add project-specific
+> references, paths, or terminology here.
+
 # Memo
 
 Save a snapshot of current work to persistent memory, then clean up.

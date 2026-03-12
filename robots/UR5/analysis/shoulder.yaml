@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
 part_name: shoulder
 source_file: stl_files/shoulder.stl
 format: binary_stl
@@ -50,18 +51,18 @@ geometry:
 inertia:
   principal_moments:
   - 3059032414.071786
-  - 3347392115.266565
+  - 3347392115.2665644
   - 3648972868.042396
   principal_axes:
-  - - -0.0018197032069287994
-    - 0.4255808429191805
-    - 0.9049185791110921
-  - - 0.0026881109618222087
-    - -0.904914726123247
-    - 0.42558443639863663
-  - - -0.9999947313559682
-    - -0.003206958915798688
-    - -0.0005026677001309835
+  - - -0.0018197032069287977
+    - 0.4255808429191801
+    - 0.9049185791110923
+  - - 0.0026881109618222096
+    - -0.9049147261232474
+    - 0.4255844363986358
+  - - -0.9999947313559684
+    - -0.0032069589157986875
+    - -0.0005026677001309838
 features:
   flat_faces:
   - description: "Large flat face on bottom, area 12149.6 mm\xB2, likely mating surface"
@@ -117,9 +118,9 @@ features:
   cylindrical_surfaces:
   - description: Cylindrical surface along Y axis, radius 62.3 mm, length 120.5 mm
     axis:
-    - 0
-    - 1
-    - 0
+    - 0.0
+    - 1.0
+    - 0.0
     radius_mm: 62.34
     length_mm: 120.54
     center:
@@ -129,9 +130,9 @@ features:
     concave: false
   - description: Cylindrical surface along Z axis, radius 59.0 mm, length 128.1 mm
     axis:
-    - 0
-    - 0
-    - 1
+    - 0.0
+    - 0.0
+    - 1.0
     radius_mm: 59.03
     length_mm: 128.11
     center:

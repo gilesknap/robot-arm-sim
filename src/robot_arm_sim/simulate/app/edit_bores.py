@@ -46,22 +46,38 @@ def build_edit_bores(state: SimulatorState) -> None:
 
         kk_cb.on_value_change(_on_keep_kin)
 
-        center_cb = ui.checkbox("Center", value=True).props("dense")
+        centering_options = {
+            "surface_bbox": "Surface BBox",
+            "surface": "Surface",
+            "center": "Center",
+        }
+        centering_select = (
+            ui.select(
+                centering_options,
+                value="surface_bbox",
+                label="Centering",
+            )
+            .props("dense options-dense style='min-width: 130px;'")
+            .tooltip(
+                "Surface BBox: bore on face, use bounding box (default)\n"
+                "Surface: bore on face, use opposite flat face\n"
+                "Center: marker already at bore center"
+            )
+        )
 
-        def _on_center(e: Any) -> None:
-            state.bore_center["value"] = e.value
-            # Update the currently selected bore's center flag
+        def _on_centering(e: Any) -> None:
+            state.bore_centering["value"] = e.value
             target = getattr(state, "bore_center_target", None)
             if target:
                 link_name, end = target
                 assigns = state.bore_assignments.get(link_name, {})
                 if end in assigns:
-                    assigns[end]["center"] = e.value
+                    assigns[end]["centering"] = e.value
                     state.bore_dirty_links.add(link_name)
 
-        center_cb.on_value_change(_on_center)
+        centering_select.on_value_change(_on_centering)
 
-        state.bore_center_cb = center_cb
+        state.bore_centering_select = centering_select
 
         state.bore_status_label = ui.label("Click mesh or marker to assign").style(
             "font-size: 0.85rem; color: #666;"
@@ -85,13 +101,16 @@ def build_edit_bores(state: SimulatorState) -> None:
                 model = load_part_yaml(yaml_path)
                 new_cps: list[ConnectionPoint] = []
                 for end, bore_data in assignments.items():
+                    centering_val = bore_data.get("centering", "surface_bbox")
                     cp = ConnectionPoint(
                         end=end,  # type: ignore[arg-type]
                         position=[round(bore_data["centroid"][i], 3) for i in range(3)],
                         axis=quantize_axis(bore_data["normal"]),
                         radius_mm=round(bore_data["radius_mm"], 1),
                         method="manual",
-                        center=True if bore_data.get("center", False) else None,
+                        centering=centering_val
+                        if centering_val != "surface_bbox"
+                        else None,
                     )
                     new_cps.append(cp)
                 if new_cps:
@@ -305,9 +324,10 @@ def _assign_bore(
     # Mark this link as user-modified
     state.bore_dirty_links.add(link_name)
 
-    # Sync Center checkbox to this bore's state
-    state.bore_center_cb.value = bore_data.get("center", False)
-    state.bore_center["value"] = bore_data.get("center", False)
+    # Sync centering dropdown to this bore's state
+    centering_val = bore_data.get("centering", "surface_bbox")
+    state.bore_centering_select.value = centering_val
+    state.bore_centering["value"] = centering_val
     # Track which bore is currently selected for checkbox toggling
     state.bore_center_target = (link_name, end)
 
@@ -329,12 +349,17 @@ def _seed_bore_assignments(state: SimulatorState) -> None:
         for cp in cps:
             end = cp["end"]
             pos = cp["position"]
+            # Resolve centering: new key takes precedence, fall back to
+            # legacy 'center' boolean, default to surface_bbox.
+            cp_centering = cp.get("centering")
+            if cp_centering is None:
+                cp_centering = "center" if cp.get("center", False) else "surface_bbox"
             assigns[end] = {
                 "centroid": [float(pos[i]) for i in range(3)],
                 "normal": [float(cp["axis"][i]) for i in range(3)],
                 "area_mm2": math.pi * cp["radius_mm"] ** 2,
                 "radius_mm": cp["radius_mm"],
-                "center": cp.get("center", False),
+                "centering": cp_centering,
             }
         if assigns:
             state.bore_assignments[link_name] = assigns
@@ -369,6 +394,6 @@ def _handle_mesh_click(state: SimulatorState, result: dict) -> None:
         "normal": [round(float(v), 4) for v in stl_n],
         "area_mm2": 78.54,  # cosmetic default ~5mm radius circle
         "radius_mm": 5.0,
-        "center": state.bore_center["value"],
+        "centering": state.bore_centering["value"],
     }
     _assign_bore(state, link_name, end, bore_data)

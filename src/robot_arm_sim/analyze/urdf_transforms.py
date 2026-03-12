@@ -17,6 +17,8 @@ def _find_opposite_face(
     bore_pos: list[float],
     bore_axis: list[float],
     axis_idx: int,
+    max_depth: float | None = None,
+    require_far_side: bool = False,
 ) -> float | None:
     """Find the opposite face position along the bore axis.
 
@@ -24,6 +26,14 @@ def _find_opposite_face(
     whose normal opposes the bore axis and whose non-bore-axis centroid
     is closest to the bore position.  This selects the face directly
     "across" from the bore rather than a distant parallel face.
+
+    If *max_depth* is given, candidates further than that distance along
+    the bore axis are rejected (prevents matching faces deep inside
+    irregular parts where the bore is a shallow surface feature).
+
+    If *require_far_side* is True, only faces whose centroid is on the
+    far side of the marker along the bore axis are considered (prevents
+    matching the face the marker sits on).
     """
     faces = analysis.get("features", {}).get("flat_faces", [])
     if not faces:
@@ -41,6 +51,13 @@ def _find_opposite_face(
             continue
         centroid = face.get("centroid")
         if centroid is None:
+            continue
+        along = centroid[axis_idx] - bore_pos[axis_idx]
+        # Reject faces on the marker's side of the bore axis
+        if require_far_side and bore_sign * along <= 0:
+            continue
+        # Reject faces too far along the bore axis
+        if max_depth is not None and abs(along) > max_depth:
             continue
         # Distance in the non-bore-axis plane
         dist = sum((centroid[i] - bore_pos[i]) ** 2 for i in cross) ** 0.5
@@ -70,19 +87,44 @@ def compute_visual_origin(
     pos = list(proximal["position"])  # copy — don't mutate original
 
     # Adjust bore-axis component from face to barrel center.
+    # Three centering modes:
+    #   center       — marker is at bore center (use opposite face, no depth limit)
+    #   surface      — marker on bore face, find opposite via flat faces with
+    #                  depth limit; no adjustment if not found (shallow bore)
+    #   surface_bbox — marker on bore face, use bbox opposite edge (default)
     bore_axis = proximal.get("axis", [0, 0, 0])
     axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
+    # Support both new 'centering' key and legacy 'center' boolean
+    centering = proximal.get("centering")
+    if centering is None:
+        centering = "center" if proximal.get("center", False) else "surface_bbox"
+
     bbox = analysis.get("geometry", {}).get("bounding_box", {})
-    method = proximal.get("method", "")
-    center = proximal.get("center", False)
-    if bbox and abs(bore_axis[axis_idx]) > 0.5 and (method != "manual" or center):
-        opp = _find_opposite_face(analysis, pos, bore_axis, axis_idx)
-        if opp is not None:
-            pos[axis_idx] = (pos[axis_idx] + opp) / 2
-        else:
-            bmin = bbox["min"][axis_idx]
-            bmax = bbox["max"][axis_idx]
-            pos[axis_idx] = (bmin + bmax) / 2
+    if abs(bore_axis[axis_idx]) > 0.5:
+        if centering == "center":
+            opp = _find_opposite_face(analysis, pos, bore_axis, axis_idx)
+            if opp is not None:
+                pos[axis_idx] = (pos[axis_idx] + opp) / 2
+        elif centering == "surface":
+            radius = proximal.get("radius_mm", 0)
+            max_depth = radius * 4 if radius > 0 else None
+            opp = _find_opposite_face(
+                analysis,
+                pos,
+                bore_axis,
+                axis_idx,
+                max_depth=max_depth,
+                require_far_side=True,
+            )
+            if opp is not None:
+                pos[axis_idx] = (pos[axis_idx] + opp) / 2
+        else:  # surface_bbox (default)
+            if bbox:
+                bmin = bbox["min"][axis_idx]
+                bmax = bbox["max"][axis_idx]
+                closer_to_min = abs(pos[axis_idx] - bmin) < abs(pos[axis_idx] - bmax)
+                opposite_edge = bmax if closer_to_min else bmin
+                pos[axis_idx] = (pos[axis_idx] + opposite_edge) / 2
 
     messages.append(
         f"  {link_name}: proximal @ origin,"
