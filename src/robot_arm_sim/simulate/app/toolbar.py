@@ -74,6 +74,12 @@ def build_toolbar(state: SimulatorState) -> None:
         ui.card().style("max-width: 480px; text-align: left"),
     ):
         ui.label("About Robot Arm Simulator").classes("text-h6")
+        ui.label(
+            "Automatically generates interactive robot simulations from"
+            " STL mesh files. Powered by Claude Code and Python, it infers"
+            " part connections, derives the kinematics, and builds a"
+            " fully articulated 3D simulator."
+        ).style("color: #555; font-size: 0.9rem; line-height: 1.4;")
         ui.label("Toolbar buttons").classes("text-subtitle2")
         _bdr = "border: 1px solid rgba(0,0,0,0.12);"
         _th = f"text-align: left; padding: 6px 8px; {_bdr}"

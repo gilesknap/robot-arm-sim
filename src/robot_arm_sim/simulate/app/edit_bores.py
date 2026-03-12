@@ -51,19 +51,11 @@ def build_edit_bores(state: SimulatorState) -> None:
             "surface": "Surface",
             "center": "Center",
         }
-        centering_select = (
-            ui.select(
-                centering_options,
-                value="surface_bbox",
-                label="Centering",
-            )
-            .props("dense options-dense style='min-width: 130px;'")
-            .tooltip(
-                "Surface BBox: bore on face, use bounding box (default)\n"
-                "Surface: bore on face, use opposite flat face\n"
-                "Center: marker already at bore center"
-            )
-        )
+        ui.label("Centering").style("font-size: 0.85rem; line-height: 2;")
+        centering_select = ui.select(
+            centering_options,
+            value="surface_bbox",
+        ).props("dense options-dense borderless style='min-width: 110px;'")
 
         def _on_centering(e: Any) -> None:
             state.bore_centering["value"] = e.value
