@@ -258,7 +258,8 @@ def build_visibility_section(state: SimulatorState) -> None:
                 if lnk and lnk.mesh_path:
                     display = Path(lnk.mesh_path).stem
                 else:
-                    display = lname
+                    # Skip links with no mesh (e.g. link_5 intermediate frame)
+                    continue
 
                 def make_vis_handler(ln):
                     def on_change(e):

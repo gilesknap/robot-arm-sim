@@ -106,8 +106,8 @@ links:
   name: link_3
 - mesh: A5
   name: link_4
-- mesh: null
-  name: link_5
 - mesh: A6
+  name: link_5
+- mesh: EndEffector
   name: link_6
 robot_name: Meca500-R3
