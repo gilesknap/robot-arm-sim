@@ -170,8 +170,51 @@ def build_toolbar(state: SimulatorState) -> None:
 
         # --- Session group ---
         ui.button(
-            "Reset",
+            "Reset Joints",
             on_click=lambda: state.reset_all(),
+        ).props("dense color=orange-7")
+
+        async def _reset_view() -> None:
+            # Show all parts
+            for lname in state.visible_links:
+                state.visible_links[lname] = True
+                if lname in state.link_checkboxes:
+                    state.link_checkboxes[lname].selected = True
+            state.update_scene_now()
+            # Switch to ortho RIGHT view + fit
+            await ui.run_javascript(
+                "(() => {"
+                "  const tb = document.getElementById("
+                "    'viewcube-proj-toggle');"
+                "  const mainSC = document.querySelector("
+                "    'canvas')?.__scene;"
+                "  if (!mainSC) return;"
+                "  const cam = mainSC.camera;"
+                "  const ctrl = mainSC.controls;"
+                "  const el = mainSC.renderer.domElement;"
+                "  const aspect = el.width / el.height;"
+                "  if (cam.isPerspectiveCamera && tb)"
+                "    tb.click();"
+                "  setTimeout(() => {"
+                "    const c2 = mainSC.camera;"
+                "    const ct = mainSC.controls;"
+                "    const tx=ct.target.x,"
+                "      ty=ct.target.y, tz=ct.target.z;"
+                "    const d = c2.position.distanceTo(ct.target);"
+                "    c2.position.set(tx, ty - d, tz);"
+                "    c2.up.set(0, 0, 1);"
+                "    ct.update();"
+                "    const fb = document.getElementById("
+                "      'viewcube-fit-btn');"
+                "    if (fb) fb.click();"
+                "  }, 50);"
+                "})();",
+                timeout=2.0,
+            )
+
+        ui.button(
+            "Reset View",
+            on_click=_reset_view,
         ).props("dense color=orange-7")
 
         if stop_dialog:
