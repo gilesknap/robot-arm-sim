@@ -1,7 +1,8 @@
-# DH Parameters and Bore Geometry
+# Kinematics and URDF Generation
 
-How Denavit-Hartenberg parameters and bore detection interact to produce
-correct URDF joint origins and visual origins.
+How Denavit-Hartenberg parameters, bore detection, forward kinematics, and
+inverse kinematics interact to produce correct URDF joint origins, visual
+origins, and simulation.
 
 ## DH Parameters
 
