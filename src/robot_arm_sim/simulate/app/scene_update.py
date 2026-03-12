@@ -33,6 +33,10 @@ def update_scene(state: SimulatorState) -> None:
 
     transforms = forward_kinematics(state.robot, state.joint_angles)
 
+    # Sync joint angles to JS for beforeunload persistence
+    angles_json = json.dumps(state.joint_angles)
+    ui.run_javascript(f"window.__simJointAngles={angles_json}")
+
     joint_positions: dict[str, tuple[float, ...]] = {}
     link_center_positions: dict[str, tuple[float, ...]] = {}
     visual_transforms: dict[str, np.ndarray] = {}

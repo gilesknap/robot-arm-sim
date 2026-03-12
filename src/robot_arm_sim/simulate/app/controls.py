@@ -213,7 +213,8 @@ def _setup_state_restore(state: SimulatorState) -> None:
     async def _restore_state():
         raw = await ui.run_javascript(
             "var s = sessionStorage.getItem('reload_state');"
-            "sessionStorage.removeItem('reload_state');"
+            "if(s) sessionStorage.removeItem('reload_state');"
+            "else s = sessionStorage.getItem('sim_state');"
             "s"
         )
         if not raw:

@@ -9,6 +9,7 @@ from nicegui import app, ui
 from ..urdf_loader import load_urdf
 from .controls import build_controls_panel
 from .edit_bores import build_edit_bores
+from .js_snippets import BEFOREUNLOAD_JS
 from .scene_objects import build_scene
 from .state import SimulatorState
 from .toolbar import build_toolbar, build_visibility_section
@@ -116,3 +117,6 @@ def _build_ui(robots: dict[str, Path], current_name: str) -> None:
         ):
             build_controls_panel(state)
             build_visibility_section(state)
+
+    # Register beforeunload handler for state persistence
+    ui.run_javascript(BEFOREUNLOAD_JS)
