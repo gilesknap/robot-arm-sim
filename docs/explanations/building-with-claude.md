@@ -40,7 +40,7 @@ The specific files mentioned here are for Claude Code, but the same features are
    - When ready, clear the context and start writing code — agent performance is best with clear planning and an empty context.
 1. Create skills:
    - When you have spent effort working on a problem and have a solution, ask Claude to write a skill that captures the debugging methodology, not just the fix. This way you can reuse the same process for future problems.
-   - See examples from this project here: [skills](../../.claude/skills)
+   - See examples from this project in `.claude/skills/`
 1. Look after memory:
    - Claude Code has auto memory that is triggered on events like commits.
    - ask Claude to remember useful things at other time too.
@@ -54,11 +54,11 @@ The specific files mentioned here are for Claude Code, but the same features are
    - giving more permission allows improved flow
    - but includes risks
    - this project uses quite permissive settings, but only runs in a devcontainer to mitigate risks. It won't run outside of a devcontainer and it asks for permission on commands that may escape from the container.
-   - See the [settings.json](../../.claude/settings.json)
+   - See `.claude/settings.json` in this project
 1. Use `CLAUDE.md` for durable project instructions:
    - Checked into the repo, so every session and every contributor gets the same baseline.
    - Good for build commands, coding conventions, and constraints that Claude should always follow.
-   - See this project's [CLAUDE.md](../../CLAUDE.md) for an example.
+   - See this project's `CLAUDE.md` for an example.
 1. Give permission for effort and parallelism:
    - "Use as much effort as needed" and "make it multi-agent" unlock Claude's ability to work on multiple files simultaneously.
    - Without this, Claude tends to be conservative and sequential.
