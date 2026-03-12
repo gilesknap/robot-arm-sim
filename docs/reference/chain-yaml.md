@@ -224,78 +224,9 @@ Rotation of the child link frame relative to the parent. Prefer changing
 
 ## Complete example
 
-```yaml
-robot_name: Meca500-R3
-dh_params:
-  d1: 135
-  a2: 135
-  a3: 38
-  d4: 120
-  d6: 70
+The Meca500-R3 chain.yaml demonstrates most features — `visual_xyz` offsets,
+virtual links (`mesh: null`), varied joint axes, and explicit origins:
 
-links:
-  - name: base_link
-    mesh: A0
-  - name: link_1
-    mesh: A1
-  - name: link_2
-    mesh: A2
-  - name: link_3
-    mesh: A3_4
-  - name: link_4
-    mesh: null
-  - name: link_5
-    mesh: A5
-  - name: link_6
-    mesh: A6
-
-joints:
-  - name: joint_1
-    type: revolute
-    parent: base_link
-    child: link_1
-    axis: [0, 0, 1]
-    limits: [-3.054, 3.054]
-    origin: [0, 0, 0.093]
-
-  - name: joint_2
-    type: revolute
-    parent: link_1
-    child: link_2
-    axis: [0, 1, 0]
-    limits: [-1.2217, 1.5708]
-    origin: [0, 0, 0.042]
-
-  - name: joint_3
-    type: revolute
-    parent: link_2
-    child: link_3
-    axis: [0, 1, 0]
-    limits: [-2.3562, 1.2217]
-    origin: [0, 0, 0.135]
-
-  - name: joint_4
-    type: revolute
-    parent: link_3
-    child: link_4
-    axis: [0, 0, 1]
-    limits: [-2.9671, 2.9671]
-    origin: [0.038, 0, 0.120]
-    origin_rpy: [0, -1.5708, 0]
-
-  - name: joint_5
-    type: revolute
-    parent: link_4
-    child: link_5
-    axis: [0, 1, 0]
-    limits: [-2.0071, 2.0071]
-    origin: [0, 0, 0]
-
-  - name: joint_6
-    type: revolute
-    parent: link_5
-    child: link_6
-    axis: [0, 0, 1]
-    limits: [-3.1416, 3.1416]
-    origin: [0.070, 0, 0]
+```{literalinclude} ../../robots/Meca500-R3/chain.yaml
+:language: yaml
 ```

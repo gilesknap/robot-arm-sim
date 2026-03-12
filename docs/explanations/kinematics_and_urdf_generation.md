@@ -245,30 +245,19 @@ at joint_2, which has DH parameter d₂ = 135.85 mm along Y.
 
 ## Where to Find These in a Robot Folder
 
-Each robot lives under `robots/<RobotName>/`.  Here is how the concepts on this
-page map to files you can inspect:
+Each robot lives under `robots/<RobotName>/`.  The core files that relate to
+the concepts on this page are:
 
-```
-robots/<RobotName>/
-├── specs.yaml              # Manufacturer DH parameters (d, a, α tables)
-├── chain.yaml              # Project kinematic chain: DH params, joint
-│                           #   definitions (axes, origins, limits), link
-│                           #   list with visual offsets
-├── robot.urdf              # Generated URDF — the concrete encoding of
-│                           #   joint origins (from DH/chain) and visual
-│                           #   origins (from bore analysis) that FK reads
-├── verify_kinematics.py    # FK verification script — runs forward
-│                           #   kinematics at known poses and checks
-│                           #   results against expected DH positions
-├── analysis/
-│   ├── <part>.yaml         # Per-link bore geometry: proximal/distal
-│   │                       #   connection points (position, axis, radius)
-│   └── summary.yaml        # Aggregate analysis across all links
-├── stl_files/
-│   └── <part>.stl          # Visual meshes positioned by bore offsets
-└── images/
-    └── *.svg / *.png       # Reference diagrams (DH joint layout, etc.)
-```
+- **`chain.yaml`** — the kinematic chain specification: DH params, joint
+  definitions (axes, origins, limits), and link list with visual offsets.
+- **`robot.urdf`** — the generated URDF encoding joint origins (from DH/chain)
+  and visual origins (from bore analysis) that FK reads at runtime.
+- **`analysis/<part>.yaml`** — per-link bore geometry: proximal/distal
+  connection points (position, axis, radius).
+- **`stl_files/<part>.stl`** — visual meshes positioned by bore offsets.
+
+Individual robots may also include specs files with manufacturer DH tables,
+FK verification scripts, reference images, or view mappings.
 
 The FK implementation is in `src/robot_arm_sim/simulate/kinematics.py`
 (`forward_kinematics()`) and the IK solver is in

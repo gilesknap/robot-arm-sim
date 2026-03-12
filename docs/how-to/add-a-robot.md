@@ -32,14 +32,14 @@ STL files should be in millimetres with Z pointing up.
 
 ## Step 2: Run auto-build-robot
 
-The `auto-build-robot` skill orchestrates the entire pipeline — from STL
+The `make-robot` skill orchestrates the entire pipeline — from STL
 analysis through chain.yaml generation to URDF verification and visual
 comparison.
 
 In Claude Code, invoke the skill:
 
 ```
-/auto-build-robot
+/make-robot
 ```
 
 Then tell Claude which robot to work on:
@@ -237,8 +237,7 @@ Once the simulation looks correct:
 
 | Skill | Purpose | Invocation |
 |---|---|---|
-| `auto-build-robot` | Full pipeline: analyze, infer chain, generate, verify | `/auto-build-robot` |
-| `assembly-reasoning` | Generate `chain.yaml` from analysis data (standalone) | `/assembly-reasoning` |
+| `make-robot` | Full pipeline: analyze, infer chain, generate, verify | `/make-robot` |
 | `manufacturer-comparison` | Compare against manufacturer technical drawings | `/manufacturer-comparison` |
 | `zoom-rotate-camera` | Position the 3D camera programmatically | `/zoom-rotate-camera` |
 
