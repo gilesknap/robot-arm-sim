@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 def build_edit_bores(state: SimulatorState) -> None:
     """Build the Edit Bores mode UI and handlers."""
     state.edit_bores_row = (
-        ui.row().classes("q-pa-sm").style("width: 900px; gap: 8px; display: none;")
+        ui.row().classes("q-pa-sm").style("width: 100%; gap: 8px; display: none;")
     )
     with state.edit_bores_row:
         bore_toggle = ui.toggle(["Proximal", "Distal"], value="Proximal").props("dense")
@@ -126,9 +126,9 @@ def build_edit_bores(state: SimulatorState) -> None:
         active = state.edit_bores_active["value"]
         state.edit_bores_btn.text = "Exit Edit" if active else "Edit Bores"
         state.edit_bores_row.style(
-            "width: 900px; gap: 8px; display: flex;"
+            "width: 100%; gap: 8px; display: flex;"
             if active
-            else "width: 900px; gap: 8px; display: none;"
+            else "width: 100%; gap: 8px; display: none;"
         )
         ui.run_javascript(f"window.__setFaceMarkersVisible({str(active).lower()})")
         if active:

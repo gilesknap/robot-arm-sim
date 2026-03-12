@@ -67,11 +67,26 @@ def create_app(robots_dir: Path, port: int = 8080) -> None:
     )
 
 
+_SCENE_WRAPPER_CSS = """
+.sim-scene-wrapper {
+    flex: 1 1 0;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+"""
+
+
 def _build_ui(robots: dict[str, Path], current_name: str) -> None:
     """Build the simulator UI for the selected robot."""
     robot_dir = robots[current_name]
     robot = load_urdf(robot_dir / "robot.urdf")
     state = SimulatorState(robot, robot_dir)
+
+    # Fill viewport: h-screen on the content container, no default padding
+    ui.context.client.content.classes("h-screen p-2").style("min-height: unset; gap: 0")
+    ui.add_css(_SCENE_WRAPPER_CSS)
 
     # Title row with robot selector dropdown
     with ui.row().classes("items-center").style("gap: 12px"):
@@ -82,14 +97,22 @@ def _build_ui(robots: dict[str, Path], current_name: str) -> None:
             on_change=lambda e: ui.navigate.to(f"/{e.value}"),
         ).props("dense outlined").style("min-width: 180px")
 
-    with ui.row().style("flex-wrap: nowrap; gap: 0"):
+    with (
+        ui.row()
+        .classes("w-full h-full")
+        .style("flex: 1; min-height: 0; flex-wrap: nowrap; gap: 0")
+    ):
         # Left panel: 3D scene + toolbar
-        with ui.column().style("gap: 0"):
+        with ui.column().classes("h-full").style("flex: 1; gap: 0; min-width: 0"):
             build_scene(state)
             build_toolbar(state)
             build_edit_bores(state)
 
         # Right panel: controls + visibility
-        with ui.column().classes("p-4").style("width: 280px; overflow-y: auto"):
+        with (
+            ui.column()
+            .classes("p-4 h-full")
+            .style("width: 280px; flex-shrink: 0; overflow-y: auto")
+        ):
             build_controls_panel(state)
             build_visibility_section(state)
