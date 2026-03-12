@@ -9,7 +9,7 @@
   </link>
   <link name="link_1">
     <visual>
-      <origin xyz="-0.000087 0.000048 -0.001030" rpy="0 0 0"/>
+      <origin xyz="-0.000494 0.000065 -0.009530" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -17,7 +17,7 @@
   </link>
   <link name="link_2">
     <visual>
-      <origin xyz="-0.001760 0.032560 0.000553" rpy="0 0 0"/>
+      <origin xyz="0.000113 0.000749 0.000586" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A2.stl" scale="0.001 0.001 0.001"/>
       </geometry>

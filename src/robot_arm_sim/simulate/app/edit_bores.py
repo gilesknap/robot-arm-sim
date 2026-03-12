@@ -44,8 +44,18 @@ def build_edit_bores(state: SimulatorState) -> None:
 
         def _on_center(e: Any) -> None:
             state.bore_center["value"] = e.value
+            # Update the currently selected bore's center flag
+            target = getattr(state, "bore_center_target", None)
+            if target:
+                link_name, end = target
+                assigns = state.bore_assignments.get(link_name, {})
+                if end in assigns:
+                    assigns[end]["center"] = e.value
+                    state.bore_dirty_links.add(link_name)
 
         center_cb.on_value_change(_on_center)
+
+        state.bore_center_cb = center_cb
 
         state.bore_status_label = ui.label("Click mesh or marker to assign").style(
             "font-size: 0.85rem; color: #666;"
@@ -57,6 +67,8 @@ def build_edit_bores(state: SimulatorState) -> None:
             """Write bore assignments to YAML and regenerate URDF."""
             analysis_dir = state.robot_dir / "analysis"
             for link_name, assignments in state.bore_assignments.items():
+                if link_name not in state.bore_dirty_links:
+                    continue
                 link = state.robot.get_link(link_name)
                 if not link or not link.mesh_path:
                     continue
@@ -77,7 +89,7 @@ def build_edit_bores(state: SimulatorState) -> None:
                         "radius_mm": round(bore_data["radius_mm"], 1),
                         "method": "manual",
                     }
-                    if state.bore_center["value"]:
+                    if bore_data.get("center", False):
                         cp["center"] = True
                     new_cps.append(cp)
                 if new_cps:
@@ -106,7 +118,7 @@ def build_edit_bores(state: SimulatorState) -> None:
                 }
 
                 # Clear visual_xyz for any link whose bores were edited
-                for link_name in state.bore_assignments:
+                for link_name in state.bore_dirty_links:
                     link = state.robot.get_link(link_name)
                     if not link or not link.mesh_path:
                         continue
@@ -294,6 +306,15 @@ def _assign_bore(
         state, link_name, end, bore_data["centroid"], bore_data["radius_mm"]
     )
 
+    # Mark this link as user-modified
+    state.bore_dirty_links.add(link_name)
+
+    # Sync Center checkbox to this bore's state
+    state.bore_center_cb.value = bore_data.get("center", False)
+    state.bore_center["value"] = bore_data.get("center", False)
+    # Track which bore is currently selected for checkbox toggling
+    state.bore_center_target = (link_name, end)
+
     part_link = state.robot.get_link(link_name)
     part_name = (
         Path(part_link.mesh_path).stem
@@ -317,6 +338,7 @@ def _seed_bore_assignments(state: SimulatorState) -> None:
                 "normal": [float(cp["axis"][i]) for i in range(3)],
                 "area_mm2": math.pi * cp["radius_mm"] ** 2,
                 "radius_mm": cp["radius_mm"],
+                "center": cp.get("center", False),
             }
         if assigns:
             state.bore_assignments[link_name] = assigns
@@ -351,5 +373,6 @@ def _handle_mesh_click(state: SimulatorState, result: dict) -> None:
         "normal": [round(float(v), 4) for v in stl_n],
         "area_mm2": 78.54,  # cosmetic default ~5mm radius circle
         "radius_mm": 5.0,
+        "center": state.bore_center["value"],
     }
     _assign_bore(state, link_name, end, bore_data)

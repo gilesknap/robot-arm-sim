@@ -4,15 +4,16 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 1.76
-  - -32.56
-  - -0.553
+  - -0.113
+  - 32.44
+  - -0.586
   axis:
   - 0.0
-  - -1.0
+  - 1.0
   - 0.0
   radius_mm: 5.0
   method: manual
+  center: true
 - end: distal
   position:
   - 0.303

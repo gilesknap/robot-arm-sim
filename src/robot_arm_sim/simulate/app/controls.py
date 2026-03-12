@@ -43,6 +43,10 @@ def build_controls_panel(state: SimulatorState) -> None:
             state.joint_angles[jname] = 0.0
         for s in state.sliders.values():
             s.value = 0
+        for lname in state.visible_links:
+            state.visible_links[lname] = True
+            if lname in state.link_checkboxes:
+                state.link_checkboxes[lname].selected = True
         _populate_ik_from_fk()
         state.update_scene_now()
 

@@ -59,6 +59,9 @@ class SimulatorState:
         self.bore_end_toggle = {"value": "Proximal"}
         self.keep_kinematics = {"value": True}
         self.bore_center = {"value": True}
+        self.bore_center_cb: Any = None  # set by edit_bores UI
+        self.bore_center_target: tuple[str, str] | None = None
+        self.bore_dirty_links: set[str] = set()
 
         # Loaded analysis data
         self.mesh_centers = load_mesh_centers(robot, robot_dir)
