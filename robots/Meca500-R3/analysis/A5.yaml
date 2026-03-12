@@ -5,25 +5,24 @@ connection_points:
 - end: proximal
   position:
   - 0.155
-  - 2.791
-  - 1.884
+  - -0.826
+  - 1.166
   axis:
   - -1.0
   - 0.0
   - 0.0
   radius_mm: 5.0
   method: manual
-  center: true
 - end: distal
   position:
-  - 32.195
-  - -11.604
-  - 22.819
+  - 58.537
+  - 33.032
+  - -0.543
   axis:
   - 0.0
-  - 0.0
   - 1.0
-  radius_mm: 36.5
+  - 0.0
+  radius_mm: 5.0
   method: manual
 geometry:
   vertex_count: 9096
