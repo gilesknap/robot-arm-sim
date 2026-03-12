@@ -12,6 +12,44 @@ from pathlib import Path
 import numpy as np
 
 
+def _find_opposite_face(
+    analysis: dict,
+    bore_pos: list[float],
+    bore_axis: list[float],
+    axis_idx: int,
+) -> float | None:
+    """Find the opposite face position along the bore axis.
+
+    Returns the bore-axis coordinate of the centroid of the flat face
+    whose normal opposes the bore axis and whose non-bore-axis centroid
+    is closest to the bore position.  This selects the face directly
+    "across" from the bore rather than a distant parallel face.
+    """
+    faces = analysis.get("features", {}).get("flat_faces", [])
+    if not faces:
+        return None
+    bore_sign = 1.0 if bore_axis[axis_idx] > 0 else -1.0
+    cross = [i for i in range(3) if i != axis_idx]
+    best: float | None = None
+    best_dist = float("inf")
+    for face in faces:
+        normal = face.get("normal", [0, 0, 0])
+        if abs(normal[axis_idx]) < 0.5:
+            continue
+        face_sign = 1.0 if normal[axis_idx] > 0 else -1.0
+        if face_sign == bore_sign:
+            continue
+        centroid = face.get("centroid")
+        if centroid is None:
+            continue
+        # Distance in the non-bore-axis plane
+        dist = sum((centroid[i] - bore_pos[i]) ** 2 for i in cross) ** 0.5
+        if dist < best_dist:
+            best_dist = dist
+            best = centroid[axis_idx]
+    return best
+
+
 def compute_visual_origin(
     analysis: dict,
     link_spec: dict,
@@ -38,9 +76,13 @@ def compute_visual_origin(
     method = proximal.get("method", "")
     center = proximal.get("center", False)
     if bbox and abs(bore_axis[axis_idx]) > 0.5 and (method != "manual" or center):
-        bmin = bbox["min"][axis_idx]
-        bmax = bbox["max"][axis_idx]
-        pos[axis_idx] = (bmin + bmax) / 2
+        opp = _find_opposite_face(analysis, pos, bore_axis, axis_idx)
+        if opp is not None:
+            pos[axis_idx] = (pos[axis_idx] + opp) / 2
+        else:
+            bmin = bbox["min"][axis_idx]
+            bmax = bbox["max"][axis_idx]
+            pos[axis_idx] = (bmin + bmax) / 2
 
     messages.append(
         f"  {link_name}: proximal @ origin,"
