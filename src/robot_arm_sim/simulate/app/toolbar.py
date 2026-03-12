@@ -172,7 +172,7 @@ def build_toolbar(state: SimulatorState) -> None:
         ui.button(
             "Reset Joints",
             on_click=lambda: state.reset_all(),
-        ).props("dense color=orange-7")
+        ).props("flat dense color=orange-7")
 
         async def _reset_view() -> None:
             # Show all parts
@@ -184,26 +184,38 @@ def build_toolbar(state: SimulatorState) -> None:
             # Switch to ortho RIGHT view + fit
             await ui.run_javascript(
                 "(() => {"
+                "  const appEl = document.getElementById('app');"
+                "  if (!appEl || !appEl.__vue_app__) return;"
+                "  let sc = null;"
+                "  function walk(n, d) {"
+                "    if (d > 30 || sc) return;"
+                "    if (n.component) {"
+                "      const p = n.component.proxy;"
+                "      if (p && p.renderer && p.scene && p.camera)"
+                "        { sc = p; return; }"
+                "      if (n.component.subTree)"
+                "        walk(n.component.subTree, d+1);"
+                "    }"
+                "    if (Array.isArray(n.children))"
+                "      n.children.forEach("
+                "        c => c && typeof c === 'object'"
+                "          && walk(c, d+1));"
+                "  }"
+                "  walk(appEl.__vue_app__._container._vnode, 0);"
+                "  if (!sc) return;"
                 "  const tb = document.getElementById("
                 "    'viewcube-proj-toggle');"
-                "  const mainSC = document.querySelector("
-                "    'canvas')?.__scene;"
-                "  if (!mainSC) return;"
-                "  const cam = mainSC.camera;"
-                "  const ctrl = mainSC.controls;"
-                "  const el = mainSC.renderer.domElement;"
-                "  const aspect = el.width / el.height;"
-                "  if (cam.isPerspectiveCamera && tb)"
+                "  if (sc.camera.isPerspectiveCamera && tb)"
                 "    tb.click();"
                 "  setTimeout(() => {"
-                "    const c2 = mainSC.camera;"
-                "    const ct = mainSC.controls;"
-                "    const tx=ct.target.x,"
-                "      ty=ct.target.y, tz=ct.target.z;"
-                "    const d = c2.position.distanceTo(ct.target);"
-                "    c2.position.set(tx, ty - d, tz);"
-                "    c2.up.set(0, 0, 1);"
-                "    ct.update();"
+                "    const cam = sc.camera;"
+                "    const ctrl = sc.controls;"
+                "    const tx=ctrl.target.x,"
+                "      ty=ctrl.target.y, tz=ctrl.target.z;"
+                "    const d = cam.position.distanceTo(ctrl.target);"
+                "    cam.position.set(tx, ty - d, tz);"
+                "    cam.up.set(0, 0, 1);"
+                "    ctrl.update();"
                 "    const fb = document.getElementById("
                 "      'viewcube-fit-btn');"
                 "    if (fb) fb.click();"
@@ -215,7 +227,7 @@ def build_toolbar(state: SimulatorState) -> None:
         ui.button(
             "Reset View",
             on_click=_reset_view,
-        ).props("dense color=orange-7")
+        ).props("flat dense color=orange-7")
 
         if stop_dialog:
             sd = stop_dialog
