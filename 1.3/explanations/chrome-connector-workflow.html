@@ -1,0 +1,891 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Debugging with the Chrome Connector &#8212; robot-arm-sim 1.3 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=c55cb9cb"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/chrome-connector-workflow';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.3';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Implementation plan" href="implementation-plan.html" />
+    <link rel="prev" title="Building a Robot Simulator with Claude" href="building-with-claude.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">robot-arm-sim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Debugging with the Chrome Connector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="kinematics_and_urdf_generation.html">Kinematics and URDF Generation</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Debugging with the Chrome Connector</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="debugging-with-the-chrome-connector">
+<h1>Debugging with the Chrome Connector<a class="headerlink" href="#debugging-with-the-chrome-connector" title="Link to this heading">#</a></h1>
+<p>This page walks through a real Claude Code session that diagnosed and fixed
+a missing end-effector on the Meca500-R3 simulator. It demonstrates the
+browser automation tools (Chrome connector), the <code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code> skill,
+and iterative URDF tuning — all driven from a single conversation.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#the-problem" id="id1">The problem</a></p></li>
+<li><p><a class="reference internal" href="#phase-1-investigation" id="id2">Phase 1: Investigation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#reading-the-browser" id="id3">Reading the browser</a></p></li>
+<li><p><a class="reference internal" href="#exploring-the-codebase" id="id4">Exploring the codebase</a></p></li>
+<li><p><a class="reference internal" href="#root-cause" id="id5">Root cause</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#phase-2-fixing-the-visibility-panel" id="id6">Phase 2: Fixing the visibility panel</a></p></li>
+<li><p><a class="reference internal" href="#phase-3-adding-the-endeffector-to-the-urdf" id="id7">Phase 3: Adding the EndEffector to the URDF</a></p>
+<ul>
+<li><p><a class="reference internal" href="#initial-placement" id="id8">Initial placement</a></p></li>
+<li><p><a class="reference internal" href="#using-the-camera-skill" id="id9">Using the camera skill</a></p></li>
+<li><p><a class="reference internal" href="#restructuring-which-joint-rotates-what" id="id10">Restructuring: which joint rotates what</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#phase-4-fixing-the-wobble" id="id11">Phase 4: Fixing the wobble</a></p>
+<ul>
+<li><p><a class="reference internal" href="#symptom" id="id12">Symptom</a></p></li>
+<li><p><a class="reference internal" href="#diagnosis" id="id13">Diagnosis</a></p></li>
+<li><p><a class="reference internal" href="#fix" id="id14">Fix</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tools-and-skills-used" id="id15">Tools and skills used</a></p>
+<ul>
+<li><p><a class="reference internal" href="#the-iteration-loop" id="id16">The iteration loop</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#key-takeaways" id="id17">Key takeaways</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="the-problem">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">The problem</a><a class="headerlink" href="#the-problem" title="Link to this heading">#</a></h2>
+<p>The user noticed three issues in the simulator’s <strong>Visible Parts</strong> panel:</p>
+<p>The user’s opening prompt:</p>
+<blockquote>
+<div><p>look into what happened to the meca500 end-effector. There is a part for
+it but we see a link_5 before a6 in the list of parts in the simulator
+and no EE. link_5 seems invisible as well. Can you look at the simulator
+in Chrome and investigate?</p>
+</div></blockquote>
+</section>
+<hr class="docutils" />
+<section id="phase-1-investigation">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Phase 1: Investigation</a><a class="headerlink" href="#phase-1-investigation" title="Link to this heading">#</a></h2>
+<p>Claude launched two tasks in parallel: reading the browser state via the
+Chrome connector, and exploring the codebase with a sub-agent.</p>
+<section id="reading-the-browser">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Reading the browser</a><a class="headerlink" href="#reading-the-browser" title="Link to this heading">#</a></h3>
+<p>Claude called <code class="docutils literal notranslate"><span class="pre">tabs_context_mcp</span></code> to discover the open simulator tab, then
+<code class="docutils literal notranslate"><span class="pre">read_page</span></code> to get the accessibility tree. This revealed the Visible Parts
+list: <code class="docutils literal notranslate"><span class="pre">All</span></code>, <code class="docutils literal notranslate"><span class="pre">A0</span></code>, <code class="docutils literal notranslate"><span class="pre">A1</span></code>, <code class="docutils literal notranslate"><span class="pre">A2</span></code>, <code class="docutils literal notranslate"><span class="pre">A3_4</span></code>, <code class="docutils literal notranslate"><span class="pre">A5</span></code>, <strong><code class="docutils literal notranslate"><span class="pre">link_5</span></code></strong>, <code class="docutils literal notranslate"><span class="pre">A6</span></code> —
+confirming the phantom entry and missing EndEffector.</p>
+</section>
+<section id="exploring-the-codebase">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Exploring the codebase</a><a class="headerlink" href="#exploring-the-codebase" title="Link to this heading">#</a></h3>
+<p>In parallel, an <code class="docutils literal notranslate"><span class="pre">Explore</span></code> sub-agent searched the codebase for all
+meca500-related configuration. Key findings:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">link_5</span></code> was defined as <code class="docutils literal notranslate"><span class="pre">&lt;link</span> <span class="pre">name=&quot;link_5&quot;/&gt;</span></code> — an
+empty link with no mesh, used as an intermediate frame between joint_5
+(wrist pitch) and joint_6 (wrist roll).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">EndEffector.stl</span></code></strong> (26 MB, 263K vertices) existed with a full
+analysis YAML, but was not referenced anywhere in the URDF.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">toolbar.py</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">build_visibility_section</span></code> iterated all
+<code class="docutils literal notranslate"><span class="pre">chain_link_names</span></code> and created a chip for every link, even meshless ones.</p></li>
+</ul>
+</section>
+<section id="root-cause">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Root cause</a><a class="headerlink" href="#root-cause" title="Link to this heading">#</a></h3>
+<p>The visibility panel code at <code class="docutils literal notranslate"><span class="pre">toolbar.py:256</span></code> used the link name as a
+fallback label for meshless links instead of skipping them. And the
+EndEffector was never added to the URDF kinematic chain.</p>
+<p>Claude presented the findings and proposed two fixes. The user’s response
+set the tone for the rest of the session:</p>
+<blockquote>
+<div><p>I would like you to autonomously iterate until there is an end effector
+attached to the end of a6. Use bore edits of the EE if needed. OK?</p>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-2-fixing-the-visibility-panel">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Phase 2: Fixing the visibility panel</a><a class="headerlink" href="#phase-2-fixing-the-visibility-panel" title="Link to this heading">#</a></h2>
+<p>A one-line change in <code class="docutils literal notranslate"><span class="pre">toolbar.py</span></code> — replace the <code class="docutils literal notranslate"><span class="pre">else:</span> <span class="pre">display</span> <span class="pre">=</span> <span class="pre">lname</span></code>
+fallback with <code class="docutils literal notranslate"><span class="pre">else:</span> <span class="pre">continue</span></code> to skip links with no <code class="docutils literal notranslate"><span class="pre">mesh_path</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lnk</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">get_link</span><span class="p">(</span><span class="n">lname</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">lnk</span> <span class="ow">and</span> <span class="n">lnk</span><span class="o">.</span><span class="n">mesh_path</span><span class="p">:</span>
+    <span class="n">display</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">lnk</span><span class="o">.</span><span class="n">mesh_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Skip links with no mesh (e.g. link_5 intermediate frame)</span>
+    <span class="k">continue</span>
+</pre></div>
+</div>
+<p>This removed the phantom <code class="docutils literal notranslate"><span class="pre">link_5</span></code> entry from the Visible Parts panel.</p>
+</section>
+<hr class="docutils" />
+<section id="phase-3-adding-the-endeffector-to-the-urdf">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Phase 3: Adding the EndEffector to the URDF</a><a class="headerlink" href="#phase-3-adding-the-endeffector-to-the-urdf" title="Link to this heading">#</a></h2>
+<section id="initial-placement">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Initial placement</a><a class="headerlink" href="#initial-placement" title="Link to this heading">#</a></h3>
+<p>The EndEffector needed to attach to A6’s distal bore, approximately 60 mm
+along the X-axis from <code class="docutils literal notranslate"><span class="pre">link_6</span></code>’s origin. The mating surface of the
+EndEffector faces −Z in mesh coordinates, so a rotation was needed to align
+it with the +X axis of the link frame.</p>
+<p>Claude added the EndEffector as a new link with a fixed joint, then used
+the Chrome connector to reload the simulator and verify visually.</p>
+</section>
+<section id="using-the-camera-skill">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Using the camera skill</a><a class="headerlink" href="#using-the-camera-skill" title="Link to this heading">#</a></h3>
+<p>At this scale, the EndEffector (~20 mm) was nearly invisible in the default
+overview. Claude used the <code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code> skill to position the camera
+directly at the arm tip:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">sc</span><span class="p">.</span><span class="nx">camera</span><span class="p">.</span><span class="nx">position</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="mf">0.22</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mf">0.10</span><span class="p">,</span><span class="w"> </span><span class="mf">0.35</span><span class="p">);</span>
+<span class="nx">sc</span><span class="p">.</span><span class="nx">controls</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="mf">0.15</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.308</span><span class="p">);</span>
+<span class="nx">sc</span><span class="p">.</span><span class="nx">controls</span><span class="p">.</span><span class="nx">update</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>This revealed the EndEffector as a small pointed probe extending from
+A6’s bore centre — correctly positioned but needing rotation refinement.</p>
+</section>
+<section id="restructuring-which-joint-rotates-what">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Restructuring: which joint rotates what</a><a class="headerlink" href="#restructuring-which-joint-rotates-what" title="Link to this heading">#</a></h3>
+<p>After verifying the EE was correctly placed, the user tested the joint
+sliders and spotted a problem:</p>
+<blockquote>
+<div><p>it works. the EE is a little wobbly as it rotates - is the mesh not
+aligned with our axis?</p>
+</div></blockquote>
+<p>But before the wobble, there was a more fundamental issue. The user had
+noticed earlier:</p>
+<blockquote>
+<div><p>re the EE - looks good. But the A6 rotation is still rotating a6 itself
+whereas that should do the end effector.</p>
+</div></blockquote>
+<p>In the real Meca500, joint_6 is the tool roll — only the end-effector
+should spin, not A6. The fix was to reassign meshes in the kinematic chain:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Link</p></th>
+<th class="head"><p>Before</p></th>
+<th class="head"><p>After</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">link_5</span></code></p></td>
+<td><p><em>(empty)</em></p></td>
+<td><p>A6 mesh</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">link_6</span></code></p></td>
+<td><p>A6 mesh</p></td>
+<td><p>EndEffector mesh</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This eliminated the need for a separate <code class="docutils literal notranslate"><span class="pre">end_effector</span></code> link and <code class="docutils literal notranslate"><span class="pre">joint_ee</span></code>
+fixed joint. A6 now rotates with joint_5 (wrist pitch) and the
+EndEffector rotates with joint_6 (tool roll).</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-4-fixing-the-wobble">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Phase 4: Fixing the wobble</a><a class="headerlink" href="#phase-4-fixing-the-wobble" title="Link to this heading">#</a></h2>
+<section id="symptom">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Symptom</a><a class="headerlink" href="#symptom" title="Link to this heading">#</a></h3>
+<p>With the mesh reassignment done, the user tested again:</p>
+<blockquote>
+<div><p>still wobbly - the pin looks to be around 10 degrees downward at zero</p>
+</div></blockquote>
+<p>The probe was tracing a cone instead of spinning cleanly around its axis.</p>
+</section>
+<section id="diagnosis">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Diagnosis</a><a class="headerlink" href="#diagnosis" title="Link to this heading">#</a></h3>
+<p>The initial rotation assumed the EndEffector’s axis aligned perfectly with
+the mesh Z-axis (i.e. <code class="docutils literal notranslate"><span class="pre">rpy=&quot;0</span> <span class="pre">1.5708</span> <span class="pre">0&quot;</span></code> — a 90° pitch). But the
+EndEffector analysis YAML revealed the actual mating surface normal:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">normal</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-0.2392</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.0198</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-0.9708</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>This is <strong>14° off from pure −Z</strong> — the mesh geometry is slightly tilted.
+Using an exact 90° rotation left a 14° misalignment, which manifested as
+wobble during rotation.</p>
+</section>
+<section id="fix">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Fix</a><a class="headerlink" href="#fix" title="Link to this heading">#</a></h3>
+<p>The correct pitch angle is <code class="docutils literal notranslate"><span class="pre">arctan(0.9708</span> <span class="pre">/</span> <span class="pre">0.2392)</span> <span class="pre">=</span> <span class="pre">76.15°</span></code> (1.3295
+radians) instead of 90°, with a small yaw correction of 0.0198 radians:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;origin</span><span class="w"> </span><span class="na">xyz=</span><span class="s">&quot;0.065795 0.000027 -0.000051&quot;</span><span class="w"> </span><span class="na">rpy=</span><span class="s">&quot;0 1.3295 0.0198&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+<p>After reloading, the user confirmed:</p>
+<blockquote>
+<div><p>nailed it. Please record this conversation as an example use of our skills and chrome connector.</p>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="tools-and-skills-used">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Tools and skills used</a><a class="headerlink" href="#tools-and-skills-used" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool / Skill</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__tabs_context_mcp</span></code></p></td>
+<td><p>Discover open browser tabs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__read_page</span></code></p></td>
+<td><p>Read the accessibility tree to inspect UI state</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__computer</span></code> (screenshot)</p></td>
+<td><p>Capture the 3D viewport for visual inspection</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__computer</span></code> (zoom)</p></td>
+<td><p>Pixel-level inspection of small features</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__navigate</span></code></p></td>
+<td><p>Reload the simulator after URDF changes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__javascript_tool</span></code></p></td>
+<td><p>Execute JS for camera control</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">/zoom-rotate-camera</span></code> skill</p></td>
+<td><p>Position the Three.js camera programmatically</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">/robot-data</span></code> skill</p></td>
+<td><p>Understand robot analysis YAML structure</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Explore</span></code> sub-agent</p></td>
+<td><p>Parallel codebase investigation</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="the-iteration-loop">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">The iteration loop</a><a class="headerlink" href="#the-iteration-loop" title="Link to this heading">#</a></h3>
+<p>The workflow followed a tight loop:</p>
+<ol class="arabic simple">
+<li><p><strong>Edit</strong> the URDF or Python code</p></li>
+<li><p><strong>Reload</strong> the simulator via the Chrome connector</p></li>
+<li><p><strong>Position camera</strong> using the <code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code> skill</p></li>
+<li><p><strong>Screenshot and zoom</strong> to inspect the result</p></li>
+<li><p><strong>Diagnose</strong> any remaining issues from the visual</p></li>
+<li><p>Repeat</p></li>
+</ol>
+<p>Each iteration took about 30 seconds. The full session — from
+investigation through final wobble fix — completed in a single
+conversation.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="key-takeaways">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Key takeaways</a><a class="headerlink" href="#key-takeaways" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Use the Chrome connector to close the feedback loop.</strong> Rather than
+asking the user to describe what they see, Claude can screenshot the
+simulator, zoom into specific areas, and verify fixes directly.</p></li>
+<li><p><strong>Camera control via JavaScript is essential.</strong> Mouse-dragging the 3D
+viewport risks accidentally moving joint sliders. The
+<code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code> skill provides reliable, repeatable camera
+positioning.</p></li>
+<li><p><strong>Mesh geometry is not always axis-aligned.</strong> The EndEffector’s bore axis
+was reported as <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> in the analysis, but the actual surface
+normal was 14° off. Always verify rotations visually and use the measured
+surface normals rather than assumed axes.</p></li>
+<li><p><strong>Assign meshes to the right kinematic link.</strong> A6 (wrist housing) should
+rotate with wrist pitch (joint_5), not tool roll (joint_6). Getting
+this wrong makes the simulator look broken even when the kinematics are
+correct.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="building-with-claude.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Building a Robot Simulator with Claude</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="implementation-plan.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Implementation plan</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-problem">The problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-1-investigation">Phase 1: Investigation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-the-browser">Reading the browser</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-the-codebase">Exploring the codebase</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#root-cause">Root cause</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-2-fixing-the-visibility-panel">Phase 2: Fixing the visibility panel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-3-adding-the-endeffector-to-the-urdf">Phase 3: Adding the EndEffector to the URDF</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initial-placement">Initial placement</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-camera-skill">Using the camera skill</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#restructuring-which-joint-rotates-what">Restructuring: which joint rotates what</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-4-fixing-the-wobble">Phase 4: Fixing the wobble</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#symptom">Symptom</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnosis">Diagnosis</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fix">Fix</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tools-and-skills-used">Tools and skills used</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-iteration-loop">The iteration loop</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-takeaways">Key takeaways</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/1.3/docs/explanations/chrome-connector-workflow.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/explanations/chrome-connector-workflow.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
