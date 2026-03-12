@@ -456,20 +456,21 @@ _VIEWCUBE_JS = (
 )
 
 
-def add_view_controls(scene_width: int = 900, scene_height: int = 700) -> None:
+def add_view_controls(parent_container=None) -> None:
     """Add a 3D ViewCube gizmo overlay to the viewport.
 
-    Call this right after the ui.scene() block, inside the same parent column.
+    *parent_container* is the wrapper ``div`` around the scene (must have
+    ``position: relative``).  The overlay is positioned absolutely in its
+    top-right corner.
     """
     # Overlay container positioned in top-right corner of viewport
     with ui.element("div").style(
-        f"position: relative; "
-        f"top: -{scene_height}px; "
-        f"left: {scene_width - 210}px; "
-        f"width: 210px; "
-        f"z-index: 10; "
-        f"pointer-events: none; "
-        f"height: 0px; "
+        "position: absolute; "
+        "top: 8px; "
+        "right: 8px; "
+        "width: 210px; "
+        "z-index: 10; "
+        "pointer-events: none; "
     ):
         with ui.element("div").style(
             "pointer-events: auto; "

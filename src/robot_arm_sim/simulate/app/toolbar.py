@@ -93,7 +93,7 @@ def build_toolbar(state: SimulatorState) -> None:
         with ui.row().classes("w-full justify-end q-mt-sm"):
             ui.button("Close", on_click=about_dialog.close).props("flat")
 
-    with ui.row().classes("q-pa-sm items-center").style("width: 900px; gap: 8px;"):
+    with ui.row().classes("q-pa-sm items-center").style("width: 100%; gap: 8px;"):
         # --- View group ---
         def toggle_labels():
             state.labels_visible["value"] = not state.labels_visible["value"]

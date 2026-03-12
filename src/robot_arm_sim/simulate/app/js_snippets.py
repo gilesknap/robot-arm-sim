@@ -377,6 +377,61 @@ FACE_MARKER_INIT_JS = """
 """
 
 
+SCENE_RESIZE_JS = """
+(function() {
+    const appEl = document.getElementById('app');
+    if (!appEl || !appEl.__vue_app__) return;
+    let sc = null;
+    function walk(n, d) {
+        if (d > 30 || sc) return;
+        if (n.component) {
+            const p = n.component.proxy;
+            if (p && p.renderer && p.scene && p.camera) {
+                sc = p; return;
+            }
+            if (n.component.subTree)
+                walk(n.component.subTree, d+1);
+        }
+        if (Array.isArray(n.children))
+            n.children.forEach(
+                c => c && typeof c === 'object'
+                    && walk(c, d+1));
+    }
+    walk(appEl.__vue_app__._container._vnode, 0);
+    if (!sc) return;
+
+    const wrapper = document.querySelector('.sim-scene-wrapper');
+    if (!wrapper) return;
+    const canvas = sc.renderer.domElement;
+    const sceneDiv = canvas.parentElement;
+
+    function resize() {
+        const w = wrapper.clientWidth;
+        const h = wrapper.clientHeight;
+        if (w <= 0 || h <= 0) return;
+        sceneDiv.style.width = w + 'px';
+        sceneDiv.style.height = h + 'px';
+        sc.renderer.setSize(w, h);
+        const cam = sc.camera;
+        if (cam.isPerspectiveCamera) {
+            cam.aspect = w / h;
+            cam.updateProjectionMatrix();
+        } else if (cam.isOrthographicCamera) {
+            const fH = cam.top - cam.bottom;
+            const fW = fH * (w / h);
+            cam.left = -fW / 2;
+            cam.right = fW / 2;
+            cam.updateProjectionMatrix();
+        }
+    }
+
+    const obs = new ResizeObserver(resize);
+    obs.observe(wrapper);
+    resize();
+})();
+"""
+
+
 TRANSPARENCY_INIT_JS = """
 (async function() {
     const SceneLib = await import('nicegui-scene');
