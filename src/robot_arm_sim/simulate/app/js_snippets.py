@@ -394,6 +394,11 @@ FACE_MARKER_INIT_JS = """
             m => { m.visible = show; });
     };
 
+    window.__setBoreEditMarkersVisible = function(show) {
+        Object.values(boreEditMarkers).forEach(
+            m => { m.visible = show; });
+    };
+
     window.__updateFaceMarkerPoses = function(data) {
         for (const [id, pos] of Object.entries(data)) {
             const m = markers[id];
@@ -422,19 +427,6 @@ FACE_MARKER_INIT_JS = """
                 * 2 + 1);
         const ray = new THREE.Raycaster();
         ray.setFromCamera(mouse, sc.camera);
-
-        // Try face markers first
-        const vis = Object.values(
-            window.__faceMarkers).filter(
-                m => m.visible);
-        const mHits = ray.intersectObjects(vis);
-        if (mHits.length > 0) {
-            window.__lastFaceClick = {
-                type: 'marker',
-                name: mHits[0].object.name
-            };
-            return;
-        }
 
         // Try STL meshes
         const sHits = ray.intersectObjects(

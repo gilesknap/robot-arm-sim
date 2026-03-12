@@ -22,10 +22,14 @@ def build_edit_bores(state: SimulatorState) -> None:
         ui.row().classes("q-pa-sm").style("width: 100%; gap: 8px; display: none;")
     )
     with state.edit_bores_row:
-        bore_toggle = ui.toggle(["Proximal", "Distal"], value="Proximal").props("dense")
+        bore_toggle = ui.toggle(["Proximal", "Distal"], value="Proximal").props(
+            "dense color='green'"
+        )
 
         def _on_bore_toggle(e: Any) -> None:
             state.bore_end_toggle["value"] = e.value
+            color = "green" if e.value == "Proximal" else "red"
+            bore_toggle.props(f"color='{color}'")
 
         bore_toggle.on_value_change(_on_bore_toggle)
 
@@ -138,10 +142,14 @@ def build_edit_bores(state: SimulatorState) -> None:
             if active
             else "width: 100%; gap: 8px; display: none;"
         )
-        ui.run_javascript(f"window.__setFaceMarkersVisible({str(active).lower()})")
+        ui.run_javascript(
+            f"window.__faceEditMode = {str(active).lower()};"
+            f" window.__setBoreEditMarkersVisible({str(active).lower()})"
+        )
         if active:
             ui.run_javascript("window.__setMeshTransparency(0.25)")
-            state.bore_status_label.text = "Click mesh or marker to assign"
+            state.bore_status_label.text = "Click mesh to assign"
+            _seed_bore_assignments(state)
             _show_existing_bore_markers(state)
             state.update_scene_now()
         else:
@@ -162,14 +170,9 @@ def build_edit_bores(state: SimulatorState) -> None:
             )
         except (TimeoutError, RuntimeError):
             return
-        if result:
-            if isinstance(result, dict):
-                if result.get("type") == "marker":
-                    _handle_marker_click(state, result["name"])
-                elif result.get("type") == "mesh":
-                    _handle_mesh_click(state, result)
-            elif isinstance(result, str):
-                _handle_marker_click(state, result)
+        if result and isinstance(result, dict):
+            if result.get("type") == "mesh":
+                _handle_mesh_click(state, result)
 
     ui.timer(0.2, _poll_face_click)
 
@@ -259,61 +262,23 @@ def _assign_bore(
     state.bore_status_label.text = f"Set {part_name} {end}"
 
 
-def _handle_marker_click(state: SimulatorState, name: str) -> None:
-    """Process a face marker click: face_{link}_{idx}."""
-    parts = name.split("_", 1)
-    if len(parts) < 2 or parts[0] != "face":
-        return
-    remainder = parts[1]
-    matched_link = None
-    matched_idx = None
-    for lname in state.flat_faces:
-        prefix = lname + "_"
-        if remainder.startswith(prefix):
-            try:
-                idx = int(remainder[len(prefix) :])
-                matched_link = lname
-                matched_idx = idx
-                break
-            except ValueError:
-                continue
-    if matched_link is None or matched_idx is None:
-        return
-
-    link_name = matched_link
-    face_idx = matched_idx
-    end = state.bore_end_toggle["value"].lower()
-
-    faces_list = state.flat_faces.get(link_name, [])
-    if face_idx >= len(faces_list):
-        return
-    ff = faces_list[face_idx]
-    radius = math.sqrt(ff["area_mm2"] / math.pi)
-
-    bore_data = {
-        "centroid": ff["centroid"],
-        "normal": ff["normal"],
-        "area_mm2": ff["area_mm2"],
-        "radius_mm": radius,
-    }
-    _assign_bore(state, link_name, end, bore_data)
-
-    # Recolour face markers for this link
-    assigns = state.bore_assignments.get(link_name, {})
-    assigned_centroids = {e: d["centroid"] for e, d in assigns.items()}
-    for i in range(len(faces_list)):
-        fid = f"face_{link_name}_{i}"
-        fc = faces_list[i]["centroid"]
-        matched_end = None
-        for e, c in assigned_centroids.items():
-            if c == fc:
-                matched_end = e
-                break
-        if matched_end:
-            color = "0x00cc00" if matched_end == "proximal" else "0xcc0000"
-        else:
-            color = "0xffcc00"
-        ui.run_javascript(f"window.__setFaceMarkerColor('{fid}', {color})")
+def _seed_bore_assignments(state: SimulatorState) -> None:
+    """Pre-populate bore_assignments from analysis connection_points."""
+    for link_name, cps in state.connection_points.items():
+        if link_name in state.bore_assignments:
+            continue
+        assigns: dict[str, dict] = {}
+        for cp in cps:
+            end = cp["end"]
+            pos = cp["position"]
+            assigns[end] = {
+                "centroid": [float(pos[i]) for i in range(3)],
+                "normal": [float(cp["axis"][i]) for i in range(3)],
+                "area_mm2": math.pi * cp["radius_mm"] ** 2,
+                "radius_mm": cp["radius_mm"],
+            }
+        if assigns:
+            state.bore_assignments[link_name] = assigns
 
 
 def _handle_mesh_click(state: SimulatorState, result: dict) -> None:
