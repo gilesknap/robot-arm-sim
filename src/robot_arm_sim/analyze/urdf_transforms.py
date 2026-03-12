@@ -40,7 +40,10 @@ def compute_visual_origin(
     if bbox and abs(bore_axis[axis_idx]) > 0.5 and (method != "manual" or center):
         bmin = bbox["min"][axis_idx]
         bmax = bbox["max"][axis_idx]
-        pos[axis_idx] = (bmin + bmax) / 2
+        # Midpoint between bore face and opposite face of the mesh
+        bore_val = pos[axis_idx]
+        opposite = bmin if abs(bore_val - bmax) < abs(bore_val - bmin) else bmax
+        pos[axis_idx] = (bore_val + opposite) / 2
 
     messages.append(
         f"  {link_name}: proximal @ origin,"
