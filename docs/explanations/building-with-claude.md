@@ -41,6 +41,7 @@ The specific files mentioned here are for Claude Code, but the same features are
 1. Create skills:
    - When you have spent effort working on a problem and have a solution, ask Claude to write a skill that captures the debugging methodology, not just the fix. This way you can reuse the same process for future problems.
    - See examples from this project in `.claude/skills/`
+   - Skills are only loaded when the agent sees that they might be needed (or you exlicity invoke with e.g. /build-robot). So they aren't taking up context space all the time, but they are there when you need them.
 1. Look after memory:
    - Claude Code has auto memory that is triggered on events like commits.
    - ask Claude to remember useful things at other time too.
@@ -59,6 +60,7 @@ The specific files mentioned here are for Claude Code, but the same features are
    - Checked into the repo, so every session and every contributor gets the same baseline.
    - Good for build commands, coding conventions, and constraints that Claude should always follow.
    - See this project's `CLAUDE.md` for an example.
+   - Keep it less than 40 lines or so as it is loaded into context at the start of every session.
 1. Give permission for effort and parallelism:
    - "Use as much effort as needed" and "make it multi-agent" unlock Claude's ability to work on multiple files simultaneously.
    - Without this, Claude tends to be conservative and sequential.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,6 +12,10 @@ from .js_snippets import SCREENSHOT_JS
 
 if TYPE_CHECKING:
     from .state import SimulatorState
+
+_CLUSTER_MODE = bool(
+    os.environ.get("CLUSTER_MODE") or os.environ.get("KUBERNETES_SERVICE_HOST")
+)
 
 
 def _apply_toggle_style(btn, active: bool) -> None:
@@ -25,33 +30,41 @@ def _apply_toggle_style(btn, active: bool) -> None:
 def build_toolbar(state: SimulatorState) -> None:
     """Build the toolbar below the 3D viewport."""
 
-    def shutdown():
-        import asyncio
-        import os
-        import signal
+    stop_dialog = None
+    if not _CLUSTER_MODE:
 
-        async def _delayed_kill():
-            await asyncio.sleep(0.5)
-            os.kill(os.getpid(), signal.SIGTERM)
+        def shutdown():
+            import asyncio
+            import os
+            import signal
 
-        ui.run_javascript(
-            "document.querySelector('#app').__vue_app__.unmount();"
-            "document.body.innerHTML = '<div style=\""
-            "display:flex;flex-direction:column;align-items:center;"
-            "justify-content:center;height:100vh;gap:16px;font-family:sans-serif"
-            '">'
-            '<span style="font-size:64px">&#x1f44b;</span>'
-            "<h1>Simulator stopped</h1>"
-            '<p style="color:#888">Run the simulate command again to restart.'
-            "</p></div>';"
-        )
-        asyncio.get_event_loop().create_task(_delayed_kill())
+            async def _delayed_kill():
+                await asyncio.sleep(0.5)
+                os.kill(os.getpid(), signal.SIGTERM)
 
-    with ui.dialog() as stop_dialog, ui.card():
-        ui.label("Are you sure you want to stop the simulator?")
-        with ui.row().classes("w-full justify-end"):
-            ui.button("Cancel", on_click=stop_dialog.close).props("flat")
-            ui.button("Stop", on_click=shutdown).props("color=red")
+            ui.run_javascript(
+                "document.querySelector('#app').__vue_app__.unmount();"
+                "document.body.innerHTML = '<div style=\""
+                "display:flex;flex-direction:column;"
+                "align-items:center;"
+                "justify-content:center;height:100vh;"
+                "gap:16px;font-family:sans-serif"
+                '">'
+                '<span style="font-size:64px">'
+                "&#x1f44b;</span>"
+                "<h1>Simulator stopped</h1>"
+                '<p style="color:#888">'
+                "Run the simulate command again"
+                " to restart."
+                "</p></div>';"
+            )
+            asyncio.get_event_loop().create_task(_delayed_kill())
+
+        with ui.dialog() as stop_dialog, ui.card():
+            ui.label("Are you sure you want to stop the simulator?")
+            with ui.row().classes("w-full justify-end"):
+                ui.button("Cancel", on_click=stop_dialog.close).props("flat")
+                ui.button("Stop", on_click=shutdown).props("color=red")
 
     docs_url = "https://gilesknap.github.io/robot-arm-sim"
     story_url = f"{docs_url}/main/explanations/building-with-claude.html"
@@ -161,9 +174,11 @@ def build_toolbar(state: SimulatorState) -> None:
             on_click=lambda: state.reset_all(),
         ).props("dense color=orange-7")
 
-        ui.button("Stop Simulator", on_click=stop_dialog.open).props(
-            "color=red-7 flat dense"
-        )
+        if stop_dialog:
+            sd = stop_dialog
+            ui.button("Stop Simulator", on_click=sd.open).props(
+                "color=red-7 flat dense"
+            )
 
         ui.space()
 

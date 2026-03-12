@@ -377,6 +377,66 @@ FACE_MARKER_INIT_JS = """
 """
 
 
+BEFOREUNLOAD_JS = """
+(function() {
+    window.__simJointAngles = {};
+    window.addEventListener('beforeunload', function() {
+        var appEl = document.getElementById('app');
+        if (!appEl || !appEl.__vue_app__) return;
+        var sc = null;
+        function walk(n, d) {
+            if (d > 30 || sc) return;
+            if (n.component) {
+                var p = n.component.proxy;
+                if (p && p.renderer && p.scene && p.controls) {
+                    sc = p; return;
+                }
+                if (n.component.subTree)
+                    walk(n.component.subTree, d+1);
+            }
+            if (Array.isArray(n.children))
+                n.children.forEach(function(c) {
+                    if (c && typeof c === 'object')
+                        walk(c, d+1);
+                });
+        }
+        walk(
+            appEl.__vue_app__._container._vnode,
+            0
+        );
+        var cam = null;
+        if (sc) {
+            var c = sc.camera;
+            var t = sc.controls;
+            cam = {
+                px: c.position.x,
+                py: c.position.y,
+                pz: c.position.z,
+                tx: t.target.x,
+                ty: t.target.y,
+                tz: t.target.z,
+                ux: c.up.x,
+                uy: c.up.y,
+                uz: c.up.z,
+                isOrtho: !!c.isOrthographicCamera,
+                left: c.left,
+                right: c.right,
+                top: c.top,
+                bottom: c.bottom
+            };
+        }
+        sessionStorage.setItem(
+            'sim_state',
+            JSON.stringify({
+                joints: window.__simJointAngles,
+                camera: cam
+            })
+        );
+    });
+})();
+"""
+
+
 SCENE_RESIZE_JS = """
 (function() {
     const appEl = document.getElementById('app');
