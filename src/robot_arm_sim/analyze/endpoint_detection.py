@@ -11,7 +11,7 @@ import logging
 import numpy as np
 import trimesh
 
-from robot_arm_sim.models.part import ConnectionPoint, GeometricFeature
+from robot_arm_sim.models import ConnectionPoint, GeometricFeature
 
 from .circle_fitting import (
     circle_fit_from_boundary,
@@ -111,7 +111,7 @@ def detect_multi_axis_connections(
             pos[axis_idx] = bore_val
             points.append(
                 ConnectionPoint(
-                    end=end,
+                    end=end,  # type: ignore[arg-type]
                     position=[round(v, 3) for v in pos],
                     axis=[round(a, 4) for a in axis.tolist()],
                     radius_mm=round(radius, 1),
@@ -146,7 +146,7 @@ def detect_multi_axis_connections(
                     pos[axis_idx] = bore_val
                     points.append(
                         ConnectionPoint(
-                            end=end,
+                            end=end,  # type: ignore[arg-type]
                             position=[round(v, 3) for v in pos],
                             axis=[round(a, 4) for a in axis.tolist()],
                             radius_mm=20.0,
@@ -223,7 +223,7 @@ def detect_endpoints_along_axis(
             radius = estimate_radius_at_slice(mesh, axis, proj_val, direction)
             points.append(
                 ConnectionPoint(
-                    end=end,
+                    end=end,  # type: ignore[arg-type]
                     position=[round(p, 3) for p in pos],
                     axis=[round(a, 4) for a in axis.tolist()],
                     radius_mm=round(radius, 1),
@@ -237,7 +237,7 @@ def detect_endpoints_along_axis(
                 pos[axis_idx] = proj_val
                 points.append(
                     ConnectionPoint(
-                        end=end,
+                        end=end,  # type: ignore[arg-type]
                         position=[round(p, 3) for p in pos],
                         axis=[round(a, 4) for a in axis.tolist()],
                         radius_mm=round(center_fb["radius"], 1),

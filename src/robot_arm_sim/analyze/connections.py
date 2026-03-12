@@ -12,7 +12,7 @@ import logging
 import numpy as np
 import trimesh
 
-from robot_arm_sim.models.part import ConnectionPoint, GeometricFeature
+from robot_arm_sim.models import ConnectionPoint, GeometricFeature
 
 from .endpoint_detection import (
     detect_base_connection,
@@ -230,7 +230,7 @@ def _detect_barrel_part_bores(
         radius = float(np.sqrt((face.area_mm2 or 0) / np.pi))
         points.append(
             ConnectionPoint(
-                end=end,
+                end=end,  # type: ignore[arg-type]
                 position=[round(float(v), 3) for v in pos],
                 axis=[round(float(a), 4) for a in bore_axis.tolist()],
                 radius_mm=round(radius, 1),

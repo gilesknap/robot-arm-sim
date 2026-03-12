@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import trimesh
 
-from robot_arm_sim.models.part import PartAnalysis
+from robot_arm_sim.models import Features, PartAnalysis, load_part_yaml
 
 from .connections import detect_connection_points
 from .features import detect_features
@@ -17,11 +18,28 @@ from .yaml_writer import write_part_yaml, write_summary_yaml
 logger = logging.getLogger(__name__)
 
 
-def run_analysis(robot_dir: Path) -> None:
+def _load_manual_connection_points(
+    yaml_path: Path,
+) -> list[dict[str, Any]]:
+    """Load manually-placed connection points from an existing analysis YAML."""
+    if not yaml_path.exists():
+        return []
+    try:
+        model = load_part_yaml(yaml_path)
+    except Exception:
+        return []
+    return [cp.model_dump() for cp in model.connection_points if cp.method == "manual"]
+
+
+def run_analysis(robot_dir: Path, *, override_manual: bool = False) -> None:
     """Run full analysis pipeline on a robot directory.
 
     Expects STL files in <robot_dir>/stl_files/.
     Outputs analysis YAML to <robot_dir>/analysis/.
+
+    By default, manually-placed connection points from existing analysis
+    files are preserved.  Pass ``override_manual=True`` to re-detect all
+    connection points from scratch.
     """
     stl_dir = robot_dir / "stl_files"
     if not stl_dir.exists():
@@ -52,26 +70,40 @@ def run_analysis(robot_dir: Path) -> None:
         print(f"  Detecting features for {stl_file.name}...")
         mesh = trimesh.load(stl_file, force="mesh")
         assert isinstance(mesh, trimesh.Trimesh)
-        features = detect_features(mesh)
-        analysis.features = features
+        feature_list = detect_features(mesh)
+        analysis.features = Features.from_feature_list(feature_list)
+
+        # Check for existing manual connection points
+        yaml_path = analysis_dir / f"{analysis.part_name}.yaml"
+        manual_cps = (
+            [] if override_manual else _load_manual_connection_points(yaml_path)
+        )
+        manual_ends = {cp["end"] for cp in manual_cps}
 
         # Detect connection points
         print(f"  Detecting connection points for {stl_file.name}...")
-        conn_points = detect_connection_points(mesh, features, analysis.part_name)
+        conn_points = detect_connection_points(mesh, feature_list, analysis.part_name)
         analysis.connection_points = conn_points
         if conn_points:
             for cp in conn_points:
+                tag = " (overridden by manual)" if cp.end in manual_ends else ""
                 print(
                     f"    {cp.end}: pos={cp.position} "
-                    f"axis={cp.axis} r={cp.radius_mm}mm ({cp.method})"
+                    f"axis={cp.axis} r={cp.radius_mm}mm ({cp.method}){tag}"
+                )
+        if manual_cps:
+            for cp in manual_cps:
+                print(
+                    f"    {cp['end']}: pos={cp['position']} "
+                    f"axis={cp['axis']} r={cp['radius_mm']}mm "
+                    f"(manual — preserved)"
                 )
 
         # Generate text description
         analysis.text_description = _generate_text_description(analysis)
 
-        # Write part YAML
-        yaml_path = analysis_dir / f"{analysis.part_name}.yaml"
-        write_part_yaml(analysis, yaml_path)
+        # Write part YAML, passing manual overrides to splice in
+        write_part_yaml(analysis, yaml_path, manual_connection_points=manual_cps)
         print(f"  Wrote {yaml_path}")
 
         analyses.append(analysis)
@@ -87,29 +119,31 @@ def _generate_text_description(analysis: PartAnalysis) -> str:
     """Generate a human-readable description of the part."""
     lines = [f"Part '{analysis.part_name}' from {analysis.source_file}."]
 
-    ext = analysis.bounding_box_extents
+    ext = analysis.geometry.bounding_box.extents
     lines.append(f"Bounding box: {ext[0]:.1f} x {ext[1]:.1f} x {ext[2]:.1f} mm.")
 
-    if analysis.is_watertight:
-        lines.append(f"Watertight solid, volume {analysis.volume_mm3:.1f} mm³.")
+    if analysis.geometry.is_watertight:
+        lines.append(
+            f"Watertight solid, volume {analysis.geometry.volume_mm3:.1f} mm³."
+        )
     else:
         lines.append("Non-watertight mesh (volume not computed).")
 
-    lines.append(f"Surface area: {analysis.surface_area_mm2:.1f} mm².")
+    lines.append(f"Surface area: {analysis.geometry.surface_area_mm2:.1f} mm².")
     lines.append(
-        f"Mesh complexity: {analysis.vertex_count} vertices, "
-        f"{analysis.face_count} faces."
+        f"Mesh complexity: {analysis.geometry.vertex_count} vertices, "
+        f"{analysis.geometry.face_count} faces."
     )
 
-    flat_faces = [f for f in analysis.features if f.kind == "flat_face"]
-    cylinders = [f for f in analysis.features if f.kind == "cylindrical_surface"]
-    holes = [f for f in analysis.features if f.kind == "hole"]
+    n_flat = len(analysis.features.flat_faces)
+    n_cyl = len(analysis.features.cylindrical_surfaces)
+    n_holes = len(analysis.features.holes)
 
-    if flat_faces:
-        lines.append(f"Has {len(flat_faces)} significant flat face(s).")
-    if cylinders:
-        lines.append(f"Has {len(cylinders)} cylindrical surface(s).")
-    if holes:
-        lines.append(f"Has {len(holes)} hole(s).")
+    if n_flat:
+        lines.append(f"Has {n_flat} significant flat face(s).")
+    if n_cyl:
+        lines.append(f"Has {n_cyl} cylindrical surface(s).")
+    if n_holes:
+        lines.append(f"Has {n_holes} hole(s).")
 
     return "\n".join(lines)

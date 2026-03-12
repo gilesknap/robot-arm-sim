@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "View": {
+      "properties": {
+        "manufacturer_label": {
+          "title": "Manufacturer Label",
+          "type": "string"
+        },
+        "viewcube_face": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Viewcube Face"
+        },
+        "reference_image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference Image"
+        },
+        "dir": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dir"
+        },
+        "up": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Up"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "manufacturer_label"
+      ],
+      "title": "View",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "views": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/View"
+      },
+      "title": "Views",
+      "type": "array"
+    }
+  },
+  "title": "ViewMapping",
+  "type": "object"
+}

@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "SummaryPart": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "role_hint": {
+          "title": "Role Hint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "file",
+        "role_hint"
+      ],
+      "title": "SummaryPart",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "robot_name": {
+      "title": "Robot Name",
+      "type": "string"
+    },
+    "part_count": {
+      "title": "Part Count",
+      "type": "integer"
+    },
+    "parts": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/SummaryPart"
+      },
+      "title": "Parts",
+      "type": "array"
+    },
+    "assembly_hints": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Assembly Hints",
+      "type": "array"
+    }
+  },
+  "required": [
+    "robot_name",
+    "part_count"
+  ],
+  "title": "Summary",
+  "type": "object"
+}

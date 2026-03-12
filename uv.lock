@@ -2189,6 +2189,7 @@ source = { editable = "." }
 dependencies = [
     { name = "nicegui" },
     { name = "numpy" },
+    { name = "pydantic" },
     { name = "pyyaml" },
     { name = "trimesh", extra = ["easy"] },
     { name = "typer" },
@@ -2216,6 +2217,7 @@ dev = [
 requires-dist = [
     { name = "nicegui", specifier = ">=1.4" },
     { name = "numpy", specifier = ">=1.24" },
+    { name = "pydantic", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "trimesh", extras = ["easy"], specifier = ">=4.0" },
     { name = "typer", specifier = ">=0.9" },

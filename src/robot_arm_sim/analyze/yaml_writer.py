@@ -6,17 +6,38 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml
+from robot_arm_sim.models import (
+    ConnectionPoint,
+    PartAnalysis,
+    Summary,
+    SummaryPart,
+    save_part_yaml,
+    save_summary_yaml,
+)
 
-from robot_arm_sim.models.part import ConnectionPoint, GeometricFeature, PartAnalysis
 
+def write_part_yaml(
+    analysis: PartAnalysis,
+    output_path: Path,
+    *,
+    manual_connection_points: list[dict[str, Any]] | None = None,
+) -> None:
+    """Write a single part analysis to YAML.
 
-def write_part_yaml(analysis: PartAnalysis, output_path: Path) -> None:
-    """Write a single part analysis to YAML."""
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    data = _part_to_dict(analysis)
-    with open(output_path, "w") as f:
-        yaml.dump(data, f, default_flow_style=False, sort_keys=False, width=120)
+    If *manual_connection_points* is provided, those raw dicts replace any
+    auto-detected connection points for the same end (proximal/distal).
+    This preserves hand-tuned bore placements across re-analysis.
+    """
+    if manual_connection_points:
+        manual_ends = {cp["end"] for cp in manual_connection_points}
+        # Keep auto-detected CPs whose end wasn't manually placed
+        kept = [cp for cp in analysis.connection_points if cp.end not in manual_ends]
+        # Append manual CPs (raw dicts, may include extra keys like 'center')
+        for cp_dict in manual_connection_points:
+            kept.append(ConnectionPoint.model_validate(cp_dict))
+        analysis.connection_points = kept
+
+    save_part_yaml(analysis, output_path)
 
 
 def write_summary_yaml(
@@ -25,109 +46,27 @@ def write_summary_yaml(
     output_path: Path,
 ) -> None:
     """Write assembly summary YAML."""
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
     parts = []
     for a in analyses:
         role_hint = _infer_role_hint(a)
         parts.append(
-            {
-                "name": a.part_name,
-                "file": f"{a.part_name}.yaml",
-                "role_hint": role_hint,
-            }
+            SummaryPart(
+                name=a.part_name,
+                file=f"{a.part_name}.yaml",
+                role_hint=role_hint,
+            )
         )
 
     assembly_hints = _generate_assembly_hints(analyses)
 
-    summary = {
-        "robot_name": robot_name,
-        "part_count": len(analyses),
-        "parts": parts,
-        "assembly_hints": assembly_hints,
-    }
+    model = Summary(
+        robot_name=robot_name,
+        part_count=len(analyses),
+        parts=parts,
+        assembly_hints=assembly_hints,
+    )
 
-    with open(output_path, "w") as f:
-        yaml.dump(summary, f, default_flow_style=False, sort_keys=False, width=120)
-
-
-def _part_to_dict(analysis: PartAnalysis) -> dict[str, Any]:
-    """Convert a PartAnalysis to a YAML-friendly dict."""
-    features_dict: dict[str, list[dict]] = {
-        "flat_faces": [],
-        "cylindrical_surfaces": [],
-        "holes": [],
-    }
-
-    for f in analysis.features:
-        fd = _feature_to_dict(f)
-        if f.kind == "flat_face":
-            features_dict["flat_faces"].append(fd)
-        elif f.kind == "cylindrical_surface":
-            features_dict["cylindrical_surfaces"].append(fd)
-        elif f.kind == "hole":
-            features_dict["holes"].append(fd)
-
-    conn_points = [_connection_point_to_dict(cp) for cp in analysis.connection_points]
-
-    return {
-        "part_name": analysis.part_name,
-        "source_file": analysis.source_file,
-        "format": analysis.format,
-        "connection_points": conn_points,
-        "geometry": {
-            "vertex_count": analysis.vertex_count,
-            "face_count": analysis.face_count,
-            "bounding_box": {
-                "min": analysis.bounding_box_min,
-                "max": analysis.bounding_box_max,
-                "extents": analysis.bounding_box_extents,
-            },
-            "volume_mm3": analysis.volume_mm3,
-            "surface_area_mm2": analysis.surface_area_mm2,
-            "center_of_mass": analysis.center_of_mass,
-            "is_watertight": analysis.is_watertight,
-        },
-        "inertia": {
-            "principal_moments": analysis.principal_moments,
-            "principal_axes": analysis.principal_axes,
-        },
-        "features": features_dict,
-        "text_description": analysis.text_description,
-    }
-
-
-def _connection_point_to_dict(cp: ConnectionPoint) -> dict[str, Any]:
-    """Convert a ConnectionPoint to a dict."""
-    return {
-        "end": cp.end,
-        "position": [float(v) for v in cp.position],
-        "axis": [float(v) for v in cp.axis],
-        "radius_mm": float(cp.radius_mm),
-        "method": cp.method,
-    }
-
-
-def _feature_to_dict(f: GeometricFeature) -> dict[str, Any]:
-    """Convert a GeometricFeature to a dict, omitting None fields."""
-    d: dict[str, Any] = {"description": f.description}
-    if f.normal is not None:
-        d["normal"] = f.normal
-    if f.axis is not None:
-        d["axis"] = f.axis
-    if f.area_mm2 is not None:
-        d["area_mm2"] = f.area_mm2
-    if f.radius_mm is not None:
-        d["radius_mm"] = f.radius_mm
-    if f.length_mm is not None:
-        d["length_mm"] = f.length_mm
-    if f.center is not None:
-        d["center"] = f.center
-    if f.centroid is not None:
-        d["centroid"] = f.centroid
-    if f.concave is not None:
-        d["concave"] = f.concave
-    return d
+    save_summary_yaml(model, output_path)
 
 
 def _infer_role_hint(analysis: PartAnalysis) -> str:
@@ -135,15 +74,15 @@ def _infer_role_hint(analysis: PartAnalysis) -> str:
     hints = []
 
     # Size-based hints
-    extents = analysis.bounding_box_extents
+    extents = analysis.geometry.bounding_box.extents
     if extents:
         max_extent = max(extents)
         if max_extent > 100:
             hints.append("large part")
 
     # Feature-based hints
-    flat_faces = [f for f in analysis.features if f.kind == "flat_face"]
-    cylinders = [f for f in analysis.features if f.kind == "cylindrical_surface"]
+    flat_faces = analysis.features.flat_faces
+    cylinders = analysis.features.cylindrical_surfaces
 
     if flat_faces:
         biggest = max(flat_faces, key=lambda f: f.area_mm2 or 0)

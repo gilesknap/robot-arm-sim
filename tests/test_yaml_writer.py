@@ -13,20 +13,30 @@ from robot_arm_sim.analyze.yaml_writer import (
     write_part_yaml,
     write_summary_yaml,
 )
-from robot_arm_sim.models.part import GeometricFeature, PartAnalysis
+from robot_arm_sim.models import (
+    BoundingBox,
+    Features,
+    FlatFace,
+    Geometry,
+    PartAnalysis,
+)
 
 
-def _make_analysis(
-    name: str, features: list[GeometricFeature] | None = None
-) -> PartAnalysis:
+def _make_analysis(name: str, features: Features | None = None) -> PartAnalysis:
     return PartAnalysis(
         part_name=name,
         source_file=f"stl_files/{name}.stl",
         format="binary_stl",
-        vertex_count=100,
-        face_count=50,
-        bounding_box_extents=[50.0, 50.0, 50.0],
-        features=features or [],
+        geometry=Geometry(
+            vertex_count=100,
+            face_count=50,
+            bounding_box=BoundingBox(
+                min=[0, 0, 0],
+                max=[50, 50, 50],
+                extents=[50.0, 50.0, 50.0],
+            ),
+        ),
+        features=features or Features(),
     )
 
 
@@ -56,13 +66,16 @@ def test_write_summary_yaml_creates_file(tmp_path: Path):
 
 def test_infer_role_hint_base_detection():
     """Part with a large flat bottom face should get 'possible base' hint."""
-    feature = GeometricFeature(
-        kind="flat_face",
-        description="flat bottom",
-        normal=[0, 0, -1],
-        area_mm2=500.0,
+    features = Features(
+        flat_faces=[
+            FlatFace(
+                description="flat bottom",
+                normal=[0, 0, -1],
+                area_mm2=500.0,
+            )
+        ],
     )
-    analysis = _make_analysis("base", features=[feature])
+    analysis = _make_analysis("base", features=features)
     hint = _infer_role_hint(analysis)
     assert "base" in hint.lower()
 

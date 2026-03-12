@@ -1,0 +1,210 @@
+{
+  "$defs": {
+    "ChainJoint": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "parent": {
+          "title": "Parent",
+          "type": "string"
+        },
+        "child": {
+          "title": "Child",
+          "type": "string"
+        },
+        "axis": {
+          "default": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "items": {
+            "type": "number"
+          },
+          "title": "Axis",
+          "type": "array"
+        },
+        "limits": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Limits"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Origin"
+        },
+        "origin_rpy": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Origin Rpy"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effort"
+        },
+        "velocity": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Velocity"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "parent",
+        "child"
+      ],
+      "title": "ChainJoint",
+      "type": "object"
+    },
+    "ChainLink": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "mesh": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mesh"
+        },
+        "visual_rpy": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visual Rpy"
+        },
+        "visual_xyz": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visual Xyz"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ChainLink",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "robot_name": {
+      "title": "Robot Name",
+      "type": "string"
+    },
+    "dh_params": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dh Params"
+    },
+    "links": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ChainLink"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "joints": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ChainJoint"
+      },
+      "title": "Joints",
+      "type": "array"
+    }
+  },
+  "required": [
+    "robot_name"
+  ],
+  "title": "Chain",
+  "type": "object"
+}

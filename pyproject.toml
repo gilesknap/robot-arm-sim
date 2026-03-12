@@ -18,6 +18,7 @@ dependencies = [
     "pyyaml>=6.0",
     "numpy>=1.24",
     "nicegui>=1.4",
+    "pydantic>=2.0",
 ]
 dynamic = ["version"]
 license.file = "LICENSE"
@@ -45,6 +46,7 @@ dev = [
 [project.scripts]
 robot-arm-sim = "robot_arm_sim.__main__:main"
 simulate = "robot_arm_sim.simulate:main"
+generate-schemas = "robot_arm_sim.generate_schemas:generate"
 
 [project.urls]
 GitHub = "https://github.com/gilesknap/robot-arm-sim"

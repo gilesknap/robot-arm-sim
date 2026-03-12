@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
-import yaml
 
+from robot_arm_sim.models import load_part_yaml
 from robot_arm_sim.models.robot import URDFRobot
 
 
@@ -27,20 +27,16 @@ def load_mesh_centers(robot: URDFRobot, robot_dir: Path) -> dict[str, np.ndarray
         yaml_path = analysis_dir / f"{part_name}.yaml"
         if not yaml_path.exists():
             continue
-        with open(yaml_path) as f:
-            data = yaml.safe_load(f)
-        bbox = data.get("geometry", {}).get("bounding_box", {})
-        bb_min = bbox.get("min")
-        bb_max = bbox.get("max")
-        if bb_min and bb_max:
-            center = np.array(
-                [
-                    (bb_min[0] + bb_max[0]) / 2.0,
-                    (bb_min[1] + bb_max[1]) / 2.0,
-                    (bb_min[2] + bb_max[2]) / 2.0,
-                ]
-            )
-            centers[link.name] = center
+        model = load_part_yaml(yaml_path)
+        bbox = model.geometry.bounding_box
+        center = np.array(
+            [
+                (bbox.min[0] + bbox.max[0]) / 2.0,
+                (bbox.min[1] + bbox.max[1]) / 2.0,
+                (bbox.min[2] + bbox.max[2]) / 2.0,
+            ]
+        )
+        centers[link.name] = center
     return centers
 
 
@@ -61,15 +57,14 @@ def load_flat_faces(robot: URDFRobot, robot_dir: Path) -> dict[str, list[dict]]:
         yaml_path = analysis_dir / f"{part_name}.yaml"
         if not yaml_path.exists():
             continue
-        with open(yaml_path) as f:
-            data = yaml.safe_load(f)
-        faces = data.get("features", {}).get("flat_faces", [])
+        model = load_part_yaml(yaml_path)
+        faces = model.features.flat_faces
         if faces:
             result[link.name] = [
                 {
-                    "normal": ff["normal"],
-                    "area_mm2": ff["area_mm2"],
-                    "centroid": ff["centroid"],
+                    "normal": ff.normal,
+                    "area_mm2": ff.area_mm2,
+                    "centroid": ff.centroid,
                 }
                 for ff in faces
             ]
@@ -102,18 +97,18 @@ def load_connection_points(robot: URDFRobot, robot_dir: Path) -> dict[str, list[
         yaml_path = analysis_dir / f"{part_name}.yaml"
         if not yaml_path.exists():
             continue
-        with open(yaml_path) as f:
-            data = yaml.safe_load(f)
-        cps = data.get("connection_points", [])
+        model = load_part_yaml(yaml_path)
+        cps = model.connection_points
         if cps:
             points = []
             for cp in cps:
                 points.append(
                     {
-                        "end": cp["end"],
-                        "position": np.array(cp["position"]),
-                        "axis": cp.get("axis", [0, 0, 1]),
-                        "radius_mm": cp.get("radius_mm", 10.0),
+                        "end": cp.end,
+                        "position": np.array(cp.position),
+                        "axis": cp.axis,
+                        "radius_mm": cp.radius_mm,
+                        "center": cp.center if cp.center is not None else False,
                     }
                 )
             result[link.name] = points

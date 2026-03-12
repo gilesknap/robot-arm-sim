@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-from robot_arm_sim.models.part import PartAnalysis
+from robot_arm_sim.models import BoundingBox, Geometry, Inertia, PartAnalysis
 
 from .base import AbstractMeshParser
 
@@ -49,15 +49,21 @@ class STLParser(AbstractMeshParser):
             part_name=file_path.stem,
             source_file=str(file_path),
             format=fmt,
-            vertex_count=len(mesh.vertices),
-            face_count=len(mesh.faces),
-            bounding_box_min=bb_min,
-            bounding_box_max=bb_max,
-            bounding_box_extents=extents,
-            volume_mm3=float(mesh.volume) if mesh.is_watertight else 0.0,
-            surface_area_mm2=float(mesh.area),
-            center_of_mass=com,
-            is_watertight=bool(mesh.is_watertight),
-            principal_moments=moments,
-            principal_axes=axes,
+            geometry=Geometry(
+                vertex_count=len(mesh.vertices),
+                face_count=len(mesh.faces),
+                bounding_box=BoundingBox(
+                    min=bb_min,
+                    max=bb_max,
+                    extents=extents,
+                ),
+                volume_mm3=float(mesh.volume) if mesh.is_watertight else 0.0,
+                surface_area_mm2=float(mesh.area),
+                center_of_mass=com,
+                is_watertight=bool(mesh.is_watertight),
+            ),
+            inertia=Inertia(
+                principal_moments=moments,
+                principal_axes=axes,
+            ),
         )
