@@ -10,6 +10,12 @@ import numpy as np
 import yaml
 from nicegui import ui
 
+from robot_arm_sim.models import (
+    ConnectionPoint,
+    load_part_yaml,
+    save_part_yaml,
+)
+
 from .loaders import quantize_axis
 
 if TYPE_CHECKING:
@@ -76,31 +82,21 @@ def build_edit_bores(state: SimulatorState) -> None:
                 yaml_path = analysis_dir / f"{part_name}.yaml"
                 if not yaml_path.exists():
                     continue
-                with open(yaml_path) as f:
-                    data = yaml.safe_load(f)
-                new_cps = []
+                model = load_part_yaml(yaml_path)
+                new_cps: list[ConnectionPoint] = []
                 for end, bore_data in assignments.items():
-                    cp: dict[str, Any] = {
-                        "end": end,
-                        "position": [
-                            round(bore_data["centroid"][i], 3) for i in range(3)
-                        ],
-                        "axis": quantize_axis(bore_data["normal"]),
-                        "radius_mm": round(bore_data["radius_mm"], 1),
-                        "method": "manual",
-                    }
-                    if bore_data.get("center", False):
-                        cp["center"] = True
+                    cp = ConnectionPoint(
+                        end=end,  # type: ignore[arg-type]
+                        position=[round(bore_data["centroid"][i], 3) for i in range(3)],
+                        axis=quantize_axis(bore_data["normal"]),
+                        radius_mm=round(bore_data["radius_mm"], 1),
+                        method="manual",
+                        center=True if bore_data.get("center", False) else None,
+                    )
                     new_cps.append(cp)
                 if new_cps:
-                    data["connection_points"] = new_cps
-                    with open(yaml_path, "w") as f:
-                        yaml.dump(
-                            data,
-                            f,
-                            default_flow_style=False,
-                            sort_keys=False,
-                        )
+                    model.connection_points = new_cps
+                    save_part_yaml(model, yaml_path)
 
             # Update chain.yaml: clear stale visual_xyz for edited links,
             # and propagate bore axes (only if Keep Kinematics off).

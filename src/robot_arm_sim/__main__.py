@@ -45,12 +45,17 @@ def analyze(
         file_okay=False,
         dir_okay=True,
     ),
+    override_manual: bool = typer.Option(
+        False,
+        "--override-manual",
+        help="Re-detect all connection points, discarding manual placements.",
+    ),
 ) -> None:
     """Analyze STL files and generate part YAML + renders."""
     from .analyze import run_analysis
 
     typer.echo(f"Analyzing robot in {robot_dir}...")
-    run_analysis(robot_dir)
+    run_analysis(robot_dir, override_manual=override_manual)
     typer.echo("Done.")
 
 

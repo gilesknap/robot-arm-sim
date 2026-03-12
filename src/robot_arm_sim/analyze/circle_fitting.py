@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import trimesh
 
-from robot_arm_sim.models.part import GeometricFeature
+from robot_arm_sim.models import GeometricFeature
 
 
 def find_circle_center_at_slice(

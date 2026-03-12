@@ -1,0 +1,38 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "robot_name": {
+      "title": "Robot Name",
+      "type": "string"
+    },
+    "manufacturer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Manufacturer"
+    },
+    "dof": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dof"
+    }
+  },
+  "required": [
+    "robot_name"
+  ],
+  "title": "Specs",
+  "type": "object"
+}

@@ -1,0 +1,500 @@
+{
+  "$defs": {
+    "BoundingBox": {
+      "properties": {
+        "min": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Min",
+          "type": "array"
+        },
+        "max": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Max",
+          "type": "array"
+        },
+        "extents": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Extents",
+          "type": "array"
+        }
+      },
+      "required": [
+        "min",
+        "max",
+        "extents"
+      ],
+      "title": "BoundingBox",
+      "type": "object"
+    },
+    "ConnectionPoint": {
+      "properties": {
+        "end": {
+          "enum": [
+            "proximal",
+            "distal"
+          ],
+          "title": "End",
+          "type": "string"
+        },
+        "position": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Position",
+          "type": "array"
+        },
+        "axis": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Axis",
+          "type": "array"
+        },
+        "radius_mm": {
+          "title": "Radius Mm",
+          "type": "number"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "center": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Center"
+        }
+      },
+      "required": [
+        "end",
+        "position",
+        "axis",
+        "radius_mm",
+        "method"
+      ],
+      "title": "ConnectionPoint",
+      "type": "object"
+    },
+    "CylindricalSurface": {
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "axis": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Axis"
+        },
+        "radius_mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radius Mm"
+        },
+        "length_mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Length Mm"
+        },
+        "center": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Center"
+        },
+        "concave": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Concave"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "CylindricalSurface",
+      "type": "object"
+    },
+    "Features": {
+      "properties": {
+        "flat_faces": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FlatFace"
+          },
+          "title": "Flat Faces",
+          "type": "array"
+        },
+        "cylindrical_surfaces": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CylindricalSurface"
+          },
+          "title": "Cylindrical Surfaces",
+          "type": "array"
+        },
+        "holes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Hole"
+          },
+          "title": "Holes",
+          "type": "array"
+        }
+      },
+      "title": "Features",
+      "type": "object"
+    },
+    "FlatFace": {
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "normal": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normal"
+        },
+        "area_mm2": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Area Mm2"
+        },
+        "centroid": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Centroid"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "FlatFace",
+      "type": "object"
+    },
+    "Geometry": {
+      "properties": {
+        "vertex_count": {
+          "default": 0,
+          "title": "Vertex Count",
+          "type": "integer"
+        },
+        "face_count": {
+          "default": 0,
+          "title": "Face Count",
+          "type": "integer"
+        },
+        "bounding_box": {
+          "$ref": "#/$defs/BoundingBox",
+          "default": {
+            "min": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "max": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "extents": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "volume_mm3": {
+          "default": 0.0,
+          "title": "Volume Mm3",
+          "type": "number"
+        },
+        "surface_area_mm2": {
+          "default": 0.0,
+          "title": "Surface Area Mm2",
+          "type": "number"
+        },
+        "center_of_mass": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "items": {
+            "type": "number"
+          },
+          "title": "Center Of Mass",
+          "type": "array"
+        },
+        "is_watertight": {
+          "default": false,
+          "title": "Is Watertight",
+          "type": "boolean"
+        }
+      },
+      "title": "Geometry",
+      "type": "object"
+    },
+    "Hole": {
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "axis": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Axis"
+        },
+        "radius_mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radius Mm"
+        },
+        "length_mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Length Mm"
+        },
+        "center": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Center"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "Hole",
+      "type": "object"
+    },
+    "Inertia": {
+      "properties": {
+        "principal_moments": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "items": {
+            "type": "number"
+          },
+          "title": "Principal Moments",
+          "type": "array"
+        },
+        "principal_axes": {
+          "default": [],
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Principal Axes",
+          "type": "array"
+        }
+      },
+      "title": "Inertia",
+      "type": "object"
+    }
+  },
+  "description": "Complete analysis result for a single mesh part.",
+  "properties": {
+    "part_name": {
+      "title": "Part Name",
+      "type": "string"
+    },
+    "source_file": {
+      "title": "Source File",
+      "type": "string"
+    },
+    "format": {
+      "title": "Format",
+      "type": "string"
+    },
+    "connection_points": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ConnectionPoint"
+      },
+      "title": "Connection Points",
+      "type": "array"
+    },
+    "geometry": {
+      "$ref": "#/$defs/Geometry",
+      "default": {
+        "vertex_count": 0,
+        "face_count": 0,
+        "bounding_box": {
+          "extents": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "volume_mm3": 0.0,
+        "surface_area_mm2": 0.0,
+        "center_of_mass": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "is_watertight": false
+      }
+    },
+    "inertia": {
+      "$ref": "#/$defs/Inertia",
+      "default": {
+        "principal_moments": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "principal_axes": []
+      }
+    },
+    "features": {
+      "$ref": "#/$defs/Features",
+      "default": {
+        "flat_faces": [],
+        "cylindrical_surfaces": [],
+        "holes": []
+      }
+    },
+    "text_description": {
+      "default": "",
+      "title": "Text Description",
+      "type": "string"
+    }
+  },
+  "required": [
+    "part_name",
+    "source_file",
+    "format"
+  ],
+  "title": "PartAnalysis",
+  "type": "object"
+}

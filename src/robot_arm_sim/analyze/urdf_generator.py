@@ -12,7 +12,7 @@ import xml.dom.minidom
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-import yaml
+from robot_arm_sim.models import load_chain_yaml, load_part_yaml
 
 from .urdf_transforms import compute_joint_origin, compute_visual_origin, validate_fk
 
@@ -31,18 +31,18 @@ def generate_urdf(
     """
     messages: list[str] = []
 
-    with open(chain_path) as f:
-        chain = yaml.safe_load(f)
+    chain_model = load_chain_yaml(chain_path)
+    chain = chain_model.model_dump(exclude_none=True)
 
     # Load analysis data for each mesh
-    analyses = {}
+    analyses: dict[str, dict] = {}
     for link in chain["links"]:
         mesh_name = link.get("mesh")
         if mesh_name:
             yaml_path = analysis_dir / f"{mesh_name}.yaml"
             if yaml_path.exists():
-                with open(yaml_path) as f:
-                    analyses[mesh_name] = yaml.safe_load(f)
+                part_model = load_part_yaml(yaml_path)
+                analyses[mesh_name] = part_model.model_dump(exclude_none=True)
             else:
                 messages.append(f"WARNING: No analysis YAML for {mesh_name}")
 

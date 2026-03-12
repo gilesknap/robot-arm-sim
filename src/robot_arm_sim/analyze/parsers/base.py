@@ -5,7 +5,7 @@ from __future__ import annotations
 import abc
 from pathlib import Path
 
-from robot_arm_sim.models.part import PartAnalysis
+from robot_arm_sim.models import PartAnalysis
 
 
 class AbstractMeshParser(abc.ABC):
