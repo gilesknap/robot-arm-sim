@@ -1,7 +1,8 @@
-# DH Parameters and Bore Geometry
+# Kinematics and URDF Generation
 
-How Denavit-Hartenberg parameters and bore detection interact to produce
-correct URDF joint origins and visual origins.
+How Denavit-Hartenberg parameters, bore detection, forward kinematics, and
+inverse kinematics interact to produce correct URDF joint origins, visual
+origins, and simulation.
 
 ## DH Parameters
 
@@ -81,6 +82,81 @@ Bore detection can report two positions along the bore axis:
 
 The face and center differ by approximately half the barrel diameter,
 typically 50–70 mm on UR-sized robots.
+
+## Forward Kinematics (FK)
+
+**Forward kinematics** is the process of computing the position and orientation
+of every link in the robot given a set of joint angles.  It is the direct
+consumer of DH parameters: FK walks the kinematic chain from base to tip,
+multiplying 4×4 homogeneous transforms at each joint to accumulate the
+world-frame pose of every link.
+
+For each joint in the chain the transform is:
+
+```
+T_child = T_parent × T_origin × R_joint(θ)
+```
+
+where:
+
+- **T_origin** is the fixed offset from the parent frame to the joint frame,
+  derived from the DH parameters (d, a, α) and stored in the URDF as
+  `<joint><origin xyz="..." rpy="...">`.
+- **R_joint(θ)** is the rotation produced by the current joint angle θ around
+  the joint axis.
+
+Starting from the base link at identity, FK multiplies these transforms
+sequentially to produce a dictionary of `link_name → 4×4 matrix` in world
+coordinates.  The translation column of the final matrix is the end-effector
+position; the rotation sub-matrix is its orientation.
+
+### Relationship to the other concepts on this page
+
+| Concept | Role in FK |
+|---------|-----------|
+| **DH parameters** | Source of the fixed joint-origin transforms (T_origin) |
+| **Bore geometry** | Determines the *visual* mesh offset so that rendered links align with the FK-computed frames — FK itself only uses DH-derived origins, not bore positions |
+| **URDF joint origins** | The concrete encoding of DH parameters that FK reads at runtime |
+| **Visual origins** | Shift meshes so the proximal bore center coincides with the frame origin that FK computes for that link |
+
+In short: DH parameters define *where* each joint frame sits, bore geometry
+defines *how* the mesh is shifted to match, and FK multiplies the chain of
+joint-frame transforms to get world-space poses for simulation and rendering.
+
+## Inverse Kinematics (IK)
+
+**Inverse kinematics** is the reverse of FK: given a desired end-effector
+position (and optionally orientation), find the set of joint angles that
+achieves it.  While FK has a unique closed-form solution — multiply transforms
+down the chain — IK is generally harder:
+
+- There may be **multiple solutions** (a 6-DOF arm can often reach the same
+  point with different elbow/wrist configurations).
+- There may be **no solution** (the target is outside the workspace).
+- For general robots the problem is solved **numerically** rather than
+  analytically.
+
+This project uses the [ikpy](https://github.com/Phmusic/ikpy) library, which
+builds an IK chain directly from the URDF file and solves numerically via
+iterative optimization.  The solver takes:
+
+1. A **target position** `[x, y, z]` in world coordinates (meters).
+2. The **current joint angles** as an initial guess to seed the optimizer and
+   bias toward nearby solutions.
+
+It returns a new set of joint angles whose FK result places the end-effector
+at (or near) the target.
+
+### How IK relates to the other concepts on this page
+
+| Concept | Role in IK |
+|---------|-----------|
+| **DH parameters** | Define the kinematic model that IK must invert — link lengths and twists determine the reachable workspace |
+| **FK** | IK solvers evaluate FK internally on every iteration to measure how close the current guess is to the target |
+| **URDF** | ikpy reads the URDF to build its internal chain, so correct joint origins (from DH) are essential for accurate IK |
+| **Bore geometry** | Not directly involved — IK operates on joint-space kinematics, not visual mesh positioning |
+
+The IK solver lives in `src/robot_arm_sim/simulate/ik_solver.py`.
 
 ## How They Connect
 
@@ -166,3 +242,23 @@ at joint_2, which has DH parameter d₂ = 135.85 mm along Y.
 - After joint_2 translation, meshes overlap by the barrel thickness,
   producing the correct visual appearance with the joint axis passing
   through the barrel center on both sides
+
+## Where to Find These in a Robot Folder
+
+Each robot lives under `robots/<RobotName>/`.  The core files that relate to
+the concepts on this page are:
+
+- **`chain.yaml`** — the kinematic chain specification: DH params, joint
+  definitions (axes, origins, limits), and link list with visual offsets.
+- **`robot.urdf`** — the generated URDF encoding joint origins (from DH/chain)
+  and visual origins (from bore analysis) that FK reads at runtime.
+- **`analysis/<part>.yaml`** — per-link bore geometry: proximal/distal
+  connection points (position, axis, radius).
+- **`stl_files/<part>.stl`** — visual meshes positioned by bore offsets.
+
+Individual robots may also include specs files with manufacturer DH tables,
+FK verification scripts, reference images, or view mappings.
+
+The FK implementation is in `src/robot_arm_sim/simulate/kinematics.py`
+(`forward_kinematics()`) and the IK solver is in
+`src/robot_arm_sim/simulate/ik_solver.py` (`solve_ik()`).

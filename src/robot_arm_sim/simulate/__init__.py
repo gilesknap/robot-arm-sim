@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def run_simulator(robot_dir: Path, port: int = 8080) -> None:
-    """Launch the NiceGUI simulator for a robot."""
+def run_simulator(robots_dir: Path, port: int = 8080) -> None:
+    """Launch the NiceGUI simulator for robots in *robots_dir*."""
     from .app import create_app
 
-    create_app(robot_dir, port=port)
+    create_app(robots_dir, port=port)
 
 
 def main() -> None:
@@ -20,9 +20,11 @@ def main() -> None:
 
     @app.command()
     def simulate(
-        robot_dir: Path = typer.Argument(..., help="Path to robot directory"),
+        robots_dir: Path = typer.Argument(
+            ..., help="Path to directory containing robot folders"
+        ),
         port: int = typer.Option(8080, help="Port for the web UI"),
     ) -> None:
-        run_simulator(robot_dir, port=port)
+        run_simulator(robots_dir, port=port)
 
     app()

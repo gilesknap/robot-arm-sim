@@ -32,10 +32,6 @@ needed to build a kinematic model:
 - **URDF generation** (`urdf_generator.py`) — combines a hand-authored
   `chain.yaml` kinematic specification with the per-part analysis results to
   compute exact joint origins and produce a valid URDF XML file.
-- **Off-screen rendering** (`renderer.py`) — uses pyrender with EGL to render
-  four standard views of each part (front, side, top, isometric) for
-  documentation purposes.
-
 Analysis results are written as YAML files into an `analysis/` directory
 alongside the source meshes.
 
@@ -60,7 +56,8 @@ The simulation stage launches a web-based 3D viewer:
   transforms for every link using axis-angle rotation (Rodrigues' formula)
   and RPY conventions. The chain is traversed from root to tip on each
   joint-angle update.
-- **Web application** (`app.py`) — a NiceGUI application that builds the
+- **Web application** (`app/`) — a NiceGUI application split across several
+  modules (scene, controls, toolbar, state, edit-bores) that builds the
   interactive 3D scene, joint-angle sliders, and toolbar controls. STL
   meshes are served as static files and loaded into a Three.js scene via
   NiceGUI's `ui.scene()` component.
@@ -93,9 +90,6 @@ The browser-based simulator uses several layers:
    server-side FK computation; the resulting transforms are broadcast to
    the browser over WebSocket.
 
-For off-screen rendering during the analysis stage, **pyrender** with
-**EGL** is used for headless OpenGL rendering without a display server.
-
 ## Key dependencies
 
 | Dependency | Purpose |
@@ -104,27 +98,23 @@ For off-screen rendering during the analysis stage, **pyrender** with
 | numpy | Matrix maths and transforms |
 | nicegui | Web UI framework (Vue.js + Quasar frontend) |
 | typer | CLI argument parsing |
-| pyrender | Off-screen mesh rendering |
 | pyyaml | YAML configuration parsing |
-| ikpy | Inverse kinematics (future use) |
+| ikpy | Inverse kinematics solver |
 
 ## Robot directory layout
 
-Each robot lives in its own directory under `robots/`. A typical layout:
+Each robot lives in its own directory under `robots/`. The core files are:
 
 ```
-robots/Meca500-R3/
+robots/<RobotName>/
 ├── stl_files/          # Source STL meshes (one per link)
-│   ├── A0.stl
-│   ├── A1.stl
-│   └── ...
 ├── analysis/           # Generated analysis YAML per part
-│   ├── A0.yaml
-│   ├── summary.yaml
-│   └── renders/        # Off-screen rendered views
-├── chain.yaml          # Hand-authored kinematic chain spec
+├── chain.yaml          # Kinematic chain specification
 └── robot.urdf          # Generated URDF model
 ```
+
+Individual robots may also contain specs files, verification scripts,
+reference images, or view mappings — the exact set varies by robot.
 
 The `chain.yaml` file defines joint types, rotation axes, angle limits, and
 which mesh files map to which links. This is the only file that requires
