@@ -1,146 +1,146 @@
-# yaml-language-server: $schema=../../../schemas/part_analysis.json
-part_name: wrist2
-source_file: stl_files/wrist2.stl
-format: binary_stl
 connection_points:
-- end: proximal
+- axis:
+  - 0.0
+  - 1.0
+  - 0.0
+  end: distal
+  method: manual
   position:
-  - 0.689
+  - -0.748
   - 47.5
-  - 93.65
-  axis:
+  - 96.683
+  radius_mm: 37.0
+- axis:
   - 0.0
-  - 1.0
   - 0.0
-  radius_mm: 37.8
-  method: cross_section
-- end: distal
+  - -1.0
+  end: proximal
+  method: manual
   position:
-  - 0.206
-  - -0.789
-  - 49.15
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 43.7
-  method: cross_section
-geometry:
-  vertex_count: 355
-  face_count: 702
-  bounding_box:
-    min:
-    - -38.889678955078125
-    - -57.188114166259766
-    - 49.14984130859375
-    max:
-    - 38.69434356689453
-    - 47.4999885559082
-    - 133.38255310058594
-    extents:
-    - 77.58402252197266
-    - 104.68810272216797
-    - 84.23271179199219
-  volume_mm3: 513720.9729690669
-  surface_area_mm2: 45916.868528431245
-  center_of_mass:
-  - -0.008663424866417226
-  - -3.56152116464594
-  - 90.05794512732251
-  is_watertight: true
-inertia:
-  principal_moments:
-  - 420259207.9916863
-  - 607114581.0357354
-  - 650470476.1203033
-  principal_axes:
-  - - 6.801743709524735e-05
-    - 0.9998701469900277
-    - -0.01611473027291188
-  - - 0.002151078515495689
-    - -0.01611483931944735
-    - -0.9998678336734953
-  - - -0.9999976841147424
-    - 3.334439740737983e-05
-    - -0.0021518952815454758
+  - 1.021
+  - -0.096
+  - 49.151
+  radius_mm: 37.2
 features:
-  flat_faces:
-  - description: "Large flat face on front, area 5104.5 mm\xB2, likely mating surface"
-    normal:
-    - 0.0
-    - 0.9153
-    - -0.4028
-    area_mm2: 5104.52
-    centroid:
-    - -2.5693
-    - -23.8029
-    - 92.7198
-  - description: "Large flat face on back, area 4759.1 mm\xB2, likely mating surface"
-    normal:
-    - 0.0001
-    - -0.9153
-    - 0.4028
-    area_mm2: 4759.13
-    centroid:
-    - -0.5834
-    - -21.7962
-    - 97.281
-  - description: "Large flat face on bottom, area 4354.8 mm\xB2, likely mating surface"
-    normal:
-    - -0.0001
-    - -0.0003
-    - -1.0
-    area_mm2: 4354.83
-    centroid:
-    - 1.0206
-    - -0.0963
-    - 49.1506
-  - description: "Large flat face on front, area 4308.9 mm\xB2, likely mating surface"
-    normal:
-    - -0.0
-    - 1.0
-    - 0.0
-    area_mm2: 4308.9
-    centroid:
-    - -0.7482
-    - 47.4999
-    - 96.6835
-  - description: "Large flat face on back, area 1146.2 mm\xB2, likely mating surface"
-    normal:
-    - 0.0021
-    - -1.0
-    - -0.0004
-    area_mm2: 1146.23
-    centroid:
-    - 8.8406
-    - -57.1337
-    - 94.012
   cylindrical_surfaces:
-  - description: Cylindrical surface along Y axis, radius 37.8 mm, length 97.0 mm
-    axis:
-    - 0.0
-    - 1.0
-    - 0.0
-    radius_mm: 37.82
-    length_mm: 97.04
+  - axis:
+    - 0
+    - 1
+    - 0
     center:
     - -0.5433
     - -8.3459
     - 88.0102
     concave: false
-  - description: Cylindrical surface along Z axis, radius 43.7 mm, length 72.8 mm
-    axis:
-    - 0.0
-    - 0.0
-    - 1.0
-    radius_mm: 43.74
-    length_mm: 72.76
+    description: Cylindrical surface along Y axis, radius 37.8 mm, length 97.0 mm
+    length_mm: 97.04
+    radius_mm: 37.82
+  - axis:
+    - 0
+    - 0
+    - 1
     center:
     - -0.1816
     - -18.8024
     - 81.4848
     concave: false
+    description: Cylindrical surface along Z axis, radius 43.7 mm, length 72.8 mm
+    length_mm: 72.76
+    radius_mm: 43.74
+  flat_faces:
+  - area_mm2: 5104.52
+    centroid:
+    - -2.5693
+    - -23.8029
+    - 92.7198
+    description: "Large flat face on front, area 5104.5 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 0.9153
+    - -0.4028
+  - area_mm2: 4759.13
+    centroid:
+    - -0.5834
+    - -21.7962
+    - 97.281
+    description: "Large flat face on back, area 4759.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0001
+    - -0.9153
+    - 0.4028
+  - area_mm2: 4354.83
+    centroid:
+    - 1.0206
+    - -0.0963
+    - 49.1506
+    description: "Large flat face on bottom, area 4354.8 mm\xB2, likely mating surface"
+    normal:
+    - -0.0001
+    - -0.0003
+    - -1.0
+  - area_mm2: 4308.9
+    centroid:
+    - -0.7482
+    - 47.4999
+    - 96.6835
+    description: "Large flat face on front, area 4308.9 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - 1.0
+    - 0.0
+  - area_mm2: 1146.23
+    centroid:
+    - 8.8406
+    - -57.1337
+    - 94.012
+    description: "Large flat face on back, area 1146.2 mm\xB2, likely mating surface"
+    normal:
+    - 0.0021
+    - -1.0
+    - -0.0004
   holes: []
-text_description: "Part 'wrist2' from stl_files/wrist2.stl.\nBounding box: 77.6 x 104.7 x 84.2 mm.\nWatertight solid, volume\
-  \ 513721.0 mm\xB3.\nSurface area: 45916.9 mm\xB2.\nMesh complexity: 355 vertices, 702 faces.\nHas 5 significant flat face(s).\n\
+format: binary_stl
+geometry:
+  bounding_box:
+    extents:
+    - 77.58402252197266
+    - 104.68810272216797
+    - 84.23271179199219
+    max:
+    - 38.69434356689453
+    - 47.4999885559082
+    - 133.38255310058594
+    min:
+    - -38.889678955078125
+    - -57.188114166259766
+    - 49.14984130859375
+  center_of_mass:
+  - -0.008663424866417226
+  - -3.56152116464594
+  - 90.05794512732251
+  face_count: 702
+  is_watertight: true
+  surface_area_mm2: 45916.868528431245
+  vertex_count: 355
+  volume_mm3: 513720.9729690669
+inertia:
+  principal_axes:
+  - - 6.80174370952474e-05
+    - 0.9998701469900275
+    - -0.016114730272911926
+  - - 0.002151078515495689
+    - -0.01611483931944757
+    - -0.9998678336734953
+  - - -0.9999976841147424
+    - 3.334439740737983e-05
+    - -0.002151895281545476
+  principal_moments:
+  - 420259207.9916863
+  - 607114581.0357354
+  - 650470476.1203033
+part_name: wrist2
+source_file: stl_files/wrist2.stl
+text_description: "Part 'wrist2' from stl_files/wrist2.stl.\nBounding box: 77.6 x\
+  \ 104.7 x 84.2 mm.\nWatertight solid, volume 513721.0 mm\xB3.\nSurface area: 45916.9\
+  \ mm\xB2.\nMesh complexity: 355 vertices, 702 faces.\nHas 5 significant flat face(s).\n\
   Has 2 cylindrical surface(s)."

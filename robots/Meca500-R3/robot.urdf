@@ -49,6 +49,7 @@
   </link>
   <link name="link_6">
     <visual>
+      <origin xyz="0.065795 0.000027 -0.000051" rpy="0 1.3295 0.0198"/>
       <geometry>
         <mesh filename="stl_files/EndEffector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
