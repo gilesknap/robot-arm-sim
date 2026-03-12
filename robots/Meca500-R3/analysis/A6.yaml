@@ -12,7 +12,7 @@ connection_points:
   - 0.0
   - 0.0
   radius_mm: 26.2
-  method: manual
+  method: cross_section
 - end: distal
   position:
   - 13.054
@@ -23,7 +23,7 @@ connection_points:
   - 0.0
   - 1.0
   radius_mm: 36.8
-  method: manual
+  method: cross_section
 geometry:
   vertex_count: 6079
   face_count: 12154
@@ -170,7 +170,6 @@ features:
     - 0.351
     concave: false
   holes: []
-text_description: "Part 'A6' from stl_files/A6.stl.\nBounding box: 91.5 x 65.2 x 45.0\
-  \ mm.\nWatertight solid, volume 167653.6 mm\xB3.\nSurface area: 19825.1 mm\xB2.\n\
-  Mesh complexity: 6079 vertices, 12154 faces.\nHas 8 significant flat face(s).\n\
+text_description: "Part 'A6' from stl_files/A6.stl.\nBounding box: 91.5 x 65.2 x 45.0 mm.\nWatertight solid, volume 167653.6\
+  \ mm\xB3.\nSurface area: 19825.1 mm\xB2.\nMesh complexity: 6079 vertices, 12154 faces.\nHas 8 significant flat face(s).\n\
   Has 2 cylindrical surface(s)."

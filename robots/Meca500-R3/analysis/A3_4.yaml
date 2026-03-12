@@ -4,26 +4,28 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 0.491
-  - -11.082
-  - -40.056
+  - -0.037
+  - -31.977
+  - 2.063
   axis:
   - 0.0
+  - -1.0
   - 0.0
-  - 1.0
-  radius_mm: 30.6
+  radius_mm: 5.0
   method: manual
+  center: true
 - end: distal
   position:
-  - 33.193
-  - -1.899
-  - 61.107
+  - 61.289
+  - 0.373
+  - 38.58
   axis:
-  - 0.0
-  - 0.0
   - 1.0
-  radius_mm: 20.0
+  - 0.0
+  - 0.0
+  radius_mm: 5.0
   method: manual
+  center: true
 geometry:
   vertex_count: 32936
   face_count: 65852
