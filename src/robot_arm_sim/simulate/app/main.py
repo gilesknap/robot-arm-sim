@@ -11,7 +11,7 @@ from .controls import build_controls_panel
 from .edit_bores import build_edit_bores
 from .scene_objects import build_scene
 from .state import SimulatorState
-from .toolbar import build_toolbar, build_visibility_panel
+from .toolbar import build_toolbar, build_visibility_section
 
 
 def create_app(robot_dir: Path, port: int = 8080) -> None:
@@ -57,9 +57,9 @@ def _build_ui(robot, robot_dir):
         with ui.column().style("gap: 0"):
             build_scene(state)
             build_toolbar(state)
-            build_visibility_panel(state)
             build_edit_bores(state)
 
-        # Right panel: controls
+        # Right panel: controls + visibility
         with ui.column().classes("p-4").style("width: 280px; overflow-y: auto"):
             build_controls_panel(state)
+            build_visibility_section(state)

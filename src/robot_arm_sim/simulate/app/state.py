@@ -96,8 +96,9 @@ class SimulatorState:
         self.joint_panel: Any = None
         self.ik_panel: Any = None
 
-        # Deferred handler (set by edit_bores builder)
+        # Deferred handlers (set by builders)
         self.toggle_edit_bores = lambda: None
+        self.reset_all = lambda: None
 
     def _build_joint_labels(self) -> dict[str, str]:
         joint_labels: dict[str, str] = {}
@@ -105,12 +106,12 @@ class SimulatorState:
             child_link = self.robot.get_link(joint.child)
             if child_link and child_link.mesh_path:
                 part = Path(child_link.mesh_path).stem
-                joint_labels[joint.name] = f"{part} ({joint.name})"
+                joint_labels[joint.name] = f"{part}"
             else:
                 parent_link = self.robot.get_link(joint.parent)
                 if parent_link and parent_link.mesh_path:
                     part = Path(parent_link.mesh_path).stem
-                    joint_labels[joint.name] = f"{part} ({joint.name})"
+                    joint_labels[joint.name] = f"{part}"
                 else:
                     joint_labels[joint.name] = joint.name
         return joint_labels

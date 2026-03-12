@@ -38,6 +38,8 @@ def build_controls_panel(state: SimulatorState) -> None:
         state.ik_sliders["ry"].value = round(math.degrees(eu[1]))
         state.ik_sliders["rz"].value = round(math.degrees(eu[2]))
 
+    state.reset_all = lambda: None  # placeholder, set below
+
     def reset_all():
         for jname in state.joint_angles:
             state.joint_angles[jname] = 0.0
@@ -46,15 +48,16 @@ def build_controls_panel(state: SimulatorState) -> None:
         _populate_ik_from_fk()
         state.update_scene_now()
 
-    # Compact header row: title + mode radio + reset button
+    state.reset_all = reset_all
+
+    # Compact header row: title + mode radio
     with ui.row().classes("w-full items-center"):
         ui.label("Controls").classes("text-h6")
         ui.space()
-        mode_radio = ui.radio(["Joint", "IK"], value="Joint").props("dense inline")
-        ui.button("Reset", on_click=reset_all).props("flat dense")
+        mode_radio = ui.radio(["FK", "IK"], value="FK").props("dense inline")
 
     # --- Joint control panel ---
-    state.joint_panel = ui.column().classes("w-full")
+    state.joint_panel = ui.column().classes("w-full").style("gap: 4px")
     with state.joint_panel:
         for joint in chain:
             if joint.joint_type not in ("revolute", "continuous"):
@@ -64,14 +67,22 @@ def build_controls_panel(state: SimulatorState) -> None:
             upper_deg = math.degrees(joint.limit_upper)
             display = state.joint_labels[joint.name]
 
-            with ui.column().classes("w-full"):
-                label = ui.label(f"{display}: 0.0\u00b0")
+            with ui.row().classes("w-full items-center no-wrap").style("gap: 4px"):
+                ui.label(display).style(
+                    "width: 80px; flex-shrink: 0; text-align: left; "
+                    "font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; "
+                    "white-space: nowrap;"
+                )
 
-                def make_handler(jname, lbl, disp):
+                angle_label = ui.label("0.0°").style(
+                    "width: 50px; flex-shrink: 0; text-align: right; font-size: 0.8rem;"
+                )
+
+                def make_handler(jname, albl):
                     def on_change():
                         angle_deg = state.sliders[jname].value
                         state.joint_angles[jname] = math.radians(angle_deg)
-                        lbl.text = f"{disp}: {angle_deg:.1f}\u00b0"
+                        albl.text = f"{angle_deg:.1f}°"
                         state.update_scene_now()
 
                     return on_change
@@ -81,8 +92,8 @@ def build_controls_panel(state: SimulatorState) -> None:
                     max=upper_deg,
                     value=0,
                     step=0.5,
-                    on_change=make_handler(joint.name, label, display),
-                )
+                    on_change=make_handler(joint.name, angle_label),
+                ).style("flex: 1")
                 state.sliders[joint.name] = slider
 
     # --- IK control panel ---
@@ -108,52 +119,81 @@ def build_controls_panel(state: SimulatorState) -> None:
                 state.sliders[jt.name].value = math.degrees(angle)
         state.update_scene_now()
 
-    ik_defs = [
+    trans_defs = [
         ("x", "X (mm)", -300, 300),
         ("y", "Y (mm)", -300, 300),
         ("z", "Z (mm)", 0, 500),
-        ("rx", "Rx (\u00b0)", -180, 180),
-        ("ry", "Ry (\u00b0)", -180, 180),
-        ("rz", "Rz (\u00b0)", -180, 180),
+    ]
+    rot_defs = [
+        ("rx", "Rx (°)", -180, 180),
+        ("ry", "Ry (°)", -180, 180),
+        ("rz", "Rz (°)", -180, 180),
     ]
 
     with state.ik_panel:
-        for key, name, lo, hi in ik_defs:
+        with ui.row().classes("w-full").style("gap: 16px"):
+            # Translation column
+            with ui.column().style("flex: 1"):
+                ui.label("Translation (mm)").classes("text-caption")
+                for key, name, lo, hi in trans_defs:
 
-            def make_ik_handler(k, nm):
-                def on_change():
-                    v = state.ik_sliders[k].value
-                    state.ik_labels[k].text = f"{nm}: {v}"
-                    _solve_ik_from_sliders()
+                    def make_ik_handler(k, nm):
+                        def on_change():
+                            v = state.ik_sliders[k].value
+                            state.ik_labels[k].text = f"{nm}: {v}"
+                            _solve_ik_from_sliders()
 
-                return on_change
+                        return on_change
 
-            with ui.column().classes("w-full"):
-                state.ik_labels[key] = ui.label(f"{name}: 0")
-                state.ik_sliders[key] = ui.slider(
-                    min=lo,
-                    max=hi,
-                    value=0,
-                    step=1,
-                    on_change=make_ik_handler(key, name),
-                )
+                    with ui.column().classes("w-full"):
+                        state.ik_labels[key] = ui.label(f"{name}: 0")
+                        state.ik_sliders[key] = ui.slider(
+                            min=lo,
+                            max=hi,
+                            value=0,
+                            step=1,
+                            on_change=make_ik_handler(key, name),
+                        )
+
+            # Rotation column
+            with ui.column().style("flex: 1"):
+                ui.label("Rotation (°)").classes("text-caption")
+                for key, name, lo, hi in rot_defs:
+
+                    def make_ik_handler(k, nm):
+                        def on_change():
+                            v = state.ik_sliders[k].value
+                            state.ik_labels[k].text = f"{nm}: {v}"
+                            _solve_ik_from_sliders()
+
+                        return on_change
+
+                    with ui.column().classes("w-full"):
+                        state.ik_labels[key] = ui.label(f"{name}: 0")
+                        state.ik_sliders[key] = ui.slider(
+                            min=lo,
+                            max=hi,
+                            value=0,
+                            step=1,
+                            on_change=make_ik_handler(key, name),
+                        )
 
     # Mode toggle handler
     def on_mode_change(e):
-        is_joint = e.value == "Joint"
-        state.joint_panel.set_visibility(is_joint)
-        state.ik_panel.set_visibility(not is_joint)
-        if not is_joint:
+        is_fk = e.value == "FK"
+        state.joint_panel.set_visibility(is_fk)
+        state.ik_panel.set_visibility(not is_fk)
+        if not is_fk:
             _populate_ik_from_fk()
 
     mode_radio.on_value_change(on_mode_change)
 
     # --- End-effector readout ---
-    ui.separator()
-    ui.label("End Effector").classes("text-caption")
-    ee_readout = ui.label(
-        "X: 0.0  Y: 0.0  Z: 0.0 mm\nRx: 0.0\u00b0  Ry: 0.0\u00b0  Rz: 0.0\u00b0"
-    ).style("white-space: pre; font-family: monospace; font-size: 0.75rem;")
+    with ui.card().props("flat bordered").classes("w-full q-pa-sm"):
+        ui.label("End Effector").classes("text-caption")
+        ee_readout = ui.label(
+            "X: 0.0  Y: 0.0  Z: 0.0 mm\nRx: 0.0°  Ry: 0.0°  Rz: 0.0°"
+        ).style("white-space: pre; font-family: monospace; font-size: 0.75rem;")
 
     state.ee_readout_ref[0] = ee_readout
 
@@ -189,7 +229,7 @@ def _setup_state_restore(state: SimulatorState) -> None:
             if lname in state.visible_links:
                 state.visible_links[lname] = vis
                 if lname in state.link_checkboxes:
-                    state.link_checkboxes[lname].value = vis
+                    state.link_checkboxes[lname].selected = vis
 
         # Restore joint angles
         joints_state = saved.get("joints", {})
