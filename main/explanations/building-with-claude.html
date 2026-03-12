@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Building a Robot Simulator with Claude &#8212; robot-arm-sim 1.0.1.dev5+gefc4912fa documentation</title>
+    <title>Building a Robot Simulator with Claude &#8212; robot-arm-sim 1.2.dev2+g4c0f647a5 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=0df5ba3a"></script>
+    <script src="../_static/documentation_options.js?v=846dadf8"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -553,6 +553,7 @@ preserved.</p>
 <ul class="simple">
 <li><p>When you have spent effort working on a problem and have a solution, ask Claude to write a skill that captures the debugging methodology, not just the fix. This way you can reuse the same process for future problems.</p></li>
 <li><p>See examples from this project in <code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code></p></li>
+<li><p>Skills are only loaded when the agent sees that they might be needed (or you exlicity invoke with e.g. /build-robot). So they aren’t taking up context space all the time, but they are there when you need them.</p></li>
 </ul>
 </li>
 <li><p>Look after memory:</p>
@@ -583,6 +584,7 @@ preserved.</p>
 <li><p>Checked into the repo, so every session and every contributor gets the same baseline.</p></li>
 <li><p>Good for build commands, coding conventions, and constraints that Claude should always follow.</p></li>
 <li><p>See this project’s <code class="docutils literal notranslate"><span class="pre">CLAUDE.md</span></code> for an example.</p></li>
+<li><p>Keep it less than 40 lines or so as it is loaded into context at the start of every session.</p></li>
 </ul>
 </li>
 <li><p>Give permission for effort and parallelism:</p>
