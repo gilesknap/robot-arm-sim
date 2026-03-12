@@ -39,12 +39,19 @@
       </geometry>
     </visual>
   </link>
-  <link name="link_5"/>
-  <link name="link_6">
+  <link name="link_5">
     <visual>
       <origin xyz="-0.000162 0.000026 -0.001179" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/A6.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_6">
+    <visual>
+      <origin xyz="0.065795 0.000027 -0.000051" rpy="0 1.3295 0.0198"/>
+      <geometry>
+        <mesh filename="stl_files/EndEffector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
   </link>

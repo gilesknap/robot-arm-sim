@@ -473,6 +473,8 @@ f0d0da1 Visual joint alignment tuning, camera control and refine-with-image skil
 
 ## Related documents
 
+- {doc}`chrome-connector-workflow` — a detailed walkthrough of using the
+  Chrome connector and camera skills to debug the end-effector
 - {doc}`implementation-plan` — the original plan written before any code
 - {doc}`connection-point-plan` — the plan that fixed the URDF assembly
 - {doc}`architecture` — how the final system fits together
