@@ -1,0 +1,46 @@
+# Version control
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.eggs
+dist
+build
+
+# Virtual environments
+.venv
+.tox
+
+# IDE / editor
+.vscode
+*.code-workspace
+.idea
+
+# Testing / coverage
+.pytest_cache
+cov.xml
+htmlcov
+.coverage
+
+# Documentation build artifacts
+docs/_build
+
+# CI / tooling config
+.devcontainer
+.github
+renovate.json
+CLAUDE.md
+.claude
+
+# Docker
+Dockerfile
+docker-compose*.yml
+
+# Temp / misc
+tmp
+*.md
+!README.md
+plan*.md

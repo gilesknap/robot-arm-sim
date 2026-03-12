@@ -211,6 +211,12 @@ def _setup_state_restore(state: SimulatorState) -> None:
     """Set up timer to restore UI state after page reload."""
 
     async def _restore_state():
+        try:
+            await _do_restore_state()
+        except (TimeoutError, RuntimeError):
+            return
+
+    async def _do_restore_state():
         raw = await ui.run_javascript(
             "var s = sessionStorage.getItem('reload_state');"
             "if(s) sessionStorage.removeItem('reload_state');"
