@@ -1,3 +1,11 @@
+---
+name: documentation
+description: Guidelines for writing and maintaining project documentation.
+---
+
+> **Generic skill** — This skill is project-agnostic. Do not add project-specific
+> references, paths, or terminology here.
+
 # Documentation Skill
 
 Guidelines for writing and maintaining project documentation.
