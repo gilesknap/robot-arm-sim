@@ -58,6 +58,7 @@ class SimulatorState:
         self.bore_assignments: dict[str, dict[str, Any]] = {}
         self.bore_end_toggle = {"value": "Proximal"}
         self.keep_kinematics = {"value": True}
+        self.bore_center = {"value": True}
 
         # Loaded analysis data
         self.mesh_centers = load_mesh_centers(robot, robot_dir)

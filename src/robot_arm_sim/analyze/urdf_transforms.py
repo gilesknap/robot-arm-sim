@@ -36,7 +36,8 @@ def compute_visual_origin(
     axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
     bbox = analysis.get("geometry", {}).get("bounding_box", {})
     method = proximal.get("method", "")
-    if bbox and abs(bore_axis[axis_idx]) > 0.5 and method != "manual":
+    center = proximal.get("center", False)
+    if bbox and abs(bore_axis[axis_idx]) > 0.5 and (method != "manual" or center):
         bmin = bbox["min"][axis_idx]
         bmax = bbox["max"][axis_idx]
         pos[axis_idx] = (bmin + bmax) / 2

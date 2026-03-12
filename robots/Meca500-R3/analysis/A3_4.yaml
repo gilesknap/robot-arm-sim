@@ -12,7 +12,7 @@ connection_points:
   - 0.0
   - 1.0
   radius_mm: 30.6
-  method: cross_section
+  method: manual
 - end: distal
   position:
   - 33.193
@@ -23,7 +23,7 @@ connection_points:
   - 0.0
   - 1.0
   radius_mm: 20.0
-  method: cross_section
+  method: manual
 geometry:
   vertex_count: 32936
   face_count: 65852
@@ -188,6 +188,7 @@ features:
     - 21.6239
     concave: false
   holes: []
-text_description: "Part 'A3_4' from stl_files/A3_4.stl.\nBounding box: 89.9 x 68.0 x 101.2 mm.\nWatertight solid, volume 374043.2\
-  \ mm\xB3.\nSurface area: 34520.7 mm\xB2.\nMesh complexity: 32936 vertices, 65852 faces.\nHas 11 significant flat face(s).\n\
-  Has 1 cylindrical surface(s)."
+text_description: "Part 'A3_4' from stl_files/A3_4.stl.\nBounding box: 89.9 x 68.0\
+  \ x 101.2 mm.\nWatertight solid, volume 374043.2 mm\xB3.\nSurface area: 34520.7\
+  \ mm\xB2.\nMesh complexity: 32936 vertices, 65852 faces.\nHas 11 significant flat\
+  \ face(s).\nHas 1 cylindrical surface(s)."

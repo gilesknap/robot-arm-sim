@@ -1,75 +1,113 @@
-robot_name: Meca500-R3
-dh_params:  # from manufacturer specs (mm)
-  d1: 135    # base to J2
-  a2: 135    # upper arm length
-  a3: 38     # elbow offset (X)
-  d4: 120    # forearm length
-  d6: 70     # wrist to flange
-
-links:
-  - name: base_link
-    mesh: A0
-  - name: link_1
-    mesh: A1
-  - name: link_2
-    mesh: A2
-    visual_xyz: [0, 0, -0.030]  # lower A2 ~30mm to compensate proximal bore at Z=-31.9mm
-  - name: link_3
-    mesh: A3_4
-    visual_xyz: [0, -0.013, -0.038]  # center A3_4 in Y + lower ~38mm for proximal bore at Z=-40mm
-  - name: link_4
-    mesh: A5  # A5 is the wrist housing, rotated by J4 (forearm roll)
-  - name: link_5
-    mesh: null  # virtual link — J5 pitch between A5 and A6
-  - name: link_6
-    mesh: A6
-    visual_xyz: [-0.020, 0, 0]  # shift A6 back 20mm so bore circle centers on COR inside A5 yoke
-
+dh_params:
+  a2: 135
+  a3: 38
+  d1: 135
+  d4: 120
+  d6: 70
 joints:
-  - name: joint_1
-    type: revolute
-    parent: base_link
-    child: link_1
-    axis: [0, 0, 1]
-    limits: [-3.054, 3.054]
-    origin: [0, 0, 0.093]  # d1_base = 93mm (base height to J1)
-
-  - name: joint_2
-    type: revolute
-    parent: link_1
-    child: link_2
-    axis: [0, 1, 0]
-    limits: [-1.2217, 1.5708]
-    origin: [0, 0, 0.042]  # J1 to J2 = 135 - 93 = 42mm
-
-  - name: joint_3
-    type: revolute
-    parent: link_2
-    child: link_3
-    axis: [0, 1, 0]
-    limits: [-2.3562, 1.2217]
-    origin: [0, 0, 0.135]  # a2 = 135mm (upper arm)
-
-  - name: joint_4
-    type: revolute
-    parent: link_3
-    child: link_4
-    axis: [1, 0, 0]
-    limits: [-2.9671, 2.9671]
-    origin: [0.062, 0, 0.038]  # lowered 38mm to match A3_4's visual distal bore position
-
-  - name: joint_5
-    type: revolute
-    parent: link_4
-    child: link_5
-    axis: [0, 1, 0]
-    limits: [-2.0071, 2.0071]
-    origin: [0.055, 0, 0]  # deeper into A5 yoke so A6 bore circle is hidden between jaws
-
-  - name: joint_6
-    type: revolute
-    parent: link_5
-    child: link_6
-    axis: [1, 0, 0]
-    limits: [-3.1416, 3.1416]
-    origin: [0, 0, 0]  # J5 and J6 co-located at the pitch/roll point
+- axis:
+  - 0
+  - 0
+  - 1
+  child: link_1
+  limits:
+  - -3.054
+  - 3.054
+  name: joint_1
+  origin:
+  - 0
+  - 0
+  - 0.093
+  parent: base_link
+  type: revolute
+- axis:
+  - 0
+  - 1
+  - 0
+  child: link_2
+  limits:
+  - -1.2217
+  - 1.5708
+  name: joint_2
+  origin:
+  - 0
+  - 0
+  - 0.042
+  parent: link_1
+  type: revolute
+- axis:
+  - 0
+  - 1
+  - 0
+  child: link_3
+  limits:
+  - -2.3562
+  - 1.2217
+  name: joint_3
+  origin:
+  - 0
+  - 0
+  - 0.135
+  parent: link_2
+  type: revolute
+- axis:
+  - 1
+  - 0
+  - 0
+  child: link_4
+  limits:
+  - -2.9671
+  - 2.9671
+  name: joint_4
+  origin:
+  - 0.062
+  - 0
+  - 0.038
+  parent: link_3
+  type: revolute
+- axis:
+  - 0
+  - 1
+  - 0
+  child: link_5
+  limits:
+  - -2.0071
+  - 2.0071
+  name: joint_5
+  origin:
+  - 0.055
+  - 0
+  - 0
+  parent: link_4
+  type: revolute
+- axis:
+  - 1
+  - 0
+  - 0
+  child: link_6
+  limits:
+  - -3.1416
+  - 3.1416
+  name: joint_6
+  origin:
+  - 0
+  - 0
+  - 0
+  parent: link_5
+  type: revolute
+links:
+- mesh: A0
+  name: base_link
+- mesh: A1
+  name: link_1
+- mesh: A2
+  name: link_2
+- mesh: A3_4
+  name: link_3
+- mesh: A5
+  name: link_4
+- mesh: null
+  name: link_5
+- mesh: A6
+  name: link_6
+robot_name: Meca500-R3

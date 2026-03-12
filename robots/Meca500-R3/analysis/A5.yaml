@@ -12,7 +12,7 @@ connection_points:
   - 0.0
   - 0.0
   radius_mm: 32.1
-  method: cross_section
+  method: manual
 - end: distal
   position:
   - 32.195
@@ -23,7 +23,7 @@ connection_points:
   - 0.0
   - 1.0
   radius_mm: 36.5
-  method: cross_section
+  method: manual
 geometry:
   vertex_count: 9096
   face_count: 18052
@@ -230,6 +230,7 @@ features:
     - 0.3163
     concave: false
   holes: []
-text_description: "Part 'A5' from stl_files/A5.stl.\nBounding box: 81.2 x 69.5 x 45.0 mm.\nNon-watertight mesh (volume not\
-  \ computed).\nSurface area: 21816.4 mm\xB2.\nMesh complexity: 9096 vertices, 18052 faces.\nHas 14 significant flat face(s).\n\
+text_description: "Part 'A5' from stl_files/A5.stl.\nBounding box: 81.2 x 69.5 x 45.0\
+  \ mm.\nNon-watertight mesh (volume not computed).\nSurface area: 21816.4 mm\xB2\
+  .\nMesh complexity: 9096 vertices, 18052 faces.\nHas 14 significant flat face(s).\n\
   Has 2 cylindrical surface(s)."

@@ -356,12 +356,12 @@ FACE_MARKER_INIT_JS = """
     window.__boreEditMarkers = boreEditMarkers;
 
     window.__placeBoreEditMarker = function(
-        id, x, y, z, colorHex
+        id, x, y, z, colorHex, radiusMm
     ) {
         let m = boreEditMarkers[id];
         if (!m) {
             const g = new THREE.SphereGeometry(
-                0.008, 16, 12);
+                1.0, 16, 12);
             const mt = new THREE.MeshStandardMaterial({
                 color: colorHex, metalness: 0.3,
                 roughness: 0.6, transparent: true,
@@ -371,6 +371,9 @@ FACE_MARKER_INIT_JS = """
             sc.scene.add(m);
             boreEditMarkers[id] = m;
         }
+        const r = Math.max(0.002, Math.min(0.015,
+            (radiusMm || 8) * 0.001 * 0.3));
+        m.scale.setScalar(r);
         m.material.color.setHex(colorHex);
         m.position.set(x, y, z);
         m.visible = true;
