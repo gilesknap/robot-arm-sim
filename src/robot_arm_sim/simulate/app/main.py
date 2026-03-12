@@ -14,19 +14,34 @@ from .state import SimulatorState
 from .toolbar import build_toolbar, build_visibility_section
 
 
-def create_app(robot_dir: Path, port: int = 8080) -> None:
-    """Create and run the NiceGUI simulator app."""
-    urdf_path = robot_dir / "robot.urdf"
-    if not urdf_path.exists():
+def _discover_robots(robots_dir: Path) -> dict[str, Path]:
+    """Return {name: path} for every sub-dir containing robot.urdf."""
+    found: dict[str, Path] = {}
+    for child in sorted(robots_dir.iterdir()):
+        if child.is_dir() and (child / "robot.urdf").exists():
+            found[child.name] = child
+    return found
+
+
+def create_app(robots_dir: Path, port: int = 8080) -> None:
+    """Create and run the NiceGUI simulator app.
+
+    *robots_dir* is the parent directory whose sub-folders each contain
+    a ``robot.urdf`` and associated assets.
+    """
+    robots = _discover_robots(robots_dir)
+    if not robots:
         raise FileNotFoundError(
-            f"No robot.urdf found in {robot_dir}. "
-            "Run the assembly-reasoning skill first."
+            f"No robot directories with robot.urdf found in {robots_dir}."
         )
 
-    # Serve STL files
-    stl_dir = robot_dir / "stl_files"
-    if stl_dir.exists():
-        app.add_static_files("/stl", str(stl_dir))
+    # Serve STL files for all robots under /stl/<robot_name>/
+    for name, rdir in robots.items():
+        stl_dir = rdir / "stl_files"
+        if stl_dir.exists():
+            app.add_static_files(f"/stl/{name}", str(stl_dir))
+
+    default_robot = next(iter(robots))
 
     @app.get("/healthz")
     async def healthz():
@@ -34,23 +49,38 @@ def create_app(robot_dir: Path, port: int = 8080) -> None:
 
     @ui.page("/")
     def index():
-        robot = load_urdf(urdf_path)
-        _build_ui(robot, robot_dir)
+        _build_ui(robots, default_robot)
+
+    @ui.page("/{robot_name}")
+    def robot_page(robot_name: str):
+        if robot_name not in robots:
+            ui.label(f"Unknown robot: {robot_name}").classes("text-h5")
+            return
+        _build_ui(robots, robot_name)
 
     ui.run(
         port=port,
-        title=f"Robot Sim: {robot_dir.name}",
+        title="Robot Simulator",
         reload=False,
         show=False,
         reconnect_timeout=30,
     )
 
 
-def _build_ui(robot, robot_dir):
-    """Build the simulator UI."""
+def _build_ui(robots: dict[str, Path], current_name: str) -> None:
+    """Build the simulator UI for the selected robot."""
+    robot_dir = robots[current_name]
+    robot = load_urdf(robot_dir / "robot.urdf")
     state = SimulatorState(robot, robot_dir)
 
-    ui.label(f"Robot: {robot.name}").classes("text-h4")
+    # Title row with robot selector dropdown
+    with ui.row().classes("items-center").style("gap: 12px"):
+        ui.label("Robot:").classes("text-h4")
+        ui.select(
+            options=list(robots.keys()),
+            value=current_name,
+            on_change=lambda e: ui.navigate.to(f"/{e.value}"),
+        ).props("dense outlined").style("min-width: 180px")
 
     with ui.row().style("flex-wrap: nowrap; gap: 0"):
         # Left panel: 3D scene + toolbar

@@ -26,16 +26,72 @@ def build_toolbar(state: SimulatorState) -> None:
     """Build the toolbar below the 3D viewport."""
 
     def shutdown():
+        import asyncio
         import os
         import signal
 
-        os.kill(os.getpid(), signal.SIGTERM)
+        async def _delayed_kill():
+            await asyncio.sleep(0.5)
+            os.kill(os.getpid(), signal.SIGTERM)
+
+        ui.run_javascript(
+            "document.querySelector('#app').__vue_app__.unmount();"
+            "document.body.innerHTML = '<div style=\""
+            "display:flex;flex-direction:column;align-items:center;"
+            "justify-content:center;height:100vh;gap:16px;font-family:sans-serif"
+            '">'
+            '<span style="font-size:64px">&#x1f44b;</span>'
+            "<h1>Simulator stopped</h1>"
+            '<p style="color:#888">Run the simulate command again to restart.'
+            "</p></div>';"
+        )
+        asyncio.get_event_loop().create_task(_delayed_kill())
 
     with ui.dialog() as stop_dialog, ui.card():
         ui.label("Are you sure you want to stop the simulator?")
         with ui.row().classes("w-full justify-end"):
             ui.button("Cancel", on_click=stop_dialog.close).props("flat")
             ui.button("Stop", on_click=shutdown).props("color=red")
+
+    docs_url = "https://gilesknap.github.io/robot-arm-sim"
+    story_url = f"{docs_url}/main/explanations/building-with-claude.html"
+
+    with (
+        ui.dialog() as about_dialog,
+        ui.card().style("max-width: 480px; text-align: left"),
+    ):
+        ui.label("About Robot Arm Simulator").classes("text-h6")
+        ui.label("Toolbar buttons").classes("text-subtitle2")
+        _bdr = "border: 1px solid rgba(0,0,0,0.12);"
+        _th = f"text-align: left; padding: 6px 8px; {_bdr}"
+        _td = f"padding: 4px 8px; {_bdr}"
+        _hdr_bg = "background: rgba(0,0,0,0.06);"
+        rows = [
+            ("Labels", "Toggle part/joint name callouts in the 3D view"),
+            ("Frames", "Show coordinate-frame axes at each joint"),
+            ("Transparent", "Make meshes semi-transparent"),
+            ("Bores", "Highlight detected bore holes on each part"),
+            ("Edit Bores", "Assign bore holes to proximal/distal ends"),
+            ("Reload URDF", "Re-parse the URDF and refresh the scene"),
+            ("Screenshot", "Download a PNG of the current 3D view"),
+            ("Reset", "Zero all joint angles"),
+        ]
+        body = "".join(
+            f"<tr><td style='{_td}'><b>{b}</b></td><td style='{_td}'>{d}</td></tr>"
+            for b, d in rows
+        )
+        ui.html(
+            f'<table style="border-collapse: collapse; width: 100%; {_bdr}">'
+            f'<tr style="{_hdr_bg}">'
+            f'<th style="{_th}">Button</th>'
+            f'<th style="{_th}">Description</th>'
+            f"</tr>{body}</table>"
+        )
+        with ui.row().style("gap: 16px"):
+            ui.link("Documentation", docs_url, new_tab=True)
+            ui.link("How it was built", story_url, new_tab=True)
+        with ui.row().classes("w-full justify-end q-mt-sm"):
+            ui.button("Close", on_click=about_dialog.close).props("flat")
 
     with ui.row().classes("q-pa-sm items-center").style("width: 900px; gap: 8px;"):
         # --- View group ---
@@ -114,12 +170,7 @@ def build_toolbar(state: SimulatorState) -> None:
         # About icon button
         ui.button(
             icon="info",
-            on_click=lambda: ui.navigate.to(
-                "https://gilesknap.github.io/"
-                "robot-arm-sim/main/"
-                "explanations/building-with-claude.html",
-                new_tab=True,
-            ),
+            on_click=about_dialog.open,
         ).props("flat dense round color=green-7").tooltip("About")
 
 

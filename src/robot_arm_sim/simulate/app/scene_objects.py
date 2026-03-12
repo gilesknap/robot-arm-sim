@@ -40,7 +40,7 @@ def build_scene(state: SimulatorState) -> None:
         for link in state.robot.links:
             if link.mesh_path:
                 stl_name = Path(link.mesh_path).name
-                stl_url = f"/stl/{stl_name}"
+                stl_url = f"/stl/{state.robot_dir.name}/{stl_name}"
                 obj = (
                     scene.stl(stl_url)
                     .scale(

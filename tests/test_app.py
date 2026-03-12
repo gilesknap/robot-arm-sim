@@ -23,12 +23,12 @@ def test_joint_labels_construction(robot_dir: Path):
         child_link = robot.get_link(joint.child)
         if child_link and child_link.mesh_path:
             part = Path(child_link.mesh_path).stem
-            joint_labels[joint.name] = f"{part} ({joint.name})"
+            joint_labels[joint.name] = f"{part}"
         else:
             parent_link = robot.get_link(joint.parent)
             if parent_link and parent_link.mesh_path:
                 part = Path(parent_link.mesh_path).stem
-                joint_labels[joint.name] = f"{part} ({joint.name})"
+                joint_labels[joint.name] = f"{part}"
             else:
                 joint_labels[joint.name] = joint.name
 

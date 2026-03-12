@@ -25,4 +25,4 @@ def test_analyze_help():
 def test_simulate_help():
     cmd = [sys.executable, "-m", "robot_arm_sim", "simulate", "--help"]
     output = subprocess.check_output(cmd).decode()
-    assert "robot_dir" in output.lower() or "ROBOT_DIR" in output
+    assert "robots_dir" in output.lower() or "ROBOTS_DIR" in output

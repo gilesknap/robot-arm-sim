@@ -91,9 +91,9 @@ def generate(
 
 @app.command()
 def simulate(
-    robot_dir: Path = typer.Argument(
+    robots_dir: Path = typer.Argument(
         ...,
-        help="Path to robot directory (must contain robot.urdf).",
+        help="Path to directory containing robot folders.",
         exists=True,
         file_okay=False,
         dir_okay=True,
@@ -103,8 +103,8 @@ def simulate(
     """Launch interactive 3D simulator for a robot arm."""
     from .simulate import run_simulator
 
-    typer.echo(f"Starting simulator for {robot_dir} on port {port}...")
-    run_simulator(robot_dir, port=port)
+    typer.echo(f"Starting simulator for robots in {robots_dir} on port {port}...")
+    run_simulator(robots_dir, port=port)
 
 
 def main() -> None:
