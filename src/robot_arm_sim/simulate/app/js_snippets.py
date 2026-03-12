@@ -317,6 +317,21 @@ FACE_MARKER_INIT_JS = """
     walk(appEl.__vue_app__._container._vnode, 0);
     if (!sc) return;
 
+    // Tag STL meshes with link names via object_id
+    const meshMap = MESH_LINK_MAP;
+    const stlMeshes = [];
+    for (const [objId, linkName] of Object.entries(meshMap)) {
+        const obj = sc.objects.get(objId);
+        if (!obj) continue;
+        obj.traverse(child => {
+            if (child.isMesh) {
+                child.userData.linkName = linkName;
+                stlMeshes.push(child);
+            }
+        });
+    }
+    window.__stlMeshes = stlMeshes;
+
     const markers = {};
     const faces = FACE_DATA;
     for (const f of faces) {
@@ -336,9 +351,46 @@ FACE_MARKER_INIT_JS = """
     window.__faceEditMode = false;
     window.__lastFaceClick = null;
 
+    // Bore edit markers (dynamic green/red spheres)
+    const boreEditMarkers = {};
+    window.__boreEditMarkers = boreEditMarkers;
+
+    window.__placeBoreEditMarker = function(
+        id, x, y, z, colorHex
+    ) {
+        let m = boreEditMarkers[id];
+        if (!m) {
+            const g = new THREE.SphereGeometry(
+                0.008, 16, 12);
+            const mt = new THREE.MeshStandardMaterial({
+                color: colorHex, metalness: 0.3,
+                roughness: 0.6, transparent: true,
+                opacity: 0.9
+            });
+            m = new THREE.Mesh(g, mt);
+            sc.scene.add(m);
+            boreEditMarkers[id] = m;
+        }
+        m.material.color.setHex(colorHex);
+        m.position.set(x, y, z);
+        m.visible = true;
+    };
+
+    window.__removeBoreEditMarker = function(id) {
+        const m = boreEditMarkers[id];
+        if (m) {
+            sc.scene.remove(m);
+            m.geometry.dispose();
+            m.material.dispose();
+            delete boreEditMarkers[id];
+        }
+    };
+
     window.__setFaceMarkersVisible = function(show) {
         window.__faceEditMode = show;
         Object.values(markers).forEach(
+            m => { m.visible = show; });
+        Object.values(boreEditMarkers).forEach(
             m => { m.visible = show; });
     };
 
@@ -357,20 +409,54 @@ FACE_MARKER_INIT_JS = """
         if (m) m.material.color.setHex(colorHex);
     };
 
-    // Click handler: raycast against face markers
-    sc.renderer.domElement.addEventListener('click', function(e) {
+    // Click: raycast markers first, then STL meshes
+    sc.renderer.domElement.addEventListener(
+        'click', function(e) {
         if (!window.__faceEditMode) return;
-        const rect = sc.renderer.domElement.getBoundingClientRect();
+        const rect = sc.renderer.domElement
+            .getBoundingClientRect();
         const mouse = new THREE.Vector2(
-            ((e.clientX - rect.left) / rect.width) * 2 - 1,
-            -((e.clientY - rect.top) / rect.height) * 2 + 1);
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(mouse, sc.camera);
-        const markerList = Object.values(window.__faceMarkers)
-            .filter(m => m.visible);
-        const hits = raycaster.intersectObjects(markerList);
-        if (hits.length > 0) {
-            window.__lastFaceClick = hits[0].object.name;
+            ((e.clientX - rect.left) / rect.width)
+                * 2 - 1,
+            -((e.clientY - rect.top) / rect.height)
+                * 2 + 1);
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(mouse, sc.camera);
+
+        // Try face markers first
+        const vis = Object.values(
+            window.__faceMarkers).filter(
+                m => m.visible);
+        const mHits = ray.intersectObjects(vis);
+        if (mHits.length > 0) {
+            window.__lastFaceClick = {
+                type: 'marker',
+                name: mHits[0].object.name
+            };
+            return;
+        }
+
+        // Try STL meshes
+        const sHits = ray.intersectObjects(
+            window.__stlMeshes);
+        if (sHits.length > 0) {
+            const hit = sHits[0];
+            const ln = hit.object.userData.linkName;
+            if (ln) {
+                const n = hit.face
+                    ? hit.face.normal : {x:0,y:0,z:1};
+                window.__lastFaceClick = {
+                    type: 'mesh',
+                    linkName: ln,
+                    faceIndex: hit.faceIndex,
+                    point: [
+                        hit.point.x,
+                        hit.point.y,
+                        hit.point.z
+                    ],
+                    normal: [n.x, n.y, n.z]
+                };
+            }
         }
     });
 })();

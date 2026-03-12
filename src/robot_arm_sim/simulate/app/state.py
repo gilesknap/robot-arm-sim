@@ -54,9 +54,10 @@ class SimulatorState:
         self.transparent_mode = {"value": False}
         self.edit_bores_active = {"value": False}
 
-        # Edit bores tracking
-        self.bore_assignments: dict[str, dict[int, str]] = {}
+        # Edit bores tracking: {link_name: {end: {centroid, normal, ...}}}
+        self.bore_assignments: dict[str, dict[str, Any]] = {}
         self.bore_end_toggle = {"value": "Proximal"}
+        self.keep_kinematics = {"value": True}
 
         # Loaded analysis data
         self.mesh_centers = load_mesh_centers(robot, robot_dir)

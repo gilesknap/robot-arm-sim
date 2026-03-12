@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import yaml
 from nicegui import ui
 
@@ -23,18 +24,25 @@ def build_edit_bores(state: SimulatorState) -> None:
     with state.edit_bores_row:
         bore_toggle = ui.toggle(["Proximal", "Distal"], value="Proximal").props("dense")
 
-        def _on_bore_toggle(e):
+        def _on_bore_toggle(e: Any) -> None:
             state.bore_end_toggle["value"] = e.value
 
         bore_toggle.on_value_change(_on_bore_toggle)
 
-        state.bore_status_label = ui.label("Click a face marker to assign").style(
+        kk_cb = ui.checkbox("Keep Kinematics", value=True).props("dense")
+
+        def _on_keep_kin(e: Any) -> None:
+            state.keep_kinematics["value"] = e.value
+
+        kk_cb.on_value_change(_on_keep_kin)
+
+        state.bore_status_label = ui.label("Click mesh or marker to assign").style(
             "font-size: 0.85rem; color: #666;"
         )
 
         ui.space()
 
-        async def _save_and_rebuild():
+        async def _save_and_rebuild() -> None:
             """Write bore assignments to YAML and regenerate URDF."""
             analysis_dir = state.robot_dir / "analysis"
             for link_name, assignments in state.bore_assignments.items():
@@ -47,32 +55,32 @@ def build_edit_bores(state: SimulatorState) -> None:
                     continue
                 with open(yaml_path) as f:
                     data = yaml.safe_load(f)
-                faces_list = state.flat_faces.get(link_name, [])
                 new_cps = []
-                for face_idx, end in assignments.items():
-                    ff = faces_list[face_idx]
-                    radius = math.sqrt(ff["area_mm2"] / math.pi)
+                for end, bore_data in assignments.items():
                     new_cps.append(
                         {
                             "end": end,
                             "position": [
-                                round(ff["centroid"][0], 3),
-                                round(ff["centroid"][1], 3),
-                                round(ff["centroid"][2], 3),
+                                round(bore_data["centroid"][i], 3) for i in range(3)
                             ],
-                            "axis": quantize_axis(ff["normal"]),
-                            "radius_mm": round(radius, 1),
+                            "axis": quantize_axis(bore_data["normal"]),
+                            "radius_mm": round(bore_data["radius_mm"], 1),
                             "method": "manual",
                         }
                     )
                 if new_cps:
                     data["connection_points"] = new_cps
                     with open(yaml_path, "w") as f:
-                        yaml.dump(data, f, default_flow_style=False)
+                        yaml.dump(
+                            data,
+                            f,
+                            default_flow_style=False,
+                            sort_keys=False,
+                        )
 
-            # Propagate bore axes to chain.yaml
+            # Propagate bore axes to chain.yaml (only if Keep Kinematics off)
             chain_file = state.robot_dir / "chain.yaml"
-            if chain_file.exists():
+            if not state.keep_kinematics["value"] and chain_file.exists():
                 with open(chain_file) as f:
                     chain_data = yaml.safe_load(f)
                 link_meshes = {
@@ -121,7 +129,7 @@ def build_edit_bores(state: SimulatorState) -> None:
             "color=orange-7 flat dense"
         )
 
-    def _toggle_edit_bores():
+    def _toggle_edit_bores() -> None:
         state.edit_bores_active["value"] = not state.edit_bores_active["value"]
         active = state.edit_bores_active["value"]
         state.edit_bores_btn.text = "Exit Edit" if active else "Edit Bores"
@@ -133,7 +141,8 @@ def build_edit_bores(state: SimulatorState) -> None:
         ui.run_javascript(f"window.__setFaceMarkersVisible({str(active).lower()})")
         if active:
             ui.run_javascript("window.__setMeshTransparency(0.25)")
-            state.bore_status_label.text = "Click a face marker to assign"
+            state.bore_status_label.text = "Click mesh or marker to assign"
+            _show_existing_bore_markers(state)
             state.update_scene_now()
         else:
             if not state.transparent_mode["value"]:
@@ -141,8 +150,8 @@ def build_edit_bores(state: SimulatorState) -> None:
 
     state.toggle_edit_bores = _toggle_edit_bores
 
-    # Polling timer for face marker clicks
-    async def _poll_face_click():
+    # Polling timer for face clicks
+    async def _poll_face_click() -> None:
         if not state.edit_bores_active["value"]:
             return
         try:
@@ -154,12 +163,103 @@ def build_edit_bores(state: SimulatorState) -> None:
         except (TimeoutError, RuntimeError):
             return
         if result:
-            _handle_face_click(state, result)
+            if isinstance(result, dict):
+                if result.get("type") == "marker":
+                    _handle_marker_click(state, result["name"])
+                elif result.get("type") == "mesh":
+                    _handle_mesh_click(state, result)
+            elif isinstance(result, str):
+                _handle_marker_click(state, result)
 
     ui.timer(0.2, _poll_face_click)
 
 
-def _handle_face_click(state: SimulatorState, name: str) -> None:
+def _show_existing_bore_markers(state: SimulatorState) -> None:
+    """Show existing bore assignments as colored markers on enter."""
+    for link_name, assigns in state.bore_assignments.items():
+        for end, bore_data in assigns.items():
+            _place_bore_marker(state, link_name, end, bore_data["centroid"])
+
+
+def _place_bore_marker(
+    state: SimulatorState,
+    link_name: str,
+    end: str,
+    centroid_mm: list[float],
+) -> None:
+    """Place/update a bore edit marker sphere at the given position."""
+    # Transform centroid from STL-space (mm) to world-space (m)
+    transforms = _get_visual_transforms(state)
+    tf_vis = transforms.get(link_name)
+    if tf_vis is None:
+        return
+
+    c_m = [centroid_mm[i] * 0.001 for i in range(3)]
+    c_homo = np.array([c_m[0], c_m[1], c_m[2], 1.0])
+    wp = tf_vis @ c_homo
+
+    marker_id = f"bore_edit_{link_name}_{end}"
+    color = "0x00cc00" if end == "proximal" else "0xcc0000"
+    ui.run_javascript(
+        f"window.__placeBoreEditMarker("
+        f"'{marker_id}', {wp[0]:.6f}, {wp[1]:.6f}, {wp[2]:.6f}, {color})"
+    )
+
+
+def _get_visual_transforms(
+    state: SimulatorState,
+) -> dict[str, np.ndarray]:
+    """Compute current visual transforms for all links."""
+    from ..kinematics import (
+        forward_kinematics,
+        rpy_to_matrix,
+        translation_matrix,
+    )
+
+    transforms = forward_kinematics(state.robot, state.joint_angles)
+    visual_transforms: dict[str, np.ndarray] = {}
+    for link_name, tf in transforms.items():
+        link = state.robot.get_link(link_name)
+        if link:
+            visual_tf = translation_matrix(link.origin_xyz) @ rpy_to_matrix(
+                link.origin_rpy
+            )
+            visual_transforms[link_name] = tf @ visual_tf
+        else:
+            visual_transforms[link_name] = tf
+    return visual_transforms
+
+
+def _assign_bore(
+    state: SimulatorState,
+    link_name: str,
+    end: str,
+    bore_data: dict,
+) -> None:
+    """Assign a bore point and update markers."""
+    if link_name not in state.bore_assignments:
+        state.bore_assignments[link_name] = {}
+
+    assigns = state.bore_assignments[link_name]
+
+    # Remove old marker for this end if any
+    if end in assigns:
+        old_id = f"bore_edit_{link_name}_{end}"
+        ui.run_javascript(f"window.__removeBoreEditMarker('{old_id}')")
+
+    assigns[end] = bore_data
+    _place_bore_marker(state, link_name, end, bore_data["centroid"])
+
+    part_link = state.robot.get_link(link_name)
+    part_name = (
+        Path(part_link.mesh_path).stem
+        if part_link and part_link.mesh_path
+        else link_name
+    )
+    state.bore_status_label.text = f"Set {part_name} {end}"
+
+
+def _handle_marker_click(state: SimulatorState, name: str) -> None:
     """Process a face marker click: face_{link}_{idx}."""
     parts = name.split("_", 1)
     if len(parts) < 2 or parts[0] != "face":
@@ -184,41 +284,66 @@ def _handle_face_click(state: SimulatorState, name: str) -> None:
     face_idx = matched_idx
     end = state.bore_end_toggle["value"].lower()
 
-    if link_name not in state.bore_assignments:
-        state.bore_assignments[link_name] = {}
-
-    assigns = state.bore_assignments[link_name]
-
-    # Check if opposite end is at this face — swap
-    opposite = "distal" if end == "proximal" else "proximal"
-    if assigns.get(face_idx) == opposite:
-        old_face = None
-        for fi, e in assigns.items():
-            if e == end:
-                old_face = fi
-                break
-        if old_face is not None:
-            assigns[old_face] = opposite
-            old_id = f"face_{link_name}_{old_face}"
-            color = "0xcc0000" if opposite == "distal" else "0x00cc00"
-            ui.run_javascript(f"window.__setFaceMarkerColor('{old_id}', {color})")
-
-    assigns[face_idx] = end
-
-    # Recolour all markers for this link
     faces_list = state.flat_faces.get(link_name, [])
+    if face_idx >= len(faces_list):
+        return
+    ff = faces_list[face_idx]
+    radius = math.sqrt(ff["area_mm2"] / math.pi)
+
+    bore_data = {
+        "centroid": ff["centroid"],
+        "normal": ff["normal"],
+        "area_mm2": ff["area_mm2"],
+        "radius_mm": radius,
+    }
+    _assign_bore(state, link_name, end, bore_data)
+
+    # Recolour face markers for this link
+    assigns = state.bore_assignments.get(link_name, {})
+    assigned_centroids = {e: d["centroid"] for e, d in assigns.items()}
     for i in range(len(faces_list)):
         fid = f"face_{link_name}_{i}"
-        if i in assigns:
-            color = "0x00cc00" if assigns[i] == "proximal" else "0xcc0000"
+        fc = faces_list[i]["centroid"]
+        matched_end = None
+        for e, c in assigned_centroids.items():
+            if c == fc:
+                matched_end = e
+                break
+        if matched_end:
+            color = "0x00cc00" if matched_end == "proximal" else "0xcc0000"
         else:
             color = "0xffcc00"
         ui.run_javascript(f"window.__setFaceMarkerColor('{fid}', {color})")
 
-    part_link = state.robot.get_link(link_name)
-    part_name = (
-        Path(part_link.mesh_path).stem
-        if part_link and part_link.mesh_path
-        else link_name
-    )
-    state.bore_status_label.text = f"Set {part_name} face {face_idx} as {end}"
+
+def _handle_mesh_click(state: SimulatorState, result: dict) -> None:
+    """Process a direct mesh click — place bore at click point."""
+    link_name = result["linkName"]
+    end = state.bore_end_toggle["value"].lower()
+
+    # World-space hit point and face normal from JS (meters)
+    wp = result.get("point", [0, 0, 0])
+    wn = result.get("normal", [0, 0, 1])
+
+    # Convert world-space → STL-space (mm) via inverse visual transform
+    transforms = _get_visual_transforms(state)
+    tf_vis = transforms.get(link_name)
+    if tf_vis is None:
+        return
+
+    tf_inv = np.linalg.inv(tf_vis)
+    # Point: full affine transform, then m → mm
+    stl_pt = (tf_inv @ np.array([wp[0], wp[1], wp[2], 1.0]))[:3] * 1000.0
+    # Normal: rotation only (no translation)
+    stl_n = tf_inv[:3, :3] @ np.array([wn[0], wn[1], wn[2]])
+    norm = float(np.linalg.norm(stl_n))
+    if norm > 1e-8:
+        stl_n = stl_n / norm
+
+    bore_data = {
+        "centroid": [round(float(v), 4) for v in stl_pt],
+        "normal": [round(float(v), 4) for v in stl_n],
+        "area_mm2": 78.54,  # cosmetic default ~5mm radius circle
+        "radius_mm": 5.0,
+    }
+    _assign_bore(state, link_name, end, bore_data)

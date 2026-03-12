@@ -1,0 +1,240 @@
+# Meca500-R3 Specifications
+# Derived from:
+#   - Mecademic Meca500 (R3) User Manual, Document Revision F, Firmware 7.0.6
+#   - Mecademic Industrial Robots Programming Manual, MC-PM-EN, Firmware 10.2
+#   - URDF from mecademic_description (GitHub: Daniella1/urdf_files_dataset)
+#   - Manufacturer dimension drawing (User Manual Figure 3)
+
+robot_name: Meca500-R3
+manufacturer: Mecademic
+dof: 6
+
+zero_config: >
+  All joints at 0 degrees. Robot stands upright with the forearm pointing
+  straight up. The axis of joint 3 intersects the axis of joint 1, the axes
+  of joints 4 and 6 are aligned and normal to the axis of joint 1, and the
+  axes of joints 2, 3, and 5 are parallel. This is a wrist singularity
+  (theta_5 = 0). The FRF y-axis aligns with the BRF y-axis.
+
+# Standard DH parameters (Craig / modified DH convention)
+# Derived from URDF joint origins and manufacturer dimension drawing.
+#
+# Joint axes from URDF:
+#   J1: Z (base rotation)
+#   J2: Y (shoulder pitch)
+#   J3: Y (elbow pitch)
+#   J4: X (forearm roll)
+#   J5: Y (wrist pitch)
+#   J6: X (wrist roll / flange rotation)
+#
+# Key geometric facts:
+#   - Base height (J1 origin to J2 axis): 135 mm (91 + 44 from URDF)
+#   - Upper arm (J2 to J3): 135 mm along Z
+#   - Elbow lateral offset (J3 to J4): 38 mm along Z
+#   - Forearm (J4 to J5): 120 mm along X
+#   - Wrist (J5 to J6/flange): 70 mm along X
+#
+# Elbow singularity confirmation:
+#   theta_3 = -arctan(120/38) = -arctan(60/19) ~ -72.43 deg
+#   (matches programming manual exactly)
+
+dh_parameters:
+  # Standard DH: [theta_i, d_i, a_{i-1}, alpha_{i-1}]
+  # Listed as: d (link offset), a (link length), alpha (link twist), theta_offset
+  - joint: 1
+    d: 135.0       # mm - base height (ground to J2 axis)
+    a: 0.0         # mm
+    alpha: 0.0     # degrees - (frame 0 to frame 1)
+    theta_offset: 0.0  # degrees
+    type: revolute
+    axis_direction: Z
+
+  - joint: 2
+    d: 0.0         # mm
+    a: 0.0         # mm
+    alpha: -90.0   # degrees - rotates Z from vertical to horizontal (Y-pitch)
+    theta_offset: 0.0  # degrees
+    type: revolute
+    axis_direction: Y
+
+  - joint: 3
+    d: 0.0         # mm
+    a: 135.0       # mm - upper arm length (J2 to J3 along Z when theta2=0)
+    alpha: 0.0     # degrees - J2 and J3 axes are parallel (both Y-pitch)
+    theta_offset: 0.0  # degrees
+    type: revolute
+    axis_direction: Y
+
+  - joint: 4
+    d: 120.0       # mm - forearm length (offset along new Z after alpha rotation)
+    a: 38.0        # mm - elbow lateral offset (J3 to J4 along previous Z)
+    alpha: -90.0   # degrees - transitions from Y-pitch to X-roll
+    theta_offset: 0.0  # degrees
+    type: revolute
+    axis_direction: X
+
+  - joint: 5
+    d: 0.0         # mm
+    a: 0.0         # mm
+    alpha: 90.0    # degrees - transitions from X-roll back to Y-pitch
+    theta_offset: 0.0  # degrees
+    type: revolute
+    axis_direction: Y
+
+  - joint: 6
+    d: 70.0        # mm - wrist/flange offset (J5 to flange)
+    a: 0.0         # mm
+    alpha: -90.0   # degrees - transitions from Y-pitch to X-roll (flange)
+    theta_offset: 0.0  # degrees
+    type: revolute
+    axis_direction: X
+
+# Physical offsets (notable lateral/axial offsets between joints)
+physical_offsets:
+  base_height: 135.0             # mm - ground plane to J2 axis (91 + 44 from URDF)
+  base_link_x_offset: 12.498    # mm - base link center to J1 axis (from URDF)
+  upper_arm_length: 135.0        # mm - J2 to J3 (along link 2)
+  elbow_lateral_offset: 38.0     # mm - J3 to J4 perpendicular offset
+  forearm_length: 120.0          # mm - J4 to J5 (along link 4)
+  wrist_length: 70.0             # mm - J5 to J6 (along link 5/6)
+  flange_diameter: 20.0          # mm - mounting flange diameter
+
+# Joint limits from User Manual Table 1 and Programming Manual Section 1.1.5
+joint_limits:
+  - joint: 1
+    lower_deg: -175.0
+    upper_deg: 175.0
+    lower_rad: -3.054326
+    upper_rad: 3.054326
+    max_speed_deg_s: 150.0
+
+  - joint: 2
+    lower_deg: -70.0
+    upper_deg: 90.0
+    lower_rad: -1.221730
+    upper_rad: 1.570796
+    max_speed_deg_s: 150.0
+
+  - joint: 3
+    lower_deg: -135.0
+    upper_deg: 70.0
+    lower_rad: -2.356194
+    upper_rad: 1.221730
+    max_speed_deg_s: 180.0
+
+  - joint: 4
+    lower_deg: -170.0
+    upper_deg: 170.0
+    lower_rad: -2.967060
+    upper_rad: 2.967060
+    max_speed_deg_s: 300.0
+
+  - joint: 5
+    lower_deg: -115.0
+    upper_deg: 115.0
+    lower_rad: -2.007129
+    upper_rad: 2.007129
+    max_speed_deg_s: 300.0
+
+  - joint: 6
+    lower_deg: -36000.0
+    upper_deg: 36000.0
+    lower_rad: -628.318531  # +/- 100 turns (software limit, no mechanical limit)
+    upper_rad: 628.318531
+    max_speed_deg_s: 500.0
+    note: "Multi-turn joint. No mechanical limits; software limits are +/-100 turns."
+
+# Workspace / reach
+total_reach_mm: 260          # radius of wrist center boundary (from Figure 3, R260)
+# Note: 260mm is the max distance from J1 axis to wrist center (J4-J5-J6 intersection)
+# Total TCP reach depends on tool definition
+
+# General specs from Table 1
+general_specs:
+  weight_kg: 4.5
+  position_repeatability_mm: 0.005
+  rated_payload_kg: 0.5
+  max_payload_kg: 1.0        # under special conditions
+  max_tcp_linear_vel_joint_mode_mm_s: 2000
+  max_tcp_linear_vel_cartesian_mode_mm_s: 500
+  max_power_consumption_w: 200
+  input_voltage: "24 VDC"
+  ip_rating: "IP 40"
+  operating_temp_range_c: [5, 45]
+  brakes: "Joints 1, 2, 3 only (emergency brakes)"
+
+# Singularity conditions (from programming manual)
+singularities:
+  wrist: "theta_5 = 0 deg (axes of joints 4 and 6 aligned)"
+  elbow: "theta_3 = -arctan(60/19) ~ -72.43 deg (arm fully stretched)"
+  shoulder: "Wrist center lies on axis of joint 1"
+
+# Reference images (already in robots/Meca500-R3/images/)
+references:
+  - file: "images/reference_side_dimensions.png"
+    type: dimensioned_drawing
+    view: side
+    source: "User Manual Figure 3"
+    notes: "Shows 135mm base, 135mm upper arm, 38mm offset, 120mm forearm, 70mm wrist, R260 reach"
+
+  - file: "images/reference_side_cad.png"
+    type: cad_rendering
+    view: side
+
+  - file: "images/reference_photo_side.jpg"
+    type: photograph
+    view: side
+
+  - file: "images/reference_photo_3quarter.jpg"
+    type: photograph
+    view: three_quarter
+
+  - file: "images/reference_photo_3quarter_clean.jpg"
+    type: photograph
+    view: three_quarter
+    notes: "Clean background version"
+
+# URDF joint origins (from mecademic_description URDF, in meters)
+# Useful for cross-referencing DH parameters
+urdf_joint_origins:
+  - joint: meca_axis_1_joint
+    parent: meca_base_link
+    child: meca_axis_1_link
+    xyz: [0.012498, 0, 0.091]
+    rpy: [0, 0, 0]
+    axis: [0, 0, 1]
+
+  - joint: meca_axis_2_joint
+    parent: meca_axis_1_link
+    child: meca_axis_2_link
+    xyz: [0, 0, 0.044]
+    rpy: [0, 0, 0]
+    axis: [0, 1, 0]
+
+  - joint: meca_axis_3_joint
+    parent: meca_axis_2_link
+    child: meca_axis_3_link
+    xyz: [0, 0, 0.135]
+    rpy: [0, 0, 0]
+    axis: [0, 1, 0]
+
+  - joint: meca_axis_4_joint
+    parent: meca_axis_3_link
+    child: meca_axis_4_link
+    xyz: [0, 0, 0.038]
+    rpy: [0, 0, 0]
+    axis: [1, 0, 0]
+
+  - joint: meca_axis_5_joint
+    parent: meca_axis_4_link
+    child: meca_axis_5_link
+    xyz: [0.12, 0, 0]
+    rpy: [0, 0, 0]
+    axis: [0, 1, 0]
+
+  - joint: meca_axis_6_joint
+    parent: meca_axis_5_link
+    child: meca_axis_6_link
+    xyz: [0.07, 0, 0]
+    rpy: [0, 0, 0]
+    axis: [1, 0, 0]

@@ -4,17 +4,6 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - -22.035
-  - -2.715
-  - 0.302
-  axis:
-  - 1.0
-  - 0.0
-  - 0.0
-  radius_mm: 28.1
-  method: cross_section
-- end: distal
-  position:
   - 69.465
   - -0.047
   - 0.321
@@ -22,7 +11,18 @@ connection_points:
   - 1.0
   - 0.0
   - 0.0
-  radius_mm: 15.2
+  radius_mm: 26.2
+  method: cross_section
+- end: distal
+  position:
+  - 13.054
+  - 6.426
+  - -22.179
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 36.8
   method: cross_section
 geometry:
   vertex_count: 6079
@@ -55,12 +55,12 @@ inertia:
   principal_axes:
   - - 0.9999076095211692
     - -0.013593095808651149
-    - 1.2961399070762745e-05
+    - 1.2961399070762743e-05
   - - 0.013593092085873979
     - 0.9999075774946985
-    - 0.00025360644446807364
-  - - -1.6407497843134302e-05
-    - -0.0002534068281561041
+    - 0.00025360644446807603
+  - - -1.6407497843134336e-05
+    - -0.0002534068281561065
     - 0.999999967757886
 features:
   flat_faces:
@@ -87,7 +87,7 @@ features:
   - description: "Large flat face on bottom, area 1665.8 mm\xB2, likely mating surface"
     normal:
     - -0.0
-    - 0.0
+    - -0.0
     - -1.0
     area_mm2: 1665.77
     centroid:
@@ -107,7 +107,7 @@ features:
   - description: "Large flat face on top, area 847.6 mm\xB2, likely mating surface"
     normal:
     - 0.0
-    - 0.0
+    - -0.0
     - 1.0
     area_mm2: 847.56
     centroid:
@@ -173,8 +173,3 @@ features:
 text_description: "Part 'A6' from stl_files/A6.stl.\nBounding box: 91.5 x 65.2 x 45.0 mm.\nWatertight solid, volume 167653.6\
   \ mm\xB3.\nSurface area: 19825.1 mm\xB2.\nMesh complexity: 6079 vertices, 12154 faces.\nHas 8 significant flat face(s).\n\
   Has 2 cylindrical surface(s)."
-renders:
-- renders/A6_front.png
-- renders/A6_side.png
-- renders/A6_top.png
-- renders/A6_iso.png

@@ -165,7 +165,9 @@ def build_scene(state: SimulatorState) -> None:
     for link_name, faces in state.flat_faces.items():
         for i, _ff in enumerate(faces):
             face_data_list.append({"id": f"face_{link_name}_{i}"})
+    mesh_link_map = {obj.id: link_name for link_name, obj in state.mesh_objects.items()}
     face_js = FACE_MARKER_INIT_JS.replace("FACE_DATA", json.dumps(face_data_list))
+    face_js = face_js.replace("MESH_LINK_MAP", json.dumps(mesh_link_map))
     ui.timer(2.5, lambda: ui.run_javascript(face_js), once=True)
 
     # Initialize mesh transparency function

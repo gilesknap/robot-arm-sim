@@ -11,17 +11,17 @@ connection_points:
   - 0.0
   - 0.0
   - 1.0
-  radius_mm: 38.3
+  radius_mm: 30.6
   method: cross_section
 - end: distal
   position:
-  - 62.142
-  - -8.587
-  - 35.522
+  - 33.193
+  - -1.899
+  - 61.107
   axis:
+  - 0.0
+  - 0.0
   - 1.0
-  - 0.0
-  - 0.0
   radius_mm: 20.0
   method: cross_section
 geometry:
@@ -49,19 +49,19 @@ geometry:
   is_watertight: true
 inertia:
   principal_moments:
-  - 241694279.97963113
+  - 241694279.9796311
   - 411356871.2771204
   - 467354152.2562889
   principal_axes:
-  - - 0.5080240937512484
+  - - 0.508024093751248
     - 0.01722030012181197
-    - 0.8611707040023703
-  - - 0.8612591880492132
-    - -0.024090920325062326
-    - -0.5075945611988982
-  - - -0.012005464132354426
-    - -0.9995614482469832
-    - 0.027069909666648462
+    - 0.8611707040023701
+  - - 0.8612591880492129
+    - -0.024090920325062548
+    - -0.507594561198898
+  - - -0.012005464132354565
+    - -0.9995614482469833
+    - 0.0270699096666487
 features:
   flat_faces:
   - description: "Large flat face on left, area 3240.7 mm\xB2, likely mating surface"
@@ -191,8 +191,3 @@ features:
 text_description: "Part 'A3_4' from stl_files/A3_4.stl.\nBounding box: 89.9 x 68.0 x 101.2 mm.\nWatertight solid, volume 374043.2\
   \ mm\xB3.\nSurface area: 34520.7 mm\xB2.\nMesh complexity: 32936 vertices, 65852 faces.\nHas 11 significant flat face(s).\n\
   Has 1 cylindrical surface(s)."
-renders:
-- renders/A3_4_front.png
-- renders/A3_4_side.png
-- renders/A3_4_top.png
-- renders/A3_4_iso.png

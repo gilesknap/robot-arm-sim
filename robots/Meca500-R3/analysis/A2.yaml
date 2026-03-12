@@ -4,26 +4,26 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 0.186
-  - -0.776
-  - -31.943
+  - 1.188
+  - -32.56
+  - 1.138
   axis:
   - 0.0
+  - -1.0
   - 0.0
-  - 1.0
-  radius_mm: 35.6
-  method: cross_section
+  radius_mm: 5.0
+  method: manual
 - end: distal
   position:
-  - -1.959
-  - -46.502
-  - 162.547
+  - -35.331
+  - -9.864
+  - 77.57
   axis:
   - 0.0
   - 0.0
   - 1.0
-  radius_mm: 20.0
-  method: cross_section
+  radius_mm: 5.0
+  method: manual
 geometry:
   vertex_count: 12833
   face_count: 25497
@@ -49,19 +49,19 @@ geometry:
   is_watertight: false
 inertia:
   principal_moments:
-  - 719950263.3258238
-  - 1628856875.3453047
+  - 719950263.3258239
+  - 1628856875.3453043
   - 1959881189.8930597
   principal_axes:
-  - - 0.0229951380930751
-    - -0.00011919620070144354
+  - - 0.022995138093075046
+    - -0.00011919620070133252
     - -0.9997355697464937
-  - - 0.00012580471846565863
-    - 0.9999999853197791
-    - -0.00011633406432376425
-  - - -0.9997355689367331
-    - 0.00012309633401800732
-    - -0.02299515275094583
+  - - 0.00012580471846565408
+    - 0.9999999853197792
+    - -0.00011633406432383342
+  - - -0.999735568936733
+    - 0.00012309633401800385
+    - -0.022995152750945803
 features:
   flat_faces:
   - description: "Large flat face on front, area 4978.0 mm\xB2, likely mating surface"
@@ -190,11 +190,7 @@ features:
     - 78.0681
     concave: false
   holes: []
-text_description: "Part 'A2' from stl_files/A2.stl.\nBounding box: 72.0 x 101.4 x 194.5 mm.\nNon-watertight mesh (volume not\
-  \ computed).\nSurface area: 63752.7 mm\xB2.\nMesh complexity: 12833 vertices, 25497 faces.\nHas 10 significant flat face(s).\n\
+text_description: "Part 'A2' from stl_files/A2.stl.\nBounding box: 72.0 x 101.4 x\
+  \ 194.5 mm.\nNon-watertight mesh (volume not computed).\nSurface area: 63752.7 mm\xB2\
+  .\nMesh complexity: 12833 vertices, 25497 faces.\nHas 10 significant flat face(s).\n\
   Has 2 cylindrical surface(s)."
-renders:
-- renders/A2_front.png
-- renders/A2_side.png
-- renders/A2_top.png
-- renders/A2_iso.png

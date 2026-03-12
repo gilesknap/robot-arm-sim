@@ -4,26 +4,26 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - -0.415
-  - -2.514
-  - 1.03
+  - -32.145
+  - -44.921
+  - 15.589
   axis:
+  - -1.0
   - 0.0
   - 0.0
-  - 1.0
-  radius_mm: 20.0
-  method: cross_section
+  radius_mm: 5.0
+  method: manual
 - end: distal
   position:
-  - -0.286
-  - 45.229
-  - 77.53
+  - -10.873
+  - -47.499
+  - 75.531
   axis:
   - 0.0
   - 0.0
   - 1.0
-  radius_mm: 20.0
-  method: cross_section
+  radius_mm: 5.0
+  method: manual
 geometry:
   vertex_count: 10043
   face_count: 19941
@@ -55,13 +55,13 @@ inertia:
   principal_axes:
   - - 6.7578198185132905e-06
     - 0.9999994247017626
-    - -0.0010726371588182237
+    - -0.0010726371588182316
   - - -4.5399563306321e-06
-    - 0.001072637189511852
+    - 0.0010726371895118658
     - 0.9999994247142586
   - - -0.9999999999668604
     - 6.752946204976151e-06
-    - -4.547202407660586e-06
+    - -4.5472024076605826e-06
 features:
   flat_faces:
   - description: "Large flat face on bottom, area 6506.5 mm\xB2, likely mating surface"
@@ -96,7 +96,7 @@ features:
     - 63.5782
   - description: "Large flat face on front, area 3686.8 mm\xB2, likely mating surface"
     normal:
-    - 0.0
+    - -0.0
     - 1.0
     - 0.0
     area_mm2: 3686.84
@@ -138,11 +138,7 @@ features:
     - 32.2808
     concave: false
   holes: []
-text_description: "Part 'A1' from stl_files/A1.stl.\nBounding box: 85.0 x 101.4 x 76.5 mm.\nNon-watertight mesh (volume not\
-  \ computed).\nSurface area: 38641.6 mm\xB2.\nMesh complexity: 10043 vertices, 19941 faces.\nHas 6 significant flat face(s).\n\
+text_description: "Part 'A1' from stl_files/A1.stl.\nBounding box: 85.0 x 101.4 x\
+  \ 76.5 mm.\nNon-watertight mesh (volume not computed).\nSurface area: 38641.6 mm\xB2\
+  .\nMesh complexity: 10043 vertices, 19941 faces.\nHas 6 significant flat face(s).\n\
   Has 1 cylindrical surface(s)."
-renders:
-- renders/A1_front.png
-- renders/A1_side.png
-- renders/A1_top.png
-- renders/A1_iso.png
