@@ -24,6 +24,45 @@ preserved.
 
 ---
 
+## First, Some General Principles
+
+The specific files mentioned here are for Claude Code, but the same features are at least partially available in other harnesses such as Github Copilot.
+
+1. Make your conversation interactive:
+   - discuss your requirements, don't give solutions
+   - ask for feedback and suggestions
+   - ask if a task is feasible before committing to it
+   - verify technical choices with Claude's knowledge
+   - ask "can you think of anything else?" after the core design is settled
+   - suggest that Claude interviews you to clarify requirements before writing code
+1. Write the plan down before implementing:
+   - Iterate in plan mode first
+   - When ready, clear the context and start writing code — agent performance is best with clear planning and an empty context.
+1. Create skills:
+   - When you have spent effort working on a problem and have a solution, ask Claude to write a skill that captures the debugging methodology, not just the fix. This way you can reuse the same process for future problems.
+   - See examples from this project here: [skills](../../.claude/skills)
+1. Look after memory:
+   - Claude Code has auto memory that is triggered on events like commits.
+   - ask Claude to remember useful things at other time too.
+   - its good to say remember useful tips from this context before clearing a context.
+   - See the memo skill in this project which makes this easy
+     - it remembers tips from the context
+     - then it trims down memory to only currently useful things
+     - it also moves relevant points up into the project's skills or CLAUDE.md for retention in the repository.
+1. When Claude is guessing at something that can be computed, write code instead. e.g. for geometric problems where small errors can compound.
+1. Manage permissions carefully.
+   - giving more permission allows improved flow
+   - but includes risks
+   - this project uses quite permissive settings, but only runs in a devcontainer to mitigate risks. It won't run outside of a devcontainer and it asks for permission on commands that may escape from the container.
+   - See the [settings.json](../../.claude/settings.json)
+1. Use `CLAUDE.md` for durable project instructions:
+   - Checked into the repo, so every session and every contributor gets the same baseline.
+   - Good for build commands, coding conventions, and constraints that Claude should always follow.
+   - See this project's [CLAUDE.md](../../CLAUDE.md) for an example.
+1. Give permission for effort and parallelism:
+   - "Use as much effort as needed" and "make it multi-agent" unlock Claude's ability to work on multiple files simultaneously.
+   - Without this, Claude tends to be conservative and sequential.
+
 ## Phase 1: The design conversation
 
 The project started with nothing but a set of STL mesh files for a Meca500-R3
