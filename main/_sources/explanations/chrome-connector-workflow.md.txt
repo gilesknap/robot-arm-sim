@@ -20,7 +20,8 @@ The user's opening prompt:
 
 > look into what happened to the meca500 end-effector. There is a part for
 > it but we see a link\_5 before a6 in the list of parts in the simulator
-> and no EE. link\_5 seems invisible as well. can you see the chrome sim
+> and no EE. link\_5 seems invisible as well. Can you look at the simulator
+> in Chrome and investigate?
 
 ---
 
