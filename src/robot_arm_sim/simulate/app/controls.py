@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from nicegui import ui
 
-from ..kinematics import forward_kinematics, matrix_to_position_euler
+from ..ik_solver import solve_ik
+from ..kinematics import forward_kinematics, matrix_to_position_euler, rpy_to_matrix
 
 if TYPE_CHECKING:
     from .state import SimulatorState
@@ -17,9 +18,6 @@ if TYPE_CHECKING:
 
 def build_controls_panel(state: SimulatorState) -> None:
     """Build the right-side controls panel (joints, IK, EE readout)."""
-    from ..ik_solver import build_ik_chain, solve_ik
-
-    ik_chain = build_ik_chain(state.robot_dir / "robot.urdf")
     chain = state.chain
 
     def _populate_ik_from_fk():
@@ -96,22 +94,25 @@ def build_controls_panel(state: SimulatorState) -> None:
     state.ik_panel.set_visibility(False)
 
     def _solve_ik_from_sliders():
-        target = np.array(
+        pos = np.array(
             [
                 (state.ik_sliders["x"].value or 0) / 1000,
                 (state.ik_sliders["y"].value or 0) / 1000,
                 (state.ik_sliders["z"].value or 0) / 1000,
             ]
         )
-        current = [0.0] + [state.joint_angles.get(j.name, 0.0) for j in chain]
-        result = solve_ik(ik_chain, target, current)
+        rx = math.radians(state.ik_sliders["rx"].value or 0)
+        ry = math.radians(state.ik_sliders["ry"].value or 0)
+        rz = math.radians(state.ik_sliders["rz"].value or 0)
+        target_matrix = rpy_to_matrix([rx, ry, rz])
+        target_matrix[:3, 3] = pos
+        result = solve_ik(state.robot, target_matrix, state.joint_angles)
         if result is None:
             return
-        for i, jt in enumerate(chain):
-            angle = result[i + 1]
-            state.joint_angles[jt.name] = angle
-            if jt.name in state.sliders:
-                state.sliders[jt.name].value = math.degrees(angle)
+        state.joint_angles.update(result)
+        for jname, angle in result.items():
+            if jname in state.sliders:
+                state.sliders[jname].value = math.degrees(angle)
         state.update_scene_now()
 
     trans_defs = [

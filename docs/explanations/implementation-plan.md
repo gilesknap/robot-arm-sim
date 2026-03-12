@@ -34,7 +34,6 @@ dependencies = [
     "pyyaml>=6.0",
     "numpy>=1.24",
     "nicegui>=1.4",
-    "ikpy>=3.3",
 ]
 ```
 
@@ -260,7 +259,7 @@ Each is independent, layered on Phase 4:
 - Set Three.js camera via `ui.run_javascript()`
 
 ### 5d. Inverse kinematics
-- `ikpy.chain.Chain.from_urdf_file()` to build chain
+- Custom damped least-squares solver on the geometric Jacobian
 - Click in 3D scene → raycaster → IK solve → animate joints to solution
 - Draggable target sphere
 
@@ -281,7 +280,7 @@ Each is independent, layered on Phase 4:
 2. **NiceGUI 4x4 transforms**: `ui.scene` may not expose `set_matrix()`. Mitigate with `ui.run_javascript()` or decompose to position+euler.
 3. **STL coordinate origins**: Parts may have inconsistent origins. The analysis detects this; URDF must account for mesh offsets.
 4. **Cylindrical detection accuracy**: Tessellated meshes need tolerance (~5 degrees) for normal clustering. Tune on actual data.
-5. **ikpy URDF compatibility**: Generated URDF must specify active/passive joints correctly.
+5. **IK solver convergence**: Damping factor and iteration limits must be tuned to balance speed and accuracy for different arm geometries.
 
 ## Implementation Order
 
