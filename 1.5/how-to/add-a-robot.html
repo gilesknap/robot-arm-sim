@@ -1,0 +1,889 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Add a new robot &#8212; robot-arm-sim 1.5 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=aaadad1f"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/add-a-robot';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contribute to the project" href="contribute.html" />
+    <link rel="prev" title="How-to Guides" href="../how-to.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.5" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">robot-arm-sim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Add a new robot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-container.html">Run in a container</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Add a new robot</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="add-a-new-robot">
+<h1>Add a new robot<a class="headerlink" href="#add-a-new-robot" title="Link to this heading">#</a></h1>
+<p>This guide walks through the complete process of taking a set of STL mesh
+files for a robot arm and producing a working interactive simulation. It
+covers using Claude Code with the project’s built-in skills to automate much
+of the work, and using the claude-in-chrome MCP server for visual refinement.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>A working devcontainer (see <a class="reference internal" href="run-container.html"><span class="doc">Run in a container</span></a>)</p></li>
+<li><p>Claude Code installed and authenticated</p></li>
+<li><p>STL mesh files for your robot (one per link, in millimetres)</p></li>
+<li><p>Optionally: the <a class="reference external" href="https://github.com/anthropics/claude-in-chrome">claude-in-chrome</a>
+MCP server for visual tuning (see Setting up claude-in-chrome below)</p></li>
+</ul>
+</section>
+<section id="step-1-prepare-stl-files">
+<h2>Step 1: Prepare STL files<a class="headerlink" href="#step-1-prepare-stl-files" title="Link to this heading">#</a></h2>
+<p>Create a directory under <code class="docutils literal notranslate"><span class="pre">robots/</span></code> for your robot and place the STL files
+inside <code class="docutils literal notranslate"><span class="pre">stl_files/</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">robots</span><span class="o">/</span><span class="n">MyRobot</span><span class="o">/</span>
+  <span class="n">stl_files</span><span class="o">/</span>
+    <span class="n">A0</span><span class="o">.</span><span class="n">stl</span>    <span class="c1"># base</span>
+    <span class="n">A1</span><span class="o">.</span><span class="n">stl</span>    <span class="c1"># link 1</span>
+    <span class="n">A2</span><span class="o">.</span><span class="n">stl</span>    <span class="c1"># link 2</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Name the files so they sort in kinematic chain order (base to end-effector).
+STL files should be in millimetres with Z pointing up.</p>
+</section>
+<section id="step-2-run-auto-build-robot">
+<h2>Step 2: Run auto-build-robot<a class="headerlink" href="#step-2-run-auto-build-robot" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">make-robot</span></code> skill orchestrates the entire pipeline — from STL
+analysis through chain.yaml generation to URDF verification and visual
+comparison.</p>
+<p>In Claude Code, invoke the skill:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">make</span><span class="o">-</span><span class="n">robot</span>
+</pre></div>
+</div>
+<p>Then tell Claude which robot to work on:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Build</span> <span class="n">robots</span><span class="o">/</span><span class="n">MyRobot</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>Claude will run through 5 stages:</p>
+<ol class="arabic simple">
+<li><p><strong>Analyze STLs</strong> — detect connection points, geometry, and assembly hints</p></li>
+<li><p><strong>Research manufacturer specs</strong> — find DH parameters, joint limits online</p></li>
+<li><p><strong>Infer kinematic chain</strong> — write <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> with topology, axes, limits</p></li>
+<li><p><strong>Generate &amp; verify URDF</strong> — produce <code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code> and check FK positions</p></li>
+<li><p><strong>Visual comparison</strong> — compare simulation against reference images</p></li>
+</ol>
+<section id="chain-yaml-key-fields">
+<h3>chain.yaml key fields<a class="headerlink" href="#chain-yaml-key-fields" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">links[].mesh</span></code></p></td>
+<td><p>Which STL file to use (stem name), or <code class="docutils literal notranslate"><span class="pre">null</span></code> for virtual links</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">links[].visual_rpy</span></code></p></td>
+<td><p>Rotation to align STL coordinates with the link frame</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">links[].visual_xyz</span></code></p></td>
+<td><p>Additional offset on top of auto-computed position (metres)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">joints[].axis</span></code></p></td>
+<td><p>Rotation axis: <code class="docutils literal notranslate"><span class="pre">[0,0,1]</span></code> for yaw/roll, <code class="docutils literal notranslate"><span class="pre">[0,1,0]</span></code> for pitch</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">joints[].limits</span></code></p></td>
+<td><p>Joint angle limits in radians</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">joints[].origin</span></code></p></td>
+<td><p>Override auto-computed joint position (metres)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The resulting <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> defines links, joints, axes, and limits. See the
+Meca500-R3 example at <code class="docutils literal notranslate"><span class="pre">robots/Meca500-R3/chain.yaml</span></code> for reference.</p>
+</section>
+</section>
+<section id="step-3-launch-the-simulator">
+<h2>Step 3: Launch the simulator<a class="headerlink" href="#step-3-launch-the-simulator" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/MyRobot/
+</pre></div>
+</div>
+<p>Open <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code> in a browser. You should see the 3D model with
+joint sliders on the right. Check that:</p>
+<ul class="simple">
+<li><p>All meshes are visible and roughly in the right place</p></li>
+<li><p>Sliders rotate the correct parts</p></li>
+<li><p>The overall shape resembles the real robot</p></li>
+</ul>
+<p>The simulator includes several controls for inspecting the model:</p>
+<ul class="simple">
+<li><p><strong>Joint sliders</strong> — drag to rotate each joint in real time</p></li>
+<li><p><strong>Show Labels</strong> — display part names (blue) and joint names (red) as callout
+labels</p></li>
+<li><p><strong>Reset Joints</strong> — return all sliders to zero degrees</p></li>
+<li><p><strong>ViewCube</strong> — a 3D orientation widget in the corner of the viewport. Click a
+face (Front, Right, Top, etc.) to snap the camera to that named view.</p></li>
+<li><p><strong>Ortho / Persp</strong> — toggle between orthographic and perspective projection.
+Orthographic mode removes perspective distortion, which is essential for
+accurate comparison against technical drawings.</p></li>
+<li><p><strong>Fit</strong> — auto-zoom to fit the entire robot in the viewport.</p></li>
+<li><p><strong>Camera</strong> — left-click drag to orbit, scroll to zoom, middle-click drag to
+pan.</p></li>
+<li><p><strong>Edit Connections</strong> — enter an interactive mode to manually assign connection
+points by clicking on flat face markers. See below for details.</p></li>
+</ul>
+<p>If the robot looks correct, you are done. If parts are misaligned, continue
+to the visual tuning step below.</p>
+<section id="fixing-connection-points-with-edit-connections">
+<h3>Fixing connection points with Edit Connections<a class="headerlink" href="#fixing-connection-points-with-edit-connections" title="Link to this heading">#</a></h3>
+<p>Auto-detection of connection points works well for most parts, but can
+fail on ambiguous geometries (e.g. wrist links with multiple cylindrical
+surfaces). When detection picks the wrong face, the URDF generator
+places joints incorrectly.</p>
+<p>The <strong>Edit Connections</strong> mode lets you fix this interactively:</p>
+<ol class="arabic simple">
+<li><p>Click <strong>Edit Connections</strong> in the toolbar — the meshes go semi-transparent and
+coloured sphere markers appear at every flat face centroid on each part.</p></li>
+<li><p>Use the <strong>Proximal / Distal</strong> toggle to choose which connection end to assign.</p></li>
+<li><p>Click a yellow marker to assign it. Markers turn <strong>green</strong> (proximal) or
+<strong>red</strong> (distal). If the opposite end was already at the same face, they
+swap automatically.</p></li>
+<li><p>Repeat for any parts that need correction.</p></li>
+<li><p>Click <strong>Save &amp; Rebuild</strong> — the updated connection points are written to the
+analysis YAML files (with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">manual</span></code>) and the URDF is regenerated
+and reloaded.</p></li>
+</ol>
+<p>This is particularly useful for robots like the UR5, where wrist parts have
+lateral motor bores that confuse the auto-detector. Manual assignment lets
+you pick the correct kinematic connection faces directly.</p>
+</section>
+</section>
+<section id="step-4-visual-tuning-with-reference-images">
+<h2>Step 4: Visual tuning with reference images<a class="headerlink" href="#step-4-visual-tuning-with-reference-images" title="Link to this heading">#</a></h2>
+<p>This is where the project’s visual skills and claude-in-chrome come together
+to iteratively refine the URDF until the simulation matches reality.</p>
+<section id="setting-up-claude-in-chrome">
+<h3>Setting up claude-in-chrome<a class="headerlink" href="#setting-up-claude-in-chrome" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">claude-in-chrome</span></code> MCP server lets Claude Code control a Chrome browser —
+navigating pages, clicking, taking screenshots, and running JavaScript. This
+project uses it to interact with the NiceGUI simulator.</p>
+<ol class="arabic simple">
+<li><p>Install the claude-in-chrome extension in Chrome following the
+instructions at its repository</p></li>
+<li><p>The project’s <code class="docutils literal notranslate"><span class="pre">.claude/settings.json</span></code> already includes the permission
+<code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__*</span></code>, so Claude Code can use it without prompting</p></li>
+</ol>
+<p>Once configured, Claude can:</p>
+<ul class="simple">
+<li><p>Open the simulator in a Chrome tab</p></li>
+<li><p>Set camera angles via JavaScript (using the <code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code> skill)</p></li>
+<li><p>Set joint poses via slider automation</p></li>
+<li><p>Take screenshots for comparison against reference photos</p></li>
+<li><p>Snap to orthographic named views via the ViewCube for precise comparison</p></li>
+<li><p>Click the Fit button to auto-zoom the robot into the viewport</p></li>
+</ul>
+</section>
+<section id="using-the-manufacturer-comparison-skill">
+<h3>Using the manufacturer-comparison skill<a class="headerlink" href="#using-the-manufacturer-comparison-skill" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code> skill is the most systematic approach to visual
+tuning. It automates finding dimensioned technical drawings from the
+manufacturer, setting up orthographic comparison views, and iterating with
+measurable convergence criteria.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">manufacturer</span><span class="o">-</span><span class="n">comparison</span>
+</pre></div>
+</div>
+<p>This skill follows a six-phase workflow:</p>
+<ol class="arabic simple">
+<li><p><strong>Find reference images</strong> — searches for dimensioned technical drawings,
+CAD renders, and product photos. Saves them to <code class="docutils literal notranslate"><span class="pre">robots/&lt;name&gt;/images/</span></code> for
+reuse across sessions.</p></li>
+<li><p><strong>Map manufacturer views</strong> — determines how the manufacturer’s labelled
+views (front, side, top) correspond to the simulator’s ViewCube faces, since
+conventions often differ.</p></li>
+<li><p><strong>Set up orthographic comparison</strong> — snaps the camera to the matching
+ViewCube face in orthographic projection, ensuring no parallax errors when
+comparing against technical drawings.</p></li>
+<li><p><strong>Part-by-part comparison</strong> — works base-to-tip, checking link lengths,
+silhouettes, joint positions, and gaps against the manufacturer’s dimensions.</p></li>
+<li><p><strong>Adjust and iterate</strong> — edits <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>, regenerates the URDF, and
+re-compares until each link is within <strong>2mm</strong> of manufacturer specs.</p></li>
+<li><p><strong>Multi-view validation</strong> — verifies accuracy across multiple orthographic
+views and at non-zero joint angles to confirm rotation centres are correct.</p></li>
+</ol>
+<p>This is the recommended skill when manufacturer datasheets or technical drawings
+are available, since it uses actual dimensions as ground truth rather than
+relying solely on visual appearance.</p>
+</section>
+<section id="common-adjustments">
+<h3>Common adjustments<a class="headerlink" href="#common-adjustments" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Symptom</p></th>
+<th class="head"><p>Fix in chain.yaml</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Part too high or low</p></td>
+<td><p>Adjust Z in <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> on the link</p></td>
+</tr>
+<tr class="row-odd"><td><p>Part shifted sideways</p></td>
+<td><p>Adjust X or Y in <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Part rotated wrong</p></td>
+<td><p>Adjust <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> on the link</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gap between parts</p></td>
+<td><p>Reduce origin distance or adjust <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Parts overlapping</p></td>
+<td><p>Increase origin distance or adjust <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Joint rotates wrong point</p></td>
+<td><p>Adjust <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> to centre connection on joint</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="important-rules">
+<h3>Important rules<a class="headerlink" href="#important-rules" title="Link to this heading">#</a></h3>
+<ul>
+<li><p><strong>Never edit <code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code> directly</strong> — always edit <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> and
+regenerate with <code class="docutils literal notranslate"><span class="pre">robot-arm-sim</span> <span class="pre">generate</span></code></p></li>
+<li><p><strong>Restart the simulator process</strong> after regenerating the URDF — refreshing
+the browser is not enough:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pkill<span class="w"> </span>-9<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;robot-arm-sim simulate&quot;</span>
+sleep<span class="w"> </span><span class="m">3</span>
+uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/MyRobot/
+</pre></div>
+</div>
+</li>
+<li><p><strong>Work from base to tip</strong> — fix the base link first, then link 1, then
+link 2, and so on. Errors compound along the kinematic chain.</p></li>
+<li><p><strong>One change at a time</strong> — adjust one parameter, regenerate, and compare
+before making the next change.</p></li>
+</ul>
+</section>
+</section>
+<section id="step-5-verify-and-commit">
+<h2>Step 5: Verify and commit<a class="headerlink" href="#step-5-verify-and-commit" title="Link to this heading">#</a></h2>
+<p>Once the simulation looks correct:</p>
+<ol class="arabic">
+<li><p>Run kinematics verification if you have a verification script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>robots/MyRobot/verify_kinematics.py<span class="w"> </span>--json
+</pre></div>
+</div>
+</li>
+<li><p>Test a few joint poses to make sure rotations work as expected</p></li>
+<li><p>Commit the robot directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>add<span class="w"> </span>robots/MyRobot/
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add MyRobot: STL analysis, chain.yaml, and URDF&quot;</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="summary-of-skills-used">
+<h2>Summary of skills used<a class="headerlink" href="#summary-of-skills-used" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Skill</p></th>
+<th class="head"><p>Purpose</p></th>
+<th class="head"><p>Invocation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">make-robot</span></code></p></td>
+<td><p>Full pipeline: analyze, infer chain, generate, verify</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/make-robot</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code></p></td>
+<td><p>Compare against manufacturer technical drawings</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/manufacturer-comparison</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code></p></td>
+<td><p>Position the 3D camera programmatically</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/zoom-rotate-camera</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All skills edit <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> and regenerate — they never touch <code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code>
+directly.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../how-to.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">How-to Guides</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="contribute.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contribute to the project</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-prepare-stl-files">Step 1: Prepare STL files</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-run-auto-build-robot">Step 2: Run auto-build-robot</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chain-yaml-key-fields">chain.yaml key fields</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-launch-the-simulator">Step 3: Launch the simulator</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixing-connection-points-with-edit-connections">Fixing connection points with Edit Connections</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-visual-tuning-with-reference-images">Step 4: Visual tuning with reference images</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-claude-in-chrome">Setting up claude-in-chrome</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-manufacturer-comparison-skill">Using the manufacturer-comparison skill</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-adjustments">Common adjustments</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#important-rules">Important rules</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-verify-and-commit">Step 5: Verify and commit</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-skills-used">Summary of skills used</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/1.5/docs/how-to/add-a-robot.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/how-to/add-a-robot.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
