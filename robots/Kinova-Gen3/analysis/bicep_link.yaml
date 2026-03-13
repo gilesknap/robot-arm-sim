@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: bicep_link
+source_file: stl_files/bicep_link.stl
+format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - -46.0
+  - -410.123
+  - -14.849
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 196.2
+  method: cross_section
+- end: distal
+  position:
+  - -0.618
+  - -410.101
+  - -52.835
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 202.9
+  method: cross_section
+geometry:
+  vertex_count: 7813
+  face_count: 15666
+  bounding_box:
+    min:
+    - -46.00009536743164
+    - -456.02032470703125
+    - -52.83523941040039
+    max:
+    - 46.00009536743164
+    - 45.9999885559082
+    - 14.425000190734863
+    extents:
+    - 92.00019073486328
+    - 502.02031326293945
+    - 67.26023960113525
+  volume_mm3: 487308.0410361304
+  surface_area_mm2: 256544.14497976023
+  center_of_mass:
+  - -0.019114856141204527
+  - -209.13456412188117
+  - -19.11336665428251
+  is_watertight: true
+inertia:
+  principal_moments:
+  - 332903998.15299284
+  - 17877568093.103146
+  - 18048250208.64374
+  principal_axes:
+  - - -0.00018082775215406765
+    - 0.9999971289889781
+    - -0.0023894173192668816
+  - - 0.9999988966413312
+    - 0.00018435012773639916
+    - 0.0014740187076367872
+  - - -0.0014744549651008534
+    - 0.0023891481393930186
+    - 0.9999960589690962
+features:
+  flat_faces: []
+  cylindrical_surfaces:
+  - description: Concave cylindrical surface along X axis, radius 196.2 mm, length 90.8 mm
+    axis:
+    - 1.0
+    - 0.0
+    - 0.0
+    radius_mm: 196.24
+    length_mm: 90.8
+    center:
+    - -0.097
+    - -223.3136
+    - -15.9092
+    concave: true
+  - description: Cylindrical surface along Z axis, radius 202.9 mm, length 52.8 mm
+    axis:
+    - 0.0
+    - 0.0
+    - 1.0
+    radius_mm: 202.87
+    length_mm: 52.83
+    center:
+    - -0.1047
+    - -221.8884
+    - -14.9698
+    concave: false
+  holes: []
+text_description: "Part 'bicep_link' from stl_files/bicep_link.stl.\nBounding box: 92.0 x 502.0 x 67.3 mm.\nWatertight solid,\
+  \ volume 487308.0 mm\xB3.\nSurface area: 256544.1 mm\xB2.\nMesh complexity: 7813 vertices, 15666 faces.\nHas 2 cylindrical\
+  \ surface(s)."

@@ -1,0 +1,164 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: link_2
+source_file: stl_files/link_2.stl
+format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - 0.018
+  - 4.368
+  - -65.98
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 93.3
+  method: cross_section
+- end: distal
+  position:
+  - -2.121
+  - 3.284
+  - 381.107
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 112.1
+  method: cross_section
+geometry:
+  vertex_count: 2539
+  face_count: 5074
+  bounding_box:
+    min:
+    - -68.72805786132812
+    - -113.5
+    - -65.9804458618164
+    max:
+    - 65.85161590576172
+    - 113.5
+    - 381.1072692871094
+    extents:
+    - 134.57967376708984
+    - 227.0
+    - 447.0877151489258
+  volume_mm3: 10413453.825291963
+  surface_area_mm2: 293171.83369754016
+  center_of_mass:
+  - -2.7012565898467416
+  - -0.9766924797944984
+  - 159.46639204436553
+  is_watertight: true
+inertia:
+  principal_moments:
+  - 49334088518.299644
+  - 156534838568.2717
+  - 182428194708.2402
+  principal_axes:
+  - - -0.0013565235722491596
+    - 0.011557722429059947
+    - 0.999932287155511
+  - - 0.0015097704035479753
+    - -0.9999320438719107
+    - 0.011559767794894094
+  - - -0.999997940216442
+    - -0.001525349270202926
+    - -0.0013389818809037123
+features:
+  flat_faces:
+  - description: "Large flat face on right, area 28038.2 mm\xB2, likely mating surface"
+    normal:
+    - 0.999
+    - 0.0029
+    - 0.0456
+    area_mm2: 28038.23
+    centroid:
+    - 55.6658
+    - 16.6867
+    - 223.9079
+  - description: "Large flat face on right, area 18853.9 mm\xB2, likely mating surface"
+    normal:
+    - 0.999
+    - 0.0175
+    - 0.04
+    area_mm2: 18853.94
+    centroid:
+    - 57.4851
+    - 65.9201
+    - 168.359
+  - description: "Large flat face on back, area 13143.6 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - -1.0
+    - -0.0
+    area_mm2: 13143.63
+    centroid:
+    - -9.0626
+    - -113.5
+    - 287.2855
+  - description: "Large flat face on front, area 13143.6 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - 1.0
+    - -0.0
+    area_mm2: 13143.63
+    centroid:
+    - -5.0568
+    - 113.5
+    - 269.6444
+  - description: "Large flat face on left, area 11168.3 mm\xB2, likely mating surface"
+    normal:
+    - -0.994
+    - 0.0017
+    - 0.1091
+    area_mm2: 11168.27
+    centroid:
+    - -54.771
+    - 51.1363
+    - 301.6566
+  - description: "Large flat face on left, area 10155.3 mm\xB2, likely mating surface"
+    normal:
+    - -0.9959
+    - 0.0021
+    - 0.0904
+    area_mm2: 10155.33
+    centroid:
+    - -61.4293
+    - -3.5505
+    - 236.3258
+  - description: "Large flat face on right, area 9299.6 mm\xB2, likely mating surface"
+    normal:
+    - 0.9984
+    - -0.0398
+    - 0.04
+    area_mm2: 9299.56
+    centroid:
+    - 58.0155
+    - -69.1479
+    - 167.055
+  - description: "Large flat face on left, area 8249.0 mm\xB2, likely mating surface"
+    normal:
+    - -0.9993
+    - 0.0165
+    - 0.035
+    area_mm2: 8249.0
+    centroid:
+    - -67.0917
+    - 30.9993
+    - 131.0979
+  cylindrical_surfaces:
+  - description: Cylindrical surface along Z axis, radius 108.6 mm, length 422.0 mm
+    axis:
+    - 0.0
+    - 0.0
+    - 1.0
+    radius_mm: 108.58
+    length_mm: 422.03
+    center:
+    - -15.9477
+    - 5.902
+    - 222.4202
+    concave: false
+  holes: []
+text_description: "Part 'link_2' from stl_files/link_2.stl.\nBounding box: 134.6 x 227.0 x 447.1 mm.\nWatertight solid, volume\
+  \ 10413453.8 mm\xB3.\nSurface area: 293171.8 mm\xB2.\nMesh complexity: 2539 vertices, 5074 faces.\nHas 8 significant flat\
+  \ face(s).\nHas 1 cylindrical surface(s)."

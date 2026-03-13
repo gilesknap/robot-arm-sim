@@ -1,0 +1,82 @@
+robot_name: Kinova-Gen3
+dh_params:  # from Kinova ros_kortex URDF (mm)
+  d1: 156.43         # base height to J1
+  d2: 128.38         # shoulder to bicep (Z in J1 frame)
+  shoulder_y: 5.375  # shoulder offset (Y)
+  a2: 410.0          # bicep length
+  d4: 208.43         # forearm to wrist1
+  forearm_y: 6.375   # forearm offset
+  d5: 105.93         # wrist1 to wrist2
+  d6: 105.93         # wrist2 to bracelet
+  d7: 61.525         # bracelet to end effector
+
+links:
+  - name: base_link
+    mesh: base_link
+  - name: shoulder_link
+    mesh: shoulder_link
+  - name: bicep_link
+    mesh: bicep_link
+  - name: forearm_link
+    mesh: forearm_link
+  - name: spherical_wrist_1_link
+    mesh: spherical_wrist_1_link
+  - name: spherical_wrist_2_link
+    mesh: spherical_wrist_2_link
+  - name: bracelet_link
+    mesh: bracelet_no_vision_link
+
+joints:
+  - name: joint_1
+    type: revolute
+    parent: base_link
+    child: shoulder_link
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0, 0.15643]
+    origin_rpy: [3.1416, 0, 0]
+
+  - name: joint_2
+    type: revolute
+    parent: shoulder_link
+    child: bicep_link
+    axis: [0, 0, 1]
+    limits: [-2.24, 2.24]
+    origin: [0, 0.005375, -0.12838]
+    origin_rpy: [1.5708, 0, 0]
+
+  - name: joint_3
+    type: revolute
+    parent: bicep_link
+    child: forearm_link
+    axis: [0, 0, 1]
+    limits: [-2.57, 2.57]
+    origin: [0, -0.41, 0]
+    origin_rpy: [3.1416, 0, 0]
+
+  - name: joint_4
+    type: revolute
+    parent: forearm_link
+    child: spherical_wrist_1_link
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0.20843, -0.006375]
+    origin_rpy: [1.5708, 0, 0]
+
+  - name: joint_5
+    type: revolute
+    parent: spherical_wrist_1_link
+    child: spherical_wrist_2_link
+    axis: [0, 0, 1]
+    limits: [-2.09, 2.09]
+    origin: [0, -0.00017505, -0.10593]
+    origin_rpy: [-1.5708, 0, 0]
+
+  - name: joint_6
+    type: revolute
+    parent: spherical_wrist_2_link
+    child: bracelet_link
+    axis: [0, 0, 1]
+    limits: [-6.2832, 6.2832]
+    origin: [0, 0.10593, -0.00017505]
+    origin_rpy: [1.5708, 0, 0]

@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: link_3
+source_file: stl_files/link_3.stl
+format: binary_stl
+connection_points: []
+geometry:
+  vertex_count: 935
+  face_count: 1874
+  bounding_box:
+    min:
+    - -225.49989318847656
+    - -171.38290405273438
+    - -43.000038146972656
+    max:
+    - 264.0
+    - 128.05140686035156
+    - 245.0
+    extents:
+    - 489.49989318847656
+    - 299.43431091308594
+    - 288.00003814697266
+  volume_mm3: 14546841.129344443
+  surface_area_mm2: 676038.5141501713
+  center_of_mass:
+  - -1.2323948894018477
+  - -10.256950382886668
+  - 116.17509635387023
+  is_watertight: true
+inertia:
+  principal_moments:
+  - 112730605678.59467
+  - 325383700163.2119
+  - 338382045572.8703
+  principal_axes:
+  - - 0.9962183626685825
+    - 0.01729189542567805
+    - 0.08514672180721852
+  - - 0.011091108570426701
+    - 0.9466682670183519
+    - -0.32201891176008457
+  - - -0.0861740169227793
+    - 0.3217455245579304
+    - 0.9428965246697727
+features:
+  flat_faces:
+  - description: "Large flat face on left, area 35536.6 mm\xB2, likely mating surface"
+    normal:
+    - -1.0
+    - 0.0
+    - 0.0
+    area_mm2: 35536.57
+    centroid:
+    - -217.0
+    - -13.526
+    - 125.406
+  - description: "Large flat face on right, area 35008.0 mm\xB2, likely mating surface"
+    normal:
+    - 1.0
+    - 0.0
+    - -0.0
+    area_mm2: 35007.98
+    centroid:
+    - -156.1
+    - -12.0774
+    - 123.2314
+  - description: "Large flat face on left, area 20553.8 mm\xB2, likely mating surface"
+    normal:
+    - -1.0
+    - -0.0
+    - 0.0
+    area_mm2: 20553.79
+    centroid:
+    - 3.9
+    - -40.9091
+    - 146.8928
+  - description: "Large flat face on right, area 19362.9 mm\xB2, likely mating surface"
+    normal:
+    - 1.0
+    - 0.0
+    - -0.0
+    area_mm2: 19362.92
+    centroid:
+    - 264.0
+    - -12.4727
+    - 123.5578
+  - description: "Large flat face on left, area 15755.4 mm\xB2, likely mating surface"
+    normal:
+    - -1.0
+    - 0.0
+    - 0.0
+    area_mm2: 15755.4
+    centroid:
+    - -225.4999
+    - -6.0397
+    - 137.9585
+  cylindrical_surfaces: []
+  holes: []
+text_description: "Part 'link_3' from stl_files/link_3.stl.\nBounding box: 489.5 x 299.4 x 288.0 mm.\nWatertight solid, volume\
+  \ 14546841.1 mm\xB3.\nSurface area: 676038.5 mm\xB2.\nMesh complexity: 935 vertices, 1874 faces.\nHas 5 significant flat\
+  \ face(s)."

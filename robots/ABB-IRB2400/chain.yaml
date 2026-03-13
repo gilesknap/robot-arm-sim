@@ -1,0 +1,74 @@
+robot_name: ABB-IRB2400
+dh_params:  # from ROS-Industrial URDF / manufacturer specs (mm)
+  d1: 615.0          # base to J2 height
+  a1: 100.0          # shoulder offset (X)
+  a2: 705.0          # upper arm length
+  a3: 135.0          # elbow offset (Z)
+  d4_x: 258.0        # wrist offset (X from J3)
+  d4: 497.0          # forearm/wrist run (X from J4 to J5)
+  d6: 85.0           # tool flange
+
+links:
+  - name: base_link
+    mesh: base_link
+  - name: link_1
+    mesh: link_1
+  - name: link_2
+    mesh: link_2
+  - name: link_3
+    mesh: link_3
+  - name: link_4
+    mesh: link_4
+  - name: link_5
+    mesh: link_5
+  - name: link_6
+    mesh: link_6
+
+joints:
+  - name: joint_1
+    type: revolute
+    parent: base_link
+    child: link_1
+    axis: [0, 0, 1]
+    limits: [-3.1416, 3.1416]
+    origin: [0, 0, 0]
+
+  - name: joint_2
+    type: revolute
+    parent: link_1
+    child: link_2
+    axis: [0, 1, 0]
+    limits: [-1.7453, 1.9199]
+    origin: [0.1, 0, 0.615]   # a1=100mm (X), d1=615mm (Z)
+
+  - name: joint_3
+    type: revolute
+    parent: link_2
+    child: link_3
+    axis: [0, 1, 0]
+    limits: [-1.0472, 1.1345]
+    origin: [0, 0, 0.705]   # a2=705mm upper arm (Z)
+
+  - name: joint_4
+    type: revolute
+    parent: link_3
+    child: link_4
+    axis: [1, 0, 0]
+    limits: [-3.4907, 3.4907]
+    origin: [0.258, 0, 0.135]   # wrist offset (X=258mm, Z=135mm)
+
+  - name: joint_5
+    type: revolute
+    parent: link_4
+    child: link_5
+    axis: [0, 1, 0]
+    limits: [-2.0944, 2.0944]
+    origin: [0.497, 0, 0]   # d4=497mm forearm (X)
+
+  - name: joint_6
+    type: revolute
+    parent: link_5
+    child: link_6
+    axis: [1, 0, 0]
+    limits: [-6.9813, 6.9813]
+    origin: [0.085, 0, 0]   # d6=85mm flange (X)
