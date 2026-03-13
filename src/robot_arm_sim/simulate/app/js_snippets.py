@@ -402,6 +402,12 @@ FACE_MARKER_INIT_JS = """
             m => { m.visible = show; });
     };
 
+    window.__setBoreEditMarkerVisibility = function(visMap) {
+        for (const [id, vis] of Object.entries(boreEditMarkers)) {
+            vis.visible = !!visMap[id];
+        }
+    };
+
     window.__updateFaceMarkerPoses = function(data) {
         for (const [id, pos] of Object.entries(data)) {
             const m = markers[id];

@@ -25,33 +25,36 @@ if TYPE_CHECKING:
 def build_edit_bores(state: SimulatorState) -> None:
     """Build the Edit Bores mode UI and handlers."""
     state.edit_bores_row = (
-        ui.row().classes("q-pa-sm").style("width: 100%; gap: 8px; display: none;")
+        ui.row()
+        .classes("q-pa-sm items-center")
+        .style("width: 100%; gap: 8px; display: none;")
     )
     with state.edit_bores_row:
-        bore_toggle = ui.toggle(["Proximal", "Distal"], value="Proximal").props(
-            "dense color='green'"
-        )
+        bore_toggle = ui.toggle(
+            {"Proximal": "Proximal", "Distal": "Distal"},
+            value="Proximal",
+        ).props("dense flat no-caps toggle-color='' text-color=''")
+
+        def _update_toggle_style(val: str) -> None:
+            color = "green" if val == "Proximal" else "red"
+            bore_toggle.props(f"toggle-color={color}")
+            bore_toggle.update()
 
         def _on_bore_toggle(e: Any) -> None:
             state.bore_end_toggle["value"] = e.value
-            color = "green" if e.value == "Proximal" else "red"
-            bore_toggle.props(f"color='{color}'")
+            _update_toggle_style(e.value)
 
         bore_toggle.on_value_change(_on_bore_toggle)
+        _update_toggle_style("Proximal")
 
-        kk_cb = ui.checkbox("Keep Kinematics", value=True).props("dense")
-
-        def _on_keep_kin(e: Any) -> None:
-            state.keep_kinematics["value"] = e.value
-
-        kk_cb.on_value_change(_on_keep_kin)
+        ui.separator().props("vertical")
 
         centering_options = {
             "surface_bbox": "Surface BBox",
             "surface": "Surface",
             "center": "Center",
         }
-        ui.label("Centering").style("font-size: 0.85rem; line-height: 2;")
+        ui.label("Centering").style("font-size: 0.85rem;")
         centering_select = ui.select(
             centering_options,
             value="surface_bbox",
@@ -70,6 +73,18 @@ def build_edit_bores(state: SimulatorState) -> None:
         centering_select.on_value_change(_on_centering)
 
         state.bore_centering_select = centering_select
+
+        ui.separator().props("vertical")
+
+        def _on_show_all(e: Any) -> None:
+            state.show_all_bores["value"] = e.value
+            _sync_bore_edit_visibility(state)
+
+        ui.checkbox("Show All", value=False).props("dense").on_value_change(
+            _on_show_all
+        )
+
+        ui.separator().props("vertical")
 
         state.bore_status_label = ui.label("Click mesh or marker to assign").style(
             "font-size: 0.85rem; color: #666;"
@@ -109,8 +124,7 @@ def build_edit_bores(state: SimulatorState) -> None:
                     model.connection_points = new_cps
                     save_part_yaml(model, yaml_path)
 
-            # Update chain.yaml: clear stale visual_xyz for edited links,
-            # and propagate bore axes (only if Keep Kinematics off).
+            # Update chain.yaml: clear stale visual_xyz for edited links.
             chain_file = state.robot_dir / "chain.yaml"
             if chain_file.exists():
                 with open(chain_file) as f:
@@ -134,34 +148,6 @@ def build_edit_bores(state: SimulatorState) -> None:
                     if spec and "visual_xyz" in spec:
                         del spec["visual_xyz"]
                         chain_modified = True
-
-                # Propagate bore axes (only if Keep Kinematics off)
-                if not state.keep_kinematics["value"]:
-                    link_meshes = {
-                        lk["name"]: lk.get("mesh") for lk in chain_data.get("links", [])
-                    }
-                    for jnt in chain_data.get("joints", []):
-                        parent_mesh = link_meshes.get(jnt["parent"])
-                        if not parent_mesh:
-                            continue
-                        ay = analysis_dir / f"{parent_mesh}.yaml"
-                        if not ay.exists():
-                            continue
-                        with open(ay) as f:
-                            adata = yaml.safe_load(f)
-                        cps = adata.get("connection_points", [])
-                        distal = next(
-                            (c for c in cps if c["end"] == "distal"),
-                            None,
-                        )
-                        if distal is None:
-                            continue
-                        bore_axis = [
-                            int(v) if v == int(v) else v for v in distal["axis"]
-                        ]
-                        if jnt.get("axis") != bore_axis:
-                            jnt["axis"] = bore_axis
-                            chain_modified = True
 
                 if chain_modified:
                     with open(chain_file, "w") as f:
@@ -210,6 +196,12 @@ def build_edit_bores(state: SimulatorState) -> None:
 
     state.toggle_edit_bores = _toggle_edit_bores
 
+    def _on_visibility_changed() -> None:
+        if state.edit_bores_active["value"]:
+            _sync_bore_edit_visibility(state)
+
+    state.on_visibility_changed = _on_visibility_changed
+
     # Polling timer for face clicks
     async def _poll_face_click() -> None:
         if not state.edit_bores_active["value"]:
@@ -230,14 +222,27 @@ def build_edit_bores(state: SimulatorState) -> None:
 
 
 def _show_existing_bore_markers(state: SimulatorState) -> None:
-    """Show existing bore assignments as colored markers on enter."""
+    """Place all existing bore assignments as markers, then sync visibility."""
     for link_name, assigns in state.bore_assignments.items():
-        if not state.visible_links.get(link_name, True):
-            continue
         for end, bore_data in assigns.items():
             _place_bore_marker(
                 state, link_name, end, bore_data["centroid"], bore_data["radius_mm"]
             )
+    _sync_bore_edit_visibility(state)
+
+
+def _sync_bore_edit_visibility(state: SimulatorState) -> None:
+    """Show/hide bore edit markers based on part visibility and Show All."""
+    import json
+
+    show_all = state.show_all_bores.get("value", False)
+    vis_map: dict[str, bool] = {}
+    for link_name, assigns in state.bore_assignments.items():
+        visible = show_all or state.visible_links.get(link_name, True)
+        for end in assigns:
+            marker_id = f"bore_edit_{link_name}_{end}"
+            vis_map[marker_id] = visible
+    ui.run_javascript(f"window.__setBoreEditMarkerVisibility({json.dumps(vis_map)})")
 
 
 def _place_bore_marker(

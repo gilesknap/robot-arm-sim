@@ -90,7 +90,7 @@ def build_toolbar(state: SimulatorState) -> None:
             ("Frames", "Show coordinate-frame axes at each joint"),
             ("Transparent", "Make meshes semi-transparent"),
             ("Bores", "Highlight detected bore holes on each part"),
-            ("Edit Bores", "Assign bore holes to proximal/distal ends"),
+            ("Edit Bores", "Assign bore holes to proximal/distal ends with centering"),
             ("Reload URDF", "Re-parse the URDF and refresh the scene"),
             ("Screenshot", "Download a PNG of the current 3D view"),
             ("Reset", "Zero all joint angles"),
@@ -261,6 +261,7 @@ def build_visibility_section(state: SimulatorState) -> None:
             if lname in state.link_checkboxes:
                 state.link_checkboxes[lname].selected = val
         state.update_scene_now()
+        state.on_visibility_changed()
 
     with ui.expansion("Visible Parts", value=False).props("dense").classes("w-full"):
         with ui.row().classes("q-pa-xs").style("gap: 8px; flex-wrap: wrap"):
@@ -283,6 +284,7 @@ def build_visibility_section(state: SimulatorState) -> None:
                     def on_change(e):
                         state.visible_links[ln] = e.value
                         state.update_scene_now()
+                        state.on_visibility_changed()
 
                     return on_change
 

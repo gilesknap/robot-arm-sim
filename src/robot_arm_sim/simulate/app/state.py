@@ -51,13 +51,13 @@ class SimulatorState:
         self.labels_visible = {"value": False}
         self.frames_visible = {"value": False}
         self.bores_visible = {"value": False}
+        self.show_all_bores = {"value": False}
         self.transparent_mode = {"value": False}
         self.edit_bores_active = {"value": False}
 
         # Edit bores tracking: {link_name: {end: {centroid, normal, ...}}}
         self.bore_assignments: dict[str, dict[str, Any]] = {}
         self.bore_end_toggle = {"value": "Proximal"}
-        self.keep_kinematics = {"value": True}
         self.bore_centering = {"value": "surface_bbox"}
         self.bore_centering_select: Any = None  # set by edit_bores UI
         self.bore_center_target: tuple[str, str] | None = None
@@ -104,6 +104,7 @@ class SimulatorState:
         # Deferred handlers (set by builders)
         self.toggle_edit_bores = lambda: None
         self.reset_all = lambda: None
+        self.on_visibility_changed = lambda: None
 
     def _build_joint_labels(self) -> dict[str, str]:
         joint_labels: dict[str, str] = {}
