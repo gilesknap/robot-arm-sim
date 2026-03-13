@@ -163,7 +163,7 @@ _VIEWCUBE_JS = (
         const plane = new THREE.Mesh(planeGeo, planeMat);
 
         // Position slightly outside cube face
-        const offset = boxSize / 2 + 0.001;
+        const offset = boxSize / 2 + 0.01;
         plane.position.set(
             f.dir[0] * offset,
             f.dir[1] * offset,
@@ -187,12 +187,8 @@ _VIEWCUBE_JS = (
         { dir: [1,0,0], color: 0xff4444, label: 'X', up: [0,0,1] },
         { dir: [0,1,0], color: 0x44ff44, label: 'Y', up: [0,0,1] },
         { dir: [0,0,1], color: 0x4488ff, label: 'Z', up: [0,-1,0] },
-        { dir: [-1,0,0], color: 0xcc3333, label: '-X', up: [0,0,1] },
-        { dir: [0,-1,0], color: 0x33cc33, label: '-Y', up: [0,0,1] },
-        { dir: [0,0,-1], color: 0x3366cc, label: '-Z', up: [0,1,0] },
     ];
     const axisHitTargets = [];
-    const axisGroups = [];  // track per-axis objects for occlusion
     axes.forEach(a => {
         const d = a.dir, o = axisOffset, e = o + axisLen;
         const start = new THREE.Vector3(d[0]*o, d[1]*o, d[2]*o);
@@ -244,11 +240,6 @@ _VIEWCUBE_JS = (
         sprite.position.copy(hitSphere.position);
         sprite.scale.set(0.45, 0.45, 1);
         cubeGroup.add(sprite);
-
-        axisGroups.push({
-            dir: new THREE.Vector3(d[0], d[1], d[2]),
-            objects: [cyl, hitSphere, sprite]
-        });
     });
 
     // --- Raycasting for click-to-snap ---
@@ -348,17 +339,6 @@ _VIEWCUBE_JS = (
         // The cube should rotate inversely to the camera
         const q = mainCam.quaternion.clone().invert();
         cubeGroup.quaternion.copy(q);
-
-        // Hide axis poles that face away from camera (behind the cube)
-        const camDir = new THREE.Vector3();
-        mainCam.getWorldDirection(camDir);
-        for (const ag of axisGroups) {
-            // dot > 0 means axis points in same direction as camera
-            // (i.e., away from the viewer), so it's behind the cube
-            const dot = ag.dir.dot(camDir);
-            const show = dot <= 0.1;
-            for (const obj of ag.objects) obj.visible = show;
-        }
 
         renderer.render(scene, camera);
     }
