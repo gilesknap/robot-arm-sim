@@ -1,4 +1,4 @@
-# 07 — Final Validation
+# 07 — Final Validation (DEPRECATED — better done by humans)
 
 Multi-view, multi-pose acceptance test to confirm the robot model is complete and accurate.
 

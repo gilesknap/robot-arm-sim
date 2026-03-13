@@ -1,4 +1,4 @@
-# 05 — Setup Visual Comparison
+# 05 — Setup Visual Comparison (DEPRECATED — better done by humans)
 
 Map manufacturer reference images to simulator views and take baseline screenshots.
 

@@ -1,4 +1,4 @@
-# 06 — Refine Link
+# 06 — Refine Link (DEPRECATED — better done by humans)
 
 Fix connection points for one link at a time, working base-to-tip. Use reference images + the simulator's Edit Connections mode to visually identify and click the correct mating surfaces.
 
@@ -16,12 +16,20 @@ Fix connection points for one link at a time, working base-to-tip. Use reference
 3. Save them to `robots/<name>/reference/` — these are used throughout the remaining steps to judge correct placement
 4. Note the key features: overall silhouette, joint locations, relative segment lengths, mating surfaces
 
-### 2. Study the part against reference images
+### 2. Inspect BEFORE editing — only fix what's broken
 
-1. Set **Show up to** slider to link N
-2. Use `zoom-rotate-camera` to get clear views of the part from multiple angles
-3. Screenshot via browser MCP
-4. Compare against reference images from step 1 — identify:
+**CRITICAL: Do NOT blindly re-assign connection points for every link.** The auto-detected points may already be correct. Editing a well-positioned link will make it worse.
+
+1. Show ALL parts, set RIGHT ortho view, compare full robot silhouette against reference
+2. Look for specific problems: gaps between parts, overlapping meshes, parts in wrong positions
+3. Identify WHICH links need fixing — typically the ones with visible gaps or misalignment
+4. For links that look correct, **skip them entirely**
+5. Only enter Edit Connections for links that clearly need new connection points
+
+When you do need to inspect a single part:
+1. Use `set-visible-parts` to isolate the link
+2. Use `zoom-rotate-camera` to get clear views from multiple angles
+3. Compare against reference images — identify:
    - Where does this part connect to its **parent** (proximal)?
    - Where does this part connect to its **child** (distal)?
    - What kind of surface is it? (flat flange → `surface` mode, through-bore → `center` mode)
@@ -29,12 +37,21 @@ Fix connection points for one link at a time, working base-to-tip. Use reference
 ### 3. Assign connection points via Edit Connections
 
 1. Click **Edit Connections** in the toolbar — meshes go semi-transparent
-2. Select **Proximal** or **Distal** toggle
-3. Set **centering mode** (`surface` or `center`)
-4. Use `zoom-rotate-camera` to snap to an **orthogonal view** where the target surface faces the camera — this ensures accurate click placement (perspective views distort positions)
-5. **Click directly on the mesh surface** at the mating face — the click handler captures the exact position and face normal
-6. Repeat for the other end (proximal/distal)
-7. Click **Save & Rebuild** — writes the analysis YAML (with `method: manual`) and regenerates the URDF automatically
+2. Use `set-visible-parts` skill to isolate just the link being edited (use `find` to get chip refs, click "All" to deselect, then click the target link)
+3. Select **Proximal** or **Distal** toggle
+   - **Proximal** = toward the base (parent joint side)
+   - **Distal** = toward the tip (child joint side)
+   - For base_link: proximal = bottom (ground), distal = top (shoulder)
+4. Set **centering mode** (`surface` or `center`)
+5. **CRITICAL: Use an orthogonal view where the camera looks straight down at the target surface** — the camera viewing direction must be perpendicular to the surface you're clicking. This ensures the raycast hits the correct face with accurate position and normal:
+   - Bottom face → use **BOTTOM** view (camera from -Z)
+   - Top face → use **TOP** view (camera from +Z)
+   - Front-facing flange → use **FRONT** view (camera from +X)
+   - Side-facing flange → use **RIGHT** or **LEFT** view
+   - Never click surfaces from an angled or perspective view — it distorts positions
+6. **Click directly on the mesh surface** at the mating face — the click handler captures the exact position and face normal
+7. Repeat for the other end (proximal/distal), switching to the appropriate orthogonal view
+8. Click **Save & Rebuild** — writes the analysis YAML (with `method: manual`) and regenerates the URDF automatically
 
 ### 4. Verify the result
 

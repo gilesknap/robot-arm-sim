@@ -19,9 +19,10 @@ Use this skill when:
 
 ```
 01-analyze-stls ──┐
-                  ├──> 03-build-chain ──> 04-generate-verify ──> 05-setup-comparison
-02-research-specs ┘                                               ──> 06-refine-link (×N) ──> 07-final-validation
+                  ├──> 03-build-chain ──> 04-generate-verify ──> human visual refinement
+02-research-specs ┘
 
+Steps 05-07 (visual refinement) are DEPRECATED — hand off to the human.
 At any point: user can invoke `review` to discuss issues interactively
 ```
 
@@ -52,33 +53,16 @@ Launch two sub-agents **in parallel**:
   - **Gate**: All joints within 2mm of manufacturer specs
   - **Loop**: Fix chain.yaml → regenerate → re-verify until passing
 
-### 4. Setup Visual Comparison
+### 4. Visual Refinement (HUMAN STEP)
 
-Launch the simulator:
+Steps 05-07 are deprecated — visual connection point refinement requires human judgment and is better done manually using the simulator's Edit Connections UI.
+
+Launch the simulator and hand off to the human:
 ```bash
 nohup uv run robot-arm-sim simulate robots/<name>/ > /tmp/sim.log 2>&1 &
 ```
 
-- **05-setup-comparison**: Map reference images to simulator views
-  - Read instructions from `.claude/skills/make-robot/05-setup-comparison.md`
-  - **Gate**: At least 2 orthogonal views mapped, baseline screenshots taken
-
-### 5. Per-Link Refinement (Base to Tip)
-
-Read `robots/<name>/analysis/summary.yaml` to get the link count N.
-
-For each link index 0 through N-1, **sequentially**:
-- **06-refine-link**: Refine visual alignment for one link
-  - Read instructions from `.claude/skills/make-robot/06-refine-link.md`
-  - Pass the link index as context
-  - **Gate**: Link length within 2mm, silhouette matches, no gaps, kinematics pass
-  - **Escalation**: If `visual_xyz` > 40mm or 5 iterations without convergence → invoke `review`
-
-### 6. Final Validation
-
-- **07-final-validation**: Multi-view + multi-pose acceptance test
-  - Read instructions from `.claude/skills/make-robot/07-final-validation.md`
-  - **Gate**: Full sign-off checklist passes
+Tell the user: "The simulator is running at localhost:8080. Use **Edit Connections** to click on mating surfaces for each link (proximal = toward base, distal = toward tip). Click **Save & Rebuild** after each link. The auto-detected connection points are a starting point but will need manual adjustment."
 
 ### 7. Error Handling
 
