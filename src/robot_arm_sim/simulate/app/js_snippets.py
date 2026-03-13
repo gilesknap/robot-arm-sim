@@ -38,6 +38,171 @@ import('nicegui-scene').then(SceneLib => {
     // Middle-click = pan
     if (sc.controls) sc.controls.mouseButtons.MIDDLE = 2;
 
+    // Ortho view lock for Edit Connections mode
+    window.__lockToOrthoViews = function(lock) {
+        const ctrl = sc.controls;
+        if (!ctrl) return;
+        if (lock) {
+            // Snap to nearest orthogonal view
+            const cam = sc.camera;
+            const dir = new THREE.Vector3();
+            cam.getWorldDirection(dir);
+            const candidates = [
+                { d: [1,0,0], up: [0,0,1] },
+                { d: [-1,0,0], up: [0,0,1] },
+                { d: [0,1,0], up: [0,0,1] },
+                { d: [0,-1,0], up: [0,0,1] },
+                { d: [0,0,1], up: [0,-1,0] },
+                { d: [0,0,-1], up: [0,1,0] },
+            ];
+            let best = candidates[0], bestDot = -Infinity;
+            for (const c of candidates) {
+                const dot = dir.x*c.d[0] + dir.y*c.d[1] + dir.z*c.d[2];
+                if (dot > bestDot) { bestDot = dot; best = c; }
+            }
+            // Switch to ortho if perspective
+            const tb = document.getElementById('viewcube-proj-toggle');
+            if (cam.isPerspectiveCamera && tb) tb.click();
+            // Snap camera
+            setTimeout(() => {
+                const c2 = sc.camera;
+                const t = ctrl.target;
+                const dist = c2.position.distanceTo(t);
+                c2.position.set(
+                    t.x - best.d[0]*dist,
+                    t.y - best.d[1]*dist,
+                    t.z - best.d[2]*dist
+                );
+                c2.up.set(best.up[0], best.up[1], best.up[2]);
+                ctrl.update();
+            }, 50);
+            ctrl.enableRotate = false;
+        } else {
+            ctrl.enableRotate = true;
+        }
+    };
+
+    // Snap to a specific ortho view by direction
+    function snapToOrthoView(viewDir, viewUp) {
+        const ctrl = sc.controls;
+        if (!ctrl) return;
+        const cam = sc.camera;
+        const t = ctrl.target;
+        const dist = cam.position.distanceTo(t);
+        cam.position.set(
+            t.x - viewDir[0]*dist,
+            t.y - viewDir[1]*dist,
+            t.z - viewDir[2]*dist
+        );
+        cam.up.set(viewUp[0], viewUp[1], viewUp[2]);
+        if (cam.isOrthographicCamera) {
+            const fovRad = (50 * Math.PI) / 180;
+            const frustumH = 2 * dist * Math.tan(fovRad / 2);
+            const el = sc.renderer.domElement;
+            const aspect = el.width / el.height;
+            const frustumW = frustumH * aspect;
+            cam.left = -frustumW / 2;
+            cam.right = frustumW / 2;
+            cam.top = frustumH / 2;
+            cam.bottom = -frustumH / 2;
+            cam.updateProjectionMatrix();
+        }
+        ctrl.update();
+    }
+    window.__snapToOrthoView = snapToOrthoView;
+
+    // Drag-to-rotate in edit mode: swipe over empty space to
+    // snap to adjacent ortho view
+    (function() {
+        // Neighbor map: for each view direction key, what view
+        // to go to when dragging left/right/up/down in screen space
+        // Key format: "x,y,z" of the camera look-at direction
+        // (negated from position offset, i.e. the direction the
+        //  camera is looking)
+        const neighbors = {
+            // Looking along +X (FRONT)
+            '1,0,0':  {L:[0,1,0],  R:[0,-1,0], U:[0,0,1],  D:[0,0,-1]},
+            // Looking along -X (BACK)
+            '-1,0,0': {L:[0,-1,0], R:[0,1,0],  U:[0,0,1],  D:[0,0,-1]},
+            // Looking along +Y (LEFT)
+            '0,1,0':  {L:[-1,0,0], R:[1,0,0],  U:[0,0,1],  D:[0,0,-1]},
+            // Looking along -Y (RIGHT)
+            '0,-1,0': {L:[1,0,0],  R:[-1,0,0], U:[0,0,1],  D:[0,0,-1]},
+            // Looking along +Z (TOP)
+            '0,0,1':  {L:[0,1,0],  R:[0,-1,0], U:[-1,0,0], D:[1,0,0]},
+            // Looking along -Z (BOTTOM)
+            '0,0,-1': {L:[0,1,0],  R:[0,-1,0], U:[1,0,0],  D:[-1,0,0]},
+        };
+        const upMap = {
+            '1,0,0': [0,0,1],  '-1,0,0': [0,0,1],
+            '0,1,0': [0,0,1],  '0,-1,0': [0,0,1],
+            '0,0,1': [0,-1,0], '0,0,-1': [0,1,0],
+        };
+
+        function getCurrentViewKey() {
+            const cam = sc.camera;
+            const dir = new THREE.Vector3();
+            cam.getWorldDirection(dir);
+            // Snap to nearest cardinal axis
+            const abs = [Math.abs(dir.x), Math.abs(dir.y), Math.abs(dir.z)];
+            const maxI = abs.indexOf(Math.max(...abs));
+            const arr = [0,0,0];
+            arr[maxI] = dir.getComponent(maxI) > 0 ? 1 : -1;
+            return arr.join(',');
+        }
+
+        const THRESHOLD = 60; // pixels
+        let dragStart = null;
+        let swipeFired = false;
+
+        const el = sc.renderer.domElement;
+        el.addEventListener('mousedown', function(e) {
+            if (!window.__faceEditMode) return;
+            if (e.button !== 0) return;
+            // Only trigger on empty space — check if a mesh was hit
+            const rect = el.getBoundingClientRect();
+            const mouse = new THREE.Vector2(
+                ((e.clientX - rect.left) / rect.width) * 2 - 1,
+                -((e.clientY - rect.top) / rect.height) * 2 + 1
+            );
+            const ray = new THREE.Raycaster();
+            ray.setFromCamera(mouse, sc.camera);
+            const stl = window.__stlMeshes || [];
+            if (ray.intersectObjects(stl).length > 0) return;
+            dragStart = {x: e.clientX, y: e.clientY};
+            swipeFired = false;
+        });
+
+        el.addEventListener('mousemove', function(e) {
+            if (!dragStart || swipeFired) return;
+            const dx = e.clientX - dragStart.x;
+            const dy = e.clientY - dragStart.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < THRESHOLD) return;
+
+            swipeFired = true;
+            const key = getCurrentViewKey();
+            const nb = neighbors[key];
+            if (!nb) return;
+
+            // Determine dominant direction
+            let nextDir;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                nextDir = dx < 0 ? nb.L : nb.R;
+            } else {
+                nextDir = dy < 0 ? nb.U : nb.D;
+            }
+            const nk = nextDir.join(',');
+            const nextUp = upMap[nk] || [0,0,1];
+            snapToOrthoView(nextDir, nextUp);
+        });
+
+        el.addEventListener('mouseup', function() {
+            dragStart = null;
+            swipeFired = false;
+        });
+    })();
+
     // --- Studio HDRI environment map ---
     const w = 256, h = 128;
     const data = new Float32Array(w * h * 4);
@@ -232,8 +397,9 @@ CONNECTION_INIT_JS = """
     const connections = CONNECTION_DATA;
     for (const b of connections) {
         const r = 0.005;
-        const color = b.end === 'proximal'
-            ? 0x00cc00 : 0xcc0000;
+        const color = b.centering === 'center'
+            ? 0x4488ff
+            : (b.end === 'proximal' ? 0x00cc00 : 0xcc0000);
         const geo = new THREE.SphereGeometry(r, 16, 12);
         const mat = new THREE.MeshStandardMaterial({
             color: color, metalness: 0.3,
@@ -419,6 +585,110 @@ FACE_MARKER_INIT_JS = """
         const m = markers[id];
         if (m) m.material.color.setHex(colorHex);
     };
+
+    // --- Move Parts drag mode ---
+    let dragEnabled = false;
+    let dragging = false;
+    let dragMesh = null;
+    let dragLinkName = null;
+    let dragStartMouse = null;
+    let dragStartPos = null;
+    window.__lastPartMove = null;
+
+    window.__enablePartDrag = function(enable) {
+        dragEnabled = enable;
+        if (!enable && dragMesh) {
+            dragging = false;
+            dragMesh = null;
+        }
+    };
+
+    function getViewPlaneAxes() {
+        // Determine which two axes are in the view plane
+        // based on the camera direction (ortho lock ensures
+        // camera faces along one cardinal axis)
+        const cam = sc.camera;
+        const dir = new THREE.Vector3();
+        cam.getWorldDirection(dir);
+        const ax = Math.abs(dir.x);
+        const ay = Math.abs(dir.y);
+        const az = Math.abs(dir.z);
+        // The dominant axis is the view axis; the other two
+        // are the drag plane axes
+        if (ax > ay && ax > az) return {u: 'y', v: 'z'};
+        if (ay > az) return {u: 'x', v: 'z'};
+        return {u: 'x', v: 'y'};
+    }
+
+    function screenToWorld(e, refPos) {
+        const rect = sc.renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(mouse, sc.camera);
+        // Intersect with plane at refPos perpendicular to camera
+        const cam = sc.camera;
+        const normal = new THREE.Vector3();
+        cam.getWorldDirection(normal);
+        const plane = new THREE.Plane();
+        plane.setFromNormalAndCoplanarPoint(normal, refPos);
+        const pt = new THREE.Vector3();
+        ray.ray.intersectPlane(plane, pt);
+        return pt;
+    }
+
+    sc.renderer.domElement.addEventListener(
+        'mousedown', function(e) {
+        if (!dragEnabled || !window.__faceEditMode) return;
+        if (e.button !== 0) return;
+        const rect = sc.renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(mouse, sc.camera);
+        const hits = ray.intersectObjects(window.__stlMeshes);
+        if (hits.length === 0) return;
+        const hit = hits[0];
+        const ln = hit.object.userData.linkName;
+        if (!ln) return;
+        dragging = true;
+        dragMesh = hit.object;
+        dragLinkName = ln;
+        dragStartPos = dragMesh.position.clone();
+        dragStartMouse = screenToWorld(e, dragStartPos);
+        e.stopPropagation();
+        e.preventDefault();
+    }, true);
+
+    sc.renderer.domElement.addEventListener(
+        'mousemove', function(e) {
+        if (!dragging || !dragMesh || !dragStartMouse) return;
+        const current = screenToWorld(e, dragStartPos);
+        if (!current) return;
+        const delta = current.clone().sub(dragStartMouse);
+        // Constrain to view plane axes only
+        const axes = getViewPlaneAxes();
+        const newPos = dragStartPos.clone();
+        newPos[axes.u] += delta[axes.u];
+        newPos[axes.v] += delta[axes.v];
+        dragMesh.position.copy(newPos);
+    });
+
+    sc.renderer.domElement.addEventListener(
+        'mouseup', function(e) {
+        if (!dragging || !dragMesh) return;
+        const delta = dragMesh.position.clone().sub(dragStartPos);
+        window.__lastPartMove = {
+            linkName: dragLinkName,
+            delta: [delta.x, delta.y, delta.z]
+        };
+        dragging = false;
+        dragMesh = null;
+    });
 
     // Click: raycast markers first, then STL meshes
     sc.renderer.domElement.addEventListener(

@@ -90,6 +90,7 @@ def build_scene(state: SimulatorState) -> None:
                     "id": f"{link_name}_{cp['end']}_{i}",
                     "end": cp["end"],
                     "radius_mm": cp["radius_mm"],
+                    "centering": cp.get("centering", "surface"),
                 }
             )
     connection_js = CONNECTION_INIT_JS.replace(
