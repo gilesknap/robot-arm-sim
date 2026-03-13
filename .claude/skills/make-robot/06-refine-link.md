@@ -1,164 +1,90 @@
-# 06 — Refine Link (Per-Link Visual Alignment)
+# 06 — Refine Link
 
-The core iteration loop. Called once per link, working base-to-tip. Operates on exactly ONE link at a time.
+Fix connection points for one link at a time, working base-to-tip. Use reference images + the simulator's Edit Connections mode to visually identify and click the correct mating surfaces.
 
 ## Input
 
-- Link index N (0-based, from orchestrator)
-- `robots/<name>/view_mapping.yaml` (from step 05)
-- Simulator running on `localhost:8080`
-- claude-in-chrome MCP for browser screenshots
-- `zoom-rotate-camera` skill for JS camera templates
+- Link index N (0-based), robot name
+- Simulator on `localhost:8080`, claude-in-chrome MCP for screenshots/clicks
+- Reference images already collected (skill 05)
 
 ## Steps
 
-### 0. Pre-Visual Gap/Overlap Check (BEFORE opening the simulator)
+### 1. Study the part against reference images
 
-Before looking at any screenshots, **compute expected gaps analytically in all three axes** using the analysis YAMLs and chain.yaml. For each pair of adjacent links (N-1, N):
+1. Set **Show up to** slider to link N
+2. Use `zoom-rotate-camera` to get clear views of the part from multiple angles
+3. Screenshot via browser MCP
+4. Compare against manufacturer reference images — identify:
+   - Where does this part connect to its **parent** (proximal)?
+   - Where does this part connect to its **child** (distal)?
+   - What kind of surface is it? (flat flange → `surface` mode, through-bore → `center` mode)
 
-1. Read the analysis YAML for both links. Note the **bounding box** extents in X, Y, and Z, and the **proximal/distal connection point** positions.
-2. For each axis, compute where each link's mesh boundary is in world coords. The URDF generator uses **distal bore → child joint** positioning for non-root/non-terminal links, and **proximal bore at origin** for root and terminal links.
-3. Check for **gaps > 5mm** or **overlaps** along each axis.
+### 2. Assign connection points via Edit Connections
 
-**Common pattern**: When the joint origin height (e.g. DH d1) is significantly taller than the parent mesh, a Z gap will appear. But also check Y and X — lateral misalignment between meshes is common and only visible from FRONT/BACK (Y) or LEFT/RIGHT (X) views.
+1. Click **Edit Connections** in the toolbar — meshes go semi-transparent
+2. Select **Proximal** or **Distal** toggle
+3. Set **centering mode** (`surface` or `center`)
+4. Use `zoom-rotate-camera` to snap to an **orthogonal view** where the target surface faces the camera — this ensures accurate click placement (perspective views distort positions)
+5. **Click directly on the mesh surface** at the mating face — the click handler captures the exact position and face normal
+6. Repeat for the other end (proximal/distal)
+7. Click **Save & Rebuild** — writes the analysis YAML (with `method: manual`) and regenerates the URDF automatically
 
-**Fix approach — visual_xyz ONLY**:
-- Use `visual_xyz` to shift the visual mesh into position. This is purely cosmetic — it does NOT affect kinematics.
-- **NEVER adjust joint `origin` to fix visual alignment.** Joint origins are defined by DH parameters and verified by `verify_kinematics.py`. Changing them would break the kinematic chain.
-- Large `visual_xyz` values (e.g. 60mm) will cause minor COR drift — when the joint rotates, the mesh may shift slightly because the visual center doesn't coincide with the joint origin. **This is an acceptable cosmetic trade-off.** The alternative (moving the COR) would give wrong end-effector positions.
+### 3. Verify the result
 
-**Why COR drift is OK**: A 60mm `visual_xyz` with ±45° rotation produces ~2mm of visible misalignment at the joint. This is cosmetic only — the kinematic model remains correct, which matters more for simulation accuracy.
+1. Exit Edit Connections mode
+2. Screenshot from orthogonal views (FRONT, RIGHT minimum), compare against reference
+3. Check: no gaps, no overlaps, silhouette matches reference
 
-Apply any computed `visual_xyz` fixes to chain.yaml and regenerate BEFORE starting visual comparison. This avoids wasting iteration cycles on obvious geometric misalignment.
+### 4. Verify kinematics
 
-### 1. Set "Show up to" Slider
-
-Use the slider JS to show links 0..N only:
-```javascript
-const tracks = document.querySelectorAll('.q-slider__track-container');
-function clickSlider(idx, degrees, minDeg, maxDeg) {
-    const t = tracks[idx];
-    const r = t.getBoundingClientRect();
-    const frac = (degrees - minDeg) / (maxDeg - minDeg);
-    const x = r.left + frac * r.width;
-    const y = r.top + r.height / 2;
-    t.dispatchEvent(new MouseEvent('mousedown',
-        {clientX: x, clientY: y, bubbles: true}));
-    t.dispatchEvent(new MouseEvent('mouseup',
-        {clientX: x, clientY: y, bubbles: true}));
-}
-```
-
-The "Show up to" slider is the last slider in the control panel (highest index). Set it to show N+1 links (value = N).
-
-### 2. Two-View Alignment Check
-
-For each link, check from **two orthogonal views**. Use this view-pair strategy:
-
-1. **Primary view**: The view where the joint axis is visible (e.g. RIGHT/SIDE for Z-axis joints).
-2. **Secondary view**: The orthogonal view (e.g. FRONT for Z-axis joints). This catches lateral misalignment invisible in the primary view.
-
-**If the part is obscured** in one view (e.g. hidden behind a parent link from the front), switch to the **opposite** view (BACK instead of FRONT, or LEFT instead of RIGHT). The opposite view shows the same alignment axis but from the other side, which often reveals the part.
-
-For each view:
-1. **Snap to ortho view** using the one-liner template from `zoom-rotate-camera` skill
-2. **Screenshot** the simulator via browser MCP
-3. **Compare** against the reference image:
-   - Does link N's shape match?
-   - Is it positioned correctly relative to link N-1?
-   - Are there gaps or overlaps at the joint?
-   - Does the overall silhouette match up to this link?
-
-### 3. Diagnose and Fix
-
-If there's a discrepancy, use this symptom-to-fix table:
-
-| Symptom | Visible in | Fix in chain.yaml |
-|---------|-----------|-------------------|
-| Mesh floating above joint | SIDE | Add negative `visual_xyz` Z |
-| Gap between links (bore at mesh extreme) | SIDE | Negative `visual_xyz` Z on child link |
-| Overlap between links vertically | SIDE | Positive `visual_xyz` Z on child link |
-| Overlap visible from FRONT/BACK only | FRONT/BACK | Lateral (Y) misalignment — adjust `visual_xyz` Y |
-| Overlap visible from LEFT/RIGHT only | LEFT/RIGHT | Depth (X) misalignment — adjust `visual_xyz` X |
-| Part rotated wrong | any | Adjust `visual_rpy` on this link |
-| Part shifted laterally | FRONT/BACK | Adjust `visual_xyz` Y |
-| Minor COR drift on rotation | rotate joint | Expected with large `visual_xyz` — cosmetic only, do NOT adjust joint origin |
-
-After each fix:
-```bash
-# Regenerate URDF
-uv run robot-arm-sim generate robots/<name>/ robots/<name>/chain.yaml
-# Click "Reload URDF" in the simulator toolbar (preserves camera + slider state)
-```
-
-**IMPORTANT**: The "Reload URDF" button preserves camera position, "Show up to" slider, and joint angles via sessionStorage. Use it instead of full page reload — this saves significant time during iterative refinement. After clicking, wait ~5 seconds for the state to restore.
-
-Then re-screenshot and compare again.
-
-### 4. Rotation Test
-
-After visual alignment, **test the joint rotation** to check for COR drift:
-1. Set joint N to ±45° using the slider
-2. Screenshot — the parts on both sides of the joint should remain approximately flush
-3. Minor drift (1-3mm visible gap at ±45°) is **expected and acceptable** when `visual_xyz` is large — the mesh visual center doesn't coincide with the kinematic joint origin
-4. **Do NOT adjust joint origins to fix COR drift** — this would break verified kinematics. The cosmetic drift is the correct trade-off.
-
-### 5. Verify Kinematics
-
-After visual alignment:
 ```bash
 uv run python robots/<name>/verify_kinematics.py --json
 ```
 
-Ensure this link's joint still passes within 2mm.
+All joints must pass within 2mm.
 
-### 6. Multi-View Consistency (CRITICAL)
+### 5. Diff the URDF
 
-Check **every** fix from at least 2 orthogonal views. A fix that looks right from one view may be wrong from another.
+```bash
+diff <(git show HEAD:robots/<name>/robot.urdf) robots/<name>/robot.urdf
+```
 
-**View selection rules**:
-- Z alignment (gaps/overlap): check from SIDE (RIGHT or LEFT)
-- Y alignment (lateral offset): check from FRONT or BACK
-- X alignment (depth offset): check from RIGHT or LEFT
-- **If a part is obscured** in one view, switch to the opposite face (FRONT↔BACK, LEFT↔RIGHT). The opposite view shows the same alignment axis from the other side.
+Confirm only visual origins changed — joint origins must be unchanged.
 
-**Common trap**: The SIDE view only shows Z alignment. Lateral (Y) misalignment is invisible from the side — you MUST check FRONT or BACK views to catch it. Always check FRONT/BACK for overlap/clipping between adjacent links, especially at the base-shoulder and shoulder-upperarm junctions.
+### 6. If wrong, iterate
 
-## Gate
+Return to step 1. Re-examine the reference images — did you pick the wrong surface? Wrong centering mode? Re-enter Edit Connections and try again.
 
-ALL of:
-- Link length within 2mm of manufacturer spec
-- Silhouette matches reference in 2+ orthogonal views
-- No gaps or overlaps at joints from any view
-- Joint rotation test shows no excessive drift (< 3mm at ±45°)
-- `verify_kinematics.py --json` passes
-- Joint origins unchanged from DH-derived values
+## Centering mode guide
 
-## Escalation
+| Geometry | Mode | Why |
+|---|---|---|
+| Flat mating flange | `surface` | Marker on the face; gap-closing applies normally |
+| Through-bore / shaft hole | `center` | Pipeline averages with opposite face for precise axis centering |
+| Large concentric cylinder | `center` | Bore center defines the rotation axis |
 
-If ANY of these occur, stop and invoke `review` for human discussion:
-- COR drift exceeds 5mm at ±45° — may indicate the mesh bore detection was wrong
-- 5 iterations without convergence — likely a deeper issue
-- Kinematics verification fails after visual changes (should never happen with visual_xyz only)
-
-## Connection Point Centering Modes
-
-Each bore marker in analysis YAML has a `centering` field controlling how the visual origin is computed:
-
-| Mode | When to use | Algorithm |
-|------|------------|-----------|
-| `surface` (default) | Marker on bore face | Uses `_find_opposite_face` with depth limit; no adjustment if no face found (shallow bore) |
-| `center` | Marker manually placed at bore center (not on surface) | Uses `_find_opposite_face` with no depth limit |
-
-**Critical**: `compute_visual_origin` applies centering but `compute_joint_origin` uses raw connection point positions. If you change the default centering mode, **diff the full URDF against main** to verify no visual origins shifted unexpectedly. Manual markers that previously had no centering will break if a new default applies centering to them — mark them with explicit `centering: surface` to preserve behavior.
+**Rule of thumb:** if the joint rotation axis passes *through* a bore, use `center`. If the joint is at a flat face where two parts mate, use `surface`.
 
 ## Key Rules
 
-- **One change at a time** — adjust one value, regenerate, re-compare
-- **visual_xyz is ADDITIVE** — `[0, 0, 0.005]` means 5mm up from auto-detected position
-- **NEVER adjust joint origins for visual alignment** — joint origins come from DH params and are kinematically verified. Accept minor COR drift as a cosmetic trade-off.
-- **Check ALL three axes** — Z from the side, Y from front/back, X from left/right
-- **Use opposite views for obscured parts** — if FRONT is blocked, try BACK
-- **Use Reload URDF button** — it preserves camera, sliders, and joint angles
-- **Never edit robot.urdf directly** — always edit chain.yaml and regenerate
-- **Visual positioning strategy** — root link: proximal bore at origin (sits on ground); non-root with child joint: distal bore at child joint origin (closes gaps); terminal link: proximal bore at origin
+- **NEVER modify joint origins** — they come from DH params and are sacrosanct
+- **One link at a time**, base-to-tip — errors compound along the chain
+- **Save & Rebuild** writes the analysis YAML and regenerates — no need to run generate manually
+- If `visual_rpy` is needed (L-shaped parts where proximal/distal axes differ), set it in `chain.yaml` and regenerate
+- Never edit `robot.urdf` directly
+
+## Gate
+
+- [ ] Connection points match visually identifiable mating surfaces (confirmed against reference images)
+- [ ] `verify_kinematics.py --json` passes (all joints within 2mm)
+- [ ] Joint origins unchanged from DH-derived values (confirmed via URDF diff)
+- [ ] Silhouette matches reference in 2+ orthogonal views
+- [ ] No gaps or overlaps at joints
+
+## Escalation
+
+Stop and invoke `review` if:
+- 3 iterations without convergence on a single link
+- Kinematics verification fails after changes
+- Cannot identify mating surfaces from reference images
