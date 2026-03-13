@@ -64,18 +64,6 @@
           "title": "Method",
           "type": "string"
         },
-        "center": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Center"
-        },
         "centering": {
           "anyOf": [
             {

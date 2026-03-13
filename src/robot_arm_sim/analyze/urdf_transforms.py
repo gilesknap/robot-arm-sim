@@ -87,17 +87,13 @@ def compute_visual_origin(
     pos = list(proximal["position"])  # copy — don't mutate original
 
     # Adjust bore-axis component from face to barrel center.
-    # Three centering modes:
+    # Two centering modes:
     #   center       — marker is at bore center (use opposite face, no depth limit)
     #   surface      — marker on bore face, find opposite via flat faces with
     #                  depth limit; no adjustment if not found (shallow bore)
-    #   surface_bbox — marker on bore face, use bbox opposite edge (default)
     bore_axis = proximal.get("axis", [0, 0, 0])
     axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
-    # Support both new 'centering' key and legacy 'center' boolean
-    centering = proximal.get("centering")
-    if centering is None:
-        centering = "center" if proximal.get("center", False) else "surface"
+    centering = proximal.get("centering", "surface")
 
     if abs(bore_axis[axis_idx]) > 0.5:
         if centering == "center":
@@ -223,9 +219,7 @@ def close_surface_gaps(
         if child_prox is None:
             continue
 
-        centering = child_prox.get("centering")
-        if centering is None:
-            centering = "center" if child_prox.get("center", False) else "surface"
+        centering = child_prox.get("centering", "surface")
         if centering != "surface":
             continue
 

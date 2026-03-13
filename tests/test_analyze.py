@@ -79,7 +79,7 @@ def test_run_analysis_preserves_manual_connection_points(robot_dir: Path):
         "axis": [0.0, 0.0, 1.0],
         "radius_mm": 5.0,
         "method": "manual",
-        "center": True,
+        "centering": "center",
     }
     data["connection_points"] = [manual_cp]
     with open(target, "w") as f:
@@ -95,7 +95,7 @@ def test_run_analysis_preserves_manual_connection_points(robot_dir: Path):
     cp = manual_found[0]
     assert cp["end"] == "proximal"
     assert cp["position"] == [1.0, 2.0, 3.0]
-    assert cp["center"] is True
+    assert cp["centering"] == "center"
 
 
 def test_run_analysis_override_manual_replaces_all(robot_dir: Path):

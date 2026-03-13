@@ -42,7 +42,6 @@ class ConnectionPoint(BaseModel):
     axis: list[float]
     radius_mm: float
     method: str  # "cross_section", "cylinder_fit", "manual", etc.
-    center: bool | None = None  # deprecated — use centering instead
     centering: Literal["center", "surface"] | None = None
 
 
@@ -165,6 +164,7 @@ class ChainLink(BaseModel):
     mesh: str | None = None
     visual_rpy: list[float] | None = None
     visual_xyz: list[float] | None = None
+    user_added: bool = False
 
 
 class ChainJoint(BaseModel):
@@ -178,6 +178,7 @@ class ChainJoint(BaseModel):
     origin_rpy: list[float] | None = None
     effort: float | None = None
     velocity: float | None = None
+    user_added: bool = False
 
 
 class Chain(BaseModel):
@@ -294,6 +295,11 @@ def load_chain_yaml(path: Path) -> Chain:
 
 def save_chain_yaml(model: Chain, path: Path) -> None:
     data = model.model_dump(exclude_none=True)
+    # Omit user_added when False to keep YAML clean
+    for items in (data.get("links", []), data.get("joints", [])):
+        for item in items:
+            if item.get("user_added") is False:
+                item.pop("user_added", None)
     _dump_yaml_with_tag(data, path, "chain")
 
 

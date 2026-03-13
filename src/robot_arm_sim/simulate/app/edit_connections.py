@@ -352,11 +352,7 @@ def _seed_connection_assignments(state: SimulatorState) -> None:
         for cp in cps:
             end = cp["end"]
             pos = cp["position"]
-            # Resolve centering: new key takes precedence, fall back to
-            # legacy 'center' boolean, default to surface_bbox.
-            cp_centering = cp.get("centering")
-            if cp_centering is None:
-                cp_centering = "center" if cp.get("center", False) else "surface"
+            cp_centering = cp.get("centering", "surface")
             assigns[end] = {
                 "centroid": [float(pos[i]) for i in range(3)],
                 "normal": [float(cp["axis"][i]) for i in range(3)],

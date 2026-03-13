@@ -108,7 +108,7 @@ def load_connection_points(robot: URDFRobot, robot_dir: Path) -> dict[str, list[
                         "position": np.array(cp.position),
                         "axis": cp.axis,
                         "radius_mm": cp.radius_mm,
-                        "center": cp.center if cp.center is not None else False,
+                        "centering": cp.centering or "surface",
                     }
                 )
             result[link.name] = points
