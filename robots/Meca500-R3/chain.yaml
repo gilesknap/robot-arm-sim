@@ -95,6 +95,7 @@ joints:
   - 0
   parent: link_5
   type: revolute
+  user_added: true
 links:
 - mesh: A0
   name: base_link
@@ -110,6 +111,7 @@ links:
   name: link_5
 - mesh: EndEffector
   name: link_6
+  user_added: true
   visual_xyz:
   - 0.065795
   - 0.000027
