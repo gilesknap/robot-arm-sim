@@ -451,6 +451,26 @@ CONNECTION_INIT_JS = """
             }
         }
     };
+    window.__moveConnectionSphere = function(
+        id, x, y, z, colorHex
+    ) {
+        const s = spheres[id];
+        if (!s) return false;
+        s.position.set(x, y, z);
+        s.visible = true;
+        if (colorHex !== undefined) {
+            s.material.color.setHex(colorHex);
+        }
+        const ln = lines[id];
+        if (ln) {
+            ln.position.set(x, y, z);
+            ln.visible = true;
+            if (colorHex !== undefined) {
+                ln.material.color.setHex(colorHex);
+            }
+        }
+        return true;
+    };
 })();
 """
 
@@ -516,59 +536,10 @@ FACE_MARKER_INIT_JS = """
     window.__faceEditMode = false;
     window.__lastFaceClick = null;
 
-    // Connection edit markers (dynamic green/red spheres)
-    const connEditMarkers = {};
-    window.__connEditMarkers = connEditMarkers;
-
-    window.__placeConnEditMarker = function(
-        id, x, y, z, colorHex
-    ) {
-        let m = connEditMarkers[id];
-        if (!m) {
-            const g = new THREE.SphereGeometry(
-                1.0, 16, 12);
-            const mt = new THREE.MeshStandardMaterial({
-                color: colorHex, metalness: 0.3,
-                roughness: 0.6, transparent: true,
-                opacity: 0.9
-            });
-            m = new THREE.Mesh(g, mt);
-            sc.scene.add(m);
-            connEditMarkers[id] = m;
-        }
-        m.scale.setScalar(0.005);
-        m.material.color.setHex(colorHex);
-        m.position.set(x, y, z);
-        m.visible = true;
-    };
-
-    window.__removeConnEditMarker = function(id) {
-        const m = connEditMarkers[id];
-        if (m) {
-            sc.scene.remove(m);
-            m.geometry.dispose();
-            m.material.dispose();
-            delete connEditMarkers[id];
-        }
-    };
-
     window.__setFaceMarkersVisible = function(show) {
         window.__faceEditMode = show;
         Object.values(markers).forEach(
             m => { m.visible = show; });
-        Object.values(connEditMarkers).forEach(
-            m => { m.visible = show; });
-    };
-
-    window.__setConnEditMarkersVisible = function(show) {
-        Object.values(connEditMarkers).forEach(
-            m => { m.visible = show; });
-    };
-
-    window.__setConnEditMarkerVisibility = function(visMap) {
-        for (const [id, vis] of Object.entries(connEditMarkers)) {
-            vis.visible = !!visMap[id];
-        }
     };
 
     window.__updateFaceMarkerPoses = function(data) {

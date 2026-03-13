@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import math
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -87,7 +88,7 @@ def build_edit_connections(state: SimulatorState) -> None:
 
         def _on_show_all(e: Any) -> None:
             state.show_all_connections["value"] = e.value
-            _sync_connection_edit_visibility(state)
+            _sync_connection_visibility(state)
 
         ui.checkbox("Show All", value=False).props("dense").on_value_change(
             _on_show_all
@@ -201,54 +202,30 @@ def build_edit_connections(state: SimulatorState) -> None:
             if active
             else "width: 100%; gap: 8px; display: none;"
         )
-        ui.run_javascript(
-            f"window.__faceEditMode = {str(active).lower()};"
-            f" window.__setConnEditMarkersVisible({str(active).lower()})"
-        )
+        ui.run_javascript(f"window.__faceEditMode = {str(active).lower()}")
         ui.run_javascript(
             f"if(window.__lockToOrthoViews)"
             f" window.__lockToOrthoViews({str(active).lower()})"
         )
         if active:
-            import copy
-
             ui.run_javascript("window.__setMeshTransparency(0.25)")
-            # Hide view-mode connection spheres while editing
-            ui.run_javascript(
-                "window.__setConnectionsVisible"
-                " && window.__setConnectionsVisible(false)"
-            )
             state.connection_status_label.text = "Click mesh to assign"
             _seed_connection_assignments(state)
-            # Snapshot after seeding so we capture the YAML-derived state
             state.conn_snapshot = copy.deepcopy(state.connection_assignments)
-            _show_existing_connection_markers(state)
+            # Show connection markers (reuse the view-mode spheres)
+            state.connections_visible["value"] = True
             state.update_scene_now()
         else:
             # Restore assignments from snapshot, discarding unsaved edits
             state.connection_assignments.clear()
             if state.conn_snapshot:
-                import copy
-
                 state.connection_assignments.update(copy.deepcopy(state.conn_snapshot))
             state.connection_dirty_links.clear()
             state.part_visual_offsets.clear()
             state.connection_center_target = None
-            # Remove all edit markers from the scene
-            ui.run_javascript(
-                "if(window.__connEditMarkers){"
-                "  for(const [id,m] of Object.entries(window.__connEditMarkers)){"
-                "    m.parent && m.parent.remove(m);"
-                "    m.geometry && m.geometry.dispose();"
-                "    m.material && m.material.dispose();"
-                "  }"
-                "  window.__connEditMarkers = {};"
-                "}"
-            )
             if not state.transparent_mode["value"]:
                 ui.run_javascript("window.__setMeshTransparency(1.0)")
-            # Ensure view-mode connection spheres are visible —
-            # set BEFORE update_scene_now so _update_connections runs
+            # Re-show view-mode connection markers at original positions
             state.connections_visible["value"] = True
             state.update_scene_now()
             # Sync the toolbar Connections button style
@@ -261,7 +238,7 @@ def build_edit_connections(state: SimulatorState) -> None:
 
     def _on_visibility_changed() -> None:
         if state.edit_connections_active["value"]:
-            _sync_connection_edit_visibility(state)
+            _sync_connection_visibility(state)
 
     state.on_visibility_changed = _on_visibility_changed
 
@@ -299,43 +276,48 @@ def build_edit_connections(state: SimulatorState) -> None:
     ui.context.client.on_disconnect(lambda: setattr(poll_timer, "active", False))
 
 
-def _show_existing_connection_markers(state: SimulatorState) -> None:
-    """Place all existing connection assignments as markers, then sync visibility."""
-    for link_name, assigns in state.connection_assignments.items():
-        for end, connection_data in assigns.items():
-            _place_connection_marker(
-                state,
-                link_name,
-                end,
-                connection_data["centroid"],
-                centering=connection_data.get("centering", "surface"),
-            )
-    _sync_connection_edit_visibility(state)
-
-
-def _sync_connection_edit_visibility(state: SimulatorState) -> None:
-    """Show/hide connection edit markers based on part visibility and Show All."""
-    import json
-
+def _sync_connection_visibility(state: SimulatorState) -> None:
+    """Show/hide connection markers based on part visibility and Show All."""
     show_all = state.show_all_connections.get("value", False)
     vis_map: dict[str, bool] = {}
-    for link_name, assigns in state.connection_assignments.items():
+    for link_name, cps in state.connection_points.items():
         visible = show_all or state.visible_links.get(link_name, True)
-        for end in assigns:
-            marker_id = f"conn_edit_{link_name}_{end}"
-            vis_map[marker_id] = visible
-    ui.run_javascript(f"window.__setConnEditMarkerVisibility({json.dumps(vis_map)})")
+        for i, cp in enumerate(cps):
+            sphere_id = f"{link_name}_{cp['end']}_{i}"
+            vis_map[sphere_id] = visible
+    # Use __updateConnectionPoses visibility flag (pos[3])
+    # to selectively show/hide — just toggle the sphere directly
+    js = (
+        "if(window.__connSpheres){"
+        + "".join(
+            f"var s=window.__connSpheres['{sid}'];"
+            f"if(s)s.visible={str(vis).lower()};"
+            f"var l=window.__connLines&&window.__connLines['{sid}'];"
+            f"if(l)l.visible={str(vis).lower()};"
+            for sid, vis in vis_map.items()
+        )
+        + "}"
+    )
+    ui.run_javascript(js)
 
 
-def _place_connection_marker(
+def _get_sphere_id(state: SimulatorState, link_name: str, end: str) -> str | None:
+    """Find the view-mode sphere ID for a given (link_name, end) pair."""
+    cps = state.connection_points.get(link_name, [])
+    for i, cp in enumerate(cps):
+        if cp["end"] == end:
+            return f"{link_name}_{end}_{i}"
+    return None
+
+
+def _move_connection_sphere(
     state: SimulatorState,
     link_name: str,
     end: str,
     centroid_mm: list[float],
     centering: str = "surface",
 ) -> None:
-    """Place/update a connection edit marker sphere at the given position."""
-    # Transform centroid from STL-space (mm) to world-space (m)
+    """Move a view-mode connection sphere to a new position."""
     transforms = _get_visual_transforms(state)
     tf_vis = transforms.get(link_name)
     if tf_vis is None:
@@ -345,7 +327,10 @@ def _place_connection_marker(
     c_homo = np.array([c_m[0], c_m[1], c_m[2], 1.0])
     wp = tf_vis @ c_homo
 
-    marker_id = f"conn_edit_{link_name}_{end}"
+    sphere_id = _get_sphere_id(state, link_name, end)
+    if not sphere_id:
+        return
+
     if centering == "center":
         color = "0x4488ff"
     elif end == "proximal":
@@ -353,8 +338,8 @@ def _place_connection_marker(
     else:
         color = "0xcc0000"
     ui.run_javascript(
-        f"window.__placeConnEditMarker("
-        f"'{marker_id}', {wp[0]:.6f}, {wp[1]:.6f}, {wp[2]:.6f},"
+        f"window.__moveConnectionSphere("
+        f"'{sphere_id}', {wp[0]:.6f}, {wp[1]:.6f}, {wp[2]:.6f},"
         f" {color})"
     )
 
@@ -389,19 +374,13 @@ def _assign_connection(
     end: str,
     connection_data: dict,
 ) -> None:
-    """Assign a connection point and update markers."""
+    """Assign a connection point and update the view-mode sphere."""
     if link_name not in state.connection_assignments:
         state.connection_assignments[link_name] = {}
 
     assigns = state.connection_assignments[link_name]
-
-    # Remove old marker for this end if any
-    if end in assigns:
-        old_id = f"conn_edit_{link_name}_{end}"
-        ui.run_javascript(f"window.__removeConnEditMarker('{old_id}')")
-
     assigns[end] = connection_data
-    _place_connection_marker(
+    _move_connection_sphere(
         state,
         link_name,
         end,
@@ -412,11 +391,10 @@ def _assign_connection(
     # Mark this link as user-modified
     state.connection_dirty_links.add(link_name)
 
-    # Sync centering dropdown to this connection's state
+    # Sync centering state
     centering_val = connection_data.get("centering", "surface")
     state.connection_centering_select.value = centering_val
     state.connection_centering["value"] = centering_val
-    # Track which connection is currently selected for checkbox toggling
     state.connection_center_target = (link_name, end)
 
     part_link = state.robot.get_link(link_name)
