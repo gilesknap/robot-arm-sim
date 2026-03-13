@@ -72,9 +72,15 @@ def compute_visual_origin(
     link_spec: dict,
     link_name: str,
     *,
+    joint_axis: list[float],
     messages: list[str],
 ) -> tuple[list[float], list[float]]:
-    """Compute visual origin xyz/rpy: proximal connection point at frame origin."""
+    """Compute visual origin xyz/rpy: snap proximal bore center onto joint axis.
+
+    Each mesh independently positions itself so its proximal bore center
+    lies on the joint axis line.  Cross-axis error is always zeroed out;
+    along-axis placement depends on centering mode (surface vs center).
+    """
     conn_points = analysis.get("connection_points", [])
     proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
@@ -84,32 +90,46 @@ def compute_visual_origin(
         messages.append(f"  {link_name}: no proximal connection point")
         return viz_xyz, viz_rpy
 
-    pos = list(proximal["position"])  # copy — don't mutate original
+    pos = np.array(proximal["position"], dtype=float)  # mm, mesh coords
 
-    # Adjust bore-axis component from face to barrel center.
-    # Two centering modes:
-    #   center       — marker is at bore center (use opposite face, no depth limit)
-    #   surface      — marker on bore face, find opposite via flat faces with
-    #                  depth limit; no adjustment if not found (shallow bore)
+    # Joint axis direction in mesh coordinates
+    ja = np.array(joint_axis, dtype=float)
+    if viz_rpy != [0, 0, 0]:
+        # viz_rpy rotates mesh→URDF, so mesh_axis = R^T @ urdf_axis
+        ja = rpy_to_rotation(viz_rpy).T @ ja
+    ja = ja / (np.linalg.norm(ja) + 1e-12)  # normalise
+
+    # Decompose proximal position into along-axis and cross-axis
+    along_scalar = float(np.dot(pos, ja))
+    along_vec = along_scalar * ja
+    cross_vec = pos - along_vec
+
+    # Bore axis for center-mode opposite-face lookup
     bore_axis = proximal.get("axis", [0, 0, 0])
     axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
     centering = proximal.get("centering", "surface")
 
-    if abs(bore_axis[axis_idx]) > 0.5:
-        if centering == "center":
-            opp = _find_opposite_face(analysis, pos, bore_axis, axis_idx)
-            if opp is not None:
-                pos[axis_idx] = (pos[axis_idx] + opp) / 2
-        # centering == "surface": use raw position, no adjustment
+    if centering == "center" and abs(bore_axis[axis_idx]) > 0.5:
+        opp = _find_opposite_face(analysis, pos.tolist(), bore_axis, axis_idx)
+        if opp is not None:
+            # Average proximal with opposite face along bore axis
+            centered = pos.copy()
+            centered[axis_idx] = (pos[axis_idx] + opp) / 2
+            along_scalar = float(np.dot(centered, ja))
+            along_vec = along_scalar * ja
+
+    # Snapped position: along-axis preserved, cross-axis zeroed
+    snapped = along_vec
 
     messages.append(
         f"  {link_name}: proximal @ origin,"
-        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
+        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm,"
+        f" cross=({cross_vec[0]:.1f}, {cross_vec[1]:.1f}, {cross_vec[2]:.1f})mm"
     )
     if viz_rpy == [0, 0, 0]:
-        viz_xyz = [-pos[i] / 1000 for i in range(3)]
+        viz_xyz = (-snapped / 1000).tolist()
     else:
-        viz_xyz = (-rpy_to_rotation(viz_rpy) @ (np.array(pos) / 1000)).tolist()
+        viz_xyz = (-rpy_to_rotation(viz_rpy) @ (snapped / 1000)).tolist()
 
     extra = link_spec.get("visual_xyz")
     if extra is not None:
@@ -185,81 +205,6 @@ def compute_joint_origin(
         f"  {joint_spec['name']}: no connection point data, using chain spec fallback"
     )
     return joint_spec.get("origin", [0, 0, 0])
-
-
-def close_surface_gaps(
-    chain: dict,
-    analyses: dict,
-    visual_origins: dict[str, tuple[list[float], list[float]]],
-    joint_origins: dict[str, list[float]],
-    joint_rpys: dict[str, list[float]],
-    messages: list[str],
-) -> None:
-    """Adjust visual origins so surface connections touch parent distal.
-
-    Walks the kinematic chain and, for each child whose proximal is in
-    surface mode, shifts the child mesh so its proximal surface meets
-    the parent's distal surface exactly.  Center-mode connections are
-    left unchanged — their bore centering defines the rotation axis,
-    and cross-axis shifts would accumulate up the chain, skewing
-    axial rotations.
-    """
-    link_specs = {lk["name"]: lk for lk in chain["links"]}
-
-    for joint_spec in chain["joints"]:
-        child_name = joint_spec["child"]
-        parent_name = joint_spec["parent"]
-        joint_name = joint_spec["name"]
-
-        # Get child analysis and check for surface-mode proximal
-        child_mesh = link_specs.get(child_name, {}).get("mesh")
-        if not child_mesh or child_mesh not in analyses:
-            continue
-        child_analysis = analyses[child_mesh]
-        child_cps = child_analysis.get("connection_points", [])
-        child_prox = next((cp for cp in child_cps if cp["end"] == "proximal"), None)
-        if child_prox is None:
-            continue
-
-        centering = child_prox.get("centering", "surface")
-        if centering != "surface":
-            continue
-
-        # Get parent's distal connection point
-        parent_mesh = link_specs.get(parent_name, {}).get("mesh")
-        if not parent_mesh or parent_mesh not in analyses:
-            continue
-        parent_analysis = analyses[parent_mesh]
-        parent_cps = parent_analysis.get("connection_points", [])
-        parent_dist = next((cp for cp in parent_cps if cp["end"] == "distal"), None)
-        if parent_dist is None:
-            continue
-
-        # Parent distal position in parent frame
-        parent_viz_xyz, parent_viz_rpy = visual_origins[parent_name]
-        dp = np.array(parent_dist["position"]) * 0.001
-        if parent_viz_rpy != [0, 0, 0]:
-            dp = rpy_to_rotation(parent_viz_rpy) @ dp
-        distal_in_parent = np.array(parent_viz_xyz) + dp
-
-        # Transform to child frame
-        jnt_xyz = np.array(joint_origins[joint_name])
-        jnt_rpy = joint_rpys.get(joint_name, [0, 0, 0])
-        p = distal_in_parent - jnt_xyz
-        if jnt_rpy != [0, 0, 0]:
-            p = rpy_to_rotation(jnt_rpy).T @ p
-        distal_in_child = p
-
-        # Shift child visual origin so proximal meets parent distal
-        child_viz_xyz, child_viz_rpy = visual_origins[child_name]
-        adjusted = [round(child_viz_xyz[i] + distal_in_child[i], 6) for i in range(3)]
-        messages.append(
-            f"  {child_name}: surface gap closed,"
-            f" shift=({distal_in_child[0] * 1000:.1f},"
-            f" {distal_in_child[1] * 1000:.1f},"
-            f" {distal_in_child[2] * 1000:.1f})mm"
-        )
-        visual_origins[child_name] = (adjusted, child_viz_rpy)
 
 
 def rpy_to_rotation(rpy: list[float]) -> np.ndarray:

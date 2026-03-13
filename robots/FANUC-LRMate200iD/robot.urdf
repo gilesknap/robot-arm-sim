@@ -2,7 +2,7 @@
 <robot name="FANUC-LRMate200iD">
   <link name="base_link">
     <visual>
-      <origin xyz="0.009361 -0.095000 -0.043448" rpy="0 0 0"/>
+      <origin xyz="-0.000000 -0.000000 -0.043448" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/base_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -10,7 +10,7 @@
   </link>
   <link name="link_1">
     <visual>
-      <origin xyz="-0.010512 -0.092037 -0.213521" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 0.159927" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -18,7 +18,7 @@
   </link>
   <link name="link_2">
     <visual>
-      <origin xyz="-0.024213 -0.213905 -0.172328" rpy="0 0 0"/>
+      <origin xyz="-0.000000 -0.004368 -0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -26,7 +26,7 @@
   </link>
   <link name="link_3">
     <visual>
-      <origin xyz="-0.114834 -0.214494 -0.157871" rpy="0 0 0"/>
+      <origin xyz="0.000000 -0.003873 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_3.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -34,7 +34,7 @@
   </link>
   <link name="link_4">
     <visual>
-      <origin xyz="-0.289860 -0.213162 -0.195265" rpy="0 0 0"/>
+      <origin xyz="-0.158564 0.000000 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_4.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -42,7 +42,7 @@
   </link>
   <link name="link_5">
     <visual>
-      <origin xyz="-0.421941 -0.209459 -0.242045" rpy="0 0 0"/>
+      <origin xyz="-0.000000 0.003286 -0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_5.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -50,7 +50,7 @@
   </link>
   <link name="link_6">
     <visual>
-      <origin xyz="-0.461939 -0.172213 -0.237812" rpy="0 0 0"/>
+      <origin xyz="0.006000 -0.000000 -0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_6.stl" scale="0.001 0.001 0.001"/>
       </geometry>
