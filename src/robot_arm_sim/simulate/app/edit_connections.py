@@ -219,7 +219,10 @@ def build_edit_connections(state: SimulatorState) -> None:
             if result.get("type") == "mesh":
                 _handle_mesh_click(state, result)
 
-    ui.timer(0.2, _poll_face_click)
+    poll_timer = ui.timer(0.2, _poll_face_click)
+
+    # Deactivate timer when the client disconnects (robot switch / page close)
+    ui.context.client.on_disconnect(lambda: setattr(poll_timer, "active", False))
 
 
 def _show_existing_connection_markers(state: SimulatorState) -> None:
