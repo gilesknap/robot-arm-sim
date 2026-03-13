@@ -14,7 +14,12 @@ from pathlib import Path
 
 from robot_arm_sim.models import load_chain_yaml, load_part_yaml
 
-from .urdf_transforms import compute_joint_origin, compute_visual_origin, validate_fk
+from .urdf_transforms import (
+    close_surface_gaps,
+    compute_joint_origin,
+    compute_visual_origin,
+    validate_fk,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +56,36 @@ def generate_urdf(
 
     link_specs = {lk["name"]: lk for lk in chain["links"]}
 
-    # Generate links
+    # --- Pass 1: compute all visual origins and joint origins ---
+    visual_origins: dict[str, tuple[list[float], list[float]]] = {}
+    for link_spec in chain["links"]:
+        link_name = link_spec["name"]
+        mesh_name = link_spec.get("mesh")
+        if mesh_name and mesh_name in analyses:
+            viz_xyz, viz_rpy = compute_visual_origin(
+                analyses[mesh_name], link_spec, link_name, messages=messages
+            )
+            visual_origins[link_name] = (viz_xyz, viz_rpy)
+
+    joint_origins: dict[str, list[float]] = {}
+    joint_rpys: dict[str, list[float]] = {}
+    for joint_spec in chain["joints"]:
+        jnt_xyz = compute_joint_origin(
+            joint_spec,
+            link_specs,
+            analyses,
+            chain.get("dh_params", {}),
+            messages,
+        )
+        joint_origins[joint_spec["name"]] = jnt_xyz
+        joint_rpys[joint_spec["name"]] = joint_spec.get("origin_rpy", [0, 0, 0])
+
+    # --- Pass 2: close surface gaps ---
+    close_surface_gaps(
+        chain, analyses, visual_origins, joint_origins, joint_rpys, messages
+    )
+
+    # --- Emit XML ---
     for link_spec in chain["links"]:
         link_name = link_spec["name"]
         mesh_name = link_spec.get("mesh")
@@ -59,15 +93,9 @@ def generate_urdf(
         link_el = ET.SubElement(robot, "link", name=link_name)
 
         if mesh_name and mesh_name in analyses:
-            analysis = analyses[mesh_name]
             visual = ET.SubElement(link_el, "visual")
 
-            viz_xyz, viz_rpy = compute_visual_origin(
-                analysis,
-                link_spec,
-                link_name,
-                messages=messages,
-            )
+            viz_xyz, viz_rpy = visual_origins.get(link_name, ([0, 0, 0], [0, 0, 0]))
 
             if viz_xyz != [0, 0, 0] or viz_rpy != [0, 0, 0]:
                 ET.SubElement(
@@ -89,7 +117,6 @@ def generate_urdf(
                 },
             )
 
-    # Generate joints
     for joint_spec in chain["joints"]:
         joint_el = ET.SubElement(
             robot,
@@ -103,15 +130,8 @@ def generate_urdf(
         ET.SubElement(joint_el, "parent", link=joint_spec["parent"])
         ET.SubElement(joint_el, "child", link=joint_spec["child"])
 
-        jnt_xyz = compute_joint_origin(
-            joint_spec,
-            link_specs,
-            analyses,
-            chain.get("dh_params", {}),
-            messages,
-        )
-
-        jnt_rpy = joint_spec.get("origin_rpy", [0, 0, 0])
+        jnt_xyz = joint_origins[joint_spec["name"]]
+        jnt_rpy = joint_rpys[joint_spec["name"]]
         ET.SubElement(
             joint_el,
             "origin",

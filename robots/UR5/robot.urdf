@@ -10,7 +10,7 @@
   </link>
   <link name="link_1">
     <visual>
-      <origin xyz="0.001796 -0.006351 0.065200" rpy="0 0 0"/>
+      <origin xyz="0.000388 -0.002144 0.000043" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/shoulder.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -18,7 +18,7 @@
   </link>
   <link name="link_2">
     <visual>
-      <origin xyz="-0.005310 0.065200 -0.000565" rpy="0 0 0"/>
+      <origin xyz="-0.004327 -0.002293 -0.002793" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/upperarm.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -26,7 +26,7 @@
   </link>
   <link name="link_3">
     <visual>
-      <origin xyz="0.001998 -0.054499 0.002403" rpy="0 0 0"/>
+      <origin xyz="0.000079 -0.002292 0.005743" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/forearm.stl" scale="0.001 0.001 0.001"/>
       </geometry>
