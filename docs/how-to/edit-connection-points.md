@@ -60,7 +60,8 @@ another flat face (the most common case).
 
 ### `center` mode
 
-The marker sits at the **bore center** — inside a through-bore or shaft hole.
+The marker sits on a **surface face that represents where the rotation axis
+should pass through** — typically the end of a through-bore or shaft hole.
 The pipeline finds the opposite flat face along the bore axis and averages
 the two positions to compute the bore midpoint:
 
@@ -99,6 +100,55 @@ bore) would accumulate errors up the kinematic chain, progressively skewing
 each joint's axial rotation. This was discovered during debugging when
 center-mode parts drifted sideways through the chain, causing visible
 rotation misalignment.
+
+## How connection points and `visual_rpy` work together
+
+Connection points tell the pipeline **where** each joint is. But when a
+part's proximal and distal faces are on different planes — for example, an
+L-shaped link where the proximal bore faces along Z but the distal bore
+faces along Y — the mesh also needs to be **rotated** so the proximal axis
+aligns with the joint frame. This is what `visual_rpy` in `chain.yaml` does.
+
+The URDF generation pipeline works in two steps per link:
+
+1. **Rotation** (`visual_rpy`) — rotate the mesh so the proximal connection
+   axis aligns with the joint's rotation axis in the link frame.
+2. **Translation** (`compute_visual_origin`) — shift the rotated mesh so the
+   proximal connection point sits at the link frame origin (0, 0, 0).
+
+When `visual_rpy` is `[0, 0, 0]` (the default), the translation is a simple
+negation of the proximal position. When a rotation is applied, the proximal
+position is rotated first, then negated:
+
+```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
+:language: python
+:lines: 109-117
+:caption: visual_rpy applied before translation in compute_visual_origin
+```
+
+### Why this matters for fixing jumbled parts
+
+When auto-detection picks the wrong connection points, parts end up in the
+wrong position *and* orientation. Fixing this requires both steps:
+
+1. **Place the markers correctly** — use Edit Connections to assign proximal
+   and distal markers to the right faces. This tells the pipeline where the
+   joint axes are, and gives it the axis directions from the face normals.
+
+2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
+   face is not perpendicular to the joint axis (i.e. the STL mesh
+   coordinates don't naturally align with the link frame), you need a
+   `visual_rpy` rotation in `chain.yaml` to bring them into alignment.
+
+For a typical straight part where proximal and distal are on parallel faces
+along the same axis, `visual_rpy` can stay at `[0, 0, 0]`. For L-shaped or
+angled parts where the two connections face different directions, you need a
+rotation to align the proximal axis with the joint frame.
+
+**Work from base to tip.** Each link's visual origin depends on its proximal
+connection being correctly placed at the joint frame origin. If a parent
+link is wrong, every child link downstream will be wrong too — errors
+compound along the chain.
 
 ## How to edit connection points
 
