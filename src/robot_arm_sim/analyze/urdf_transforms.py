@@ -197,10 +197,12 @@ def close_surface_gaps(
 ) -> None:
     """Adjust visual origins so surface connections touch parent distal.
 
-    Walks the kinematic chain and shifts child meshes to align with
-    parent distal surfaces.  Surface-mode children get a full 3D shift.
-    Center-mode children get cross-axis alignment only (perpendicular
-    to the bore axis), preserving the bore-axis centering.
+    Walks the kinematic chain and, for each child whose proximal is in
+    surface mode, shifts the child mesh so its proximal surface meets
+    the parent's distal surface exactly.  Center-mode connections are
+    left unchanged — their bore centering defines the rotation axis,
+    and cross-axis shifts would accumulate up the chain, skewing
+    axial rotations.
     """
     link_specs = {lk["name"]: lk for lk in chain["links"]}
 
@@ -220,6 +222,8 @@ def close_surface_gaps(
             continue
 
         centering = child_prox.get("centering", "surface")
+        if centering != "surface":
+            continue
 
         # Get parent's distal connection point
         parent_mesh = link_specs.get(parent_name, {}).get("mesh")
@@ -246,21 +250,11 @@ def close_surface_gaps(
             p = rpy_to_rotation(jnt_rpy).T @ p
         distal_in_child = p
 
-        # Compute shift based on centering mode
-        if centering == "center":
-            # Zero out the bore-axis component — only align perpendicular axes
-            axis = np.array(child_prox["axis"], dtype=float)
-            axis_idx = int(np.argmax(np.abs(axis)))
-            distal_in_child[axis_idx] = 0.0
-            label = "center cross-axis aligned"
-        else:
-            label = "surface gap closed"
-
         # Shift child visual origin so proximal meets parent distal
         child_viz_xyz, child_viz_rpy = visual_origins[child_name]
         adjusted = [round(child_viz_xyz[i] + distal_in_child[i], 6) for i in range(3)]
         messages.append(
-            f"  {child_name}: {label},"
+            f"  {child_name}: surface gap closed,"
             f" shift=({distal_in_child[0] * 1000:.1f},"
             f" {distal_in_child[1] * 1000:.1f},"
             f" {distal_in_child[2] * 1000:.1f})mm"
