@@ -6,8 +6,15 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: claude-robots.diamond.ac.uk
+  annotations: {}
+  tls: true
 
 containerPort: 8080
 
