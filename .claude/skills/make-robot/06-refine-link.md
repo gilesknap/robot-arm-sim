@@ -6,21 +6,27 @@ Fix connection points for one link at a time, working base-to-tip. Use reference
 
 - Link index N (0-based), robot name
 - Simulator on `localhost:8080`, claude-in-chrome MCP for screenshots/clicks
-- Reference images already collected (skill 05)
 
 ## Steps
 
-### 1. Study the part against reference images
+### 1. Gather reference images from the web
+
+1. Use `WebSearch` to find manufacturer photos and diagrams of the robot (e.g. "FANUC LR Mate 200iD robot arm")
+2. Use `WebFetch` to download 2–3 clear reference images showing the robot from different angles (front, side, isometric)
+3. Save them to `robots/<name>/reference/` — these are used throughout the remaining steps to judge correct placement
+4. Note the key features: overall silhouette, joint locations, relative segment lengths, mating surfaces
+
+### 2. Study the part against reference images
 
 1. Set **Show up to** slider to link N
 2. Use `zoom-rotate-camera` to get clear views of the part from multiple angles
 3. Screenshot via browser MCP
-4. Compare against manufacturer reference images — identify:
+4. Compare against reference images from step 1 — identify:
    - Where does this part connect to its **parent** (proximal)?
    - Where does this part connect to its **child** (distal)?
    - What kind of surface is it? (flat flange → `surface` mode, through-bore → `center` mode)
 
-### 2. Assign connection points via Edit Connections
+### 3. Assign connection points via Edit Connections
 
 1. Click **Edit Connections** in the toolbar — meshes go semi-transparent
 2. Select **Proximal** or **Distal** toggle
@@ -30,13 +36,13 @@ Fix connection points for one link at a time, working base-to-tip. Use reference
 6. Repeat for the other end (proximal/distal)
 7. Click **Save & Rebuild** — writes the analysis YAML (with `method: manual`) and regenerates the URDF automatically
 
-### 3. Verify the result
+### 4. Verify the result
 
 1. Exit Edit Connections mode
 2. Screenshot from orthogonal views (FRONT, RIGHT minimum), compare against reference
 3. Check: no gaps, no overlaps, silhouette matches reference
 
-### 4. Verify kinematics
+### 5. Verify kinematics
 
 ```bash
 uv run python robots/<name>/verify_kinematics.py --json
@@ -44,7 +50,7 @@ uv run python robots/<name>/verify_kinematics.py --json
 
 All joints must pass within 2mm.
 
-### 5. Diff the URDF
+### 6. Diff the URDF
 
 ```bash
 diff <(git show HEAD:robots/<name>/robot.urdf) robots/<name>/robot.urdf
@@ -52,9 +58,9 @@ diff <(git show HEAD:robots/<name>/robot.urdf) robots/<name>/robot.urdf
 
 Confirm only visual origins changed — joint origins must be unchanged.
 
-### 6. If wrong, iterate
+### 7. If wrong, iterate
 
-Return to step 1. Re-examine the reference images — did you pick the wrong surface? Wrong centering mode? Re-enter Edit Connections and try again.
+Return to step 2. Re-examine the reference images — did you pick the wrong surface? Wrong centering mode? Re-enter Edit Connections and try again.
 
 ## Centering mode guide
 
