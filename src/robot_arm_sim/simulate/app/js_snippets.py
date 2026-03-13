@@ -556,6 +556,8 @@ SCENE_RESIZE_JS = """
         sceneDiv.style.width = w + 'px';
         sceneDiv.style.height = h + 'px';
         sc.renderer.setSize(w, h);
+        if (sc.text_renderer)
+            sc.text_renderer.setSize(w, h);
         const cam = sc.camera;
         if (cam.isPerspectiveCamera) {
             cam.aspect = w / h;
@@ -572,6 +574,181 @@ SCENE_RESIZE_JS = """
     const obs = new ResizeObserver(resize);
     obs.observe(wrapper);
     resize();
+})();
+"""
+
+
+LABEL_CALLOUT_JS = """
+(async function() {
+    const SceneLib = await import('nicegui-scene');
+    const THREE = SceneLib.default
+        ? SceneLib.default.THREE : SceneLib.THREE;
+    if (!THREE) return;
+    const appEl = document.getElementById('app');
+    if (!appEl || !appEl.__vue_app__) return;
+    let sc = null;
+    function walk(n, d) {
+        if (d > 30 || sc) return;
+        if (n.component) {
+            const p = n.component.proxy;
+            if (p && p.renderer && p.scene) {
+                sc = p; return;
+            }
+            if (n.component.subTree)
+                walk(n.component.subTree, d+1);
+        }
+        if (Array.isArray(n.children))
+            n.children.forEach(
+                c => c && typeof c === 'object'
+                    && walk(c, d+1));
+    }
+    walk(appEl.__vue_app__._container._vnode, 0);
+    if (!sc) return;
+
+    const canvas = sc.renderer.domElement;
+    const wrapper = canvas.closest('.sim-scene-wrapper');
+    if (!wrapper) return;
+    wrapper.style.position = 'relative';
+
+    // Remove existing overlay (hot reload)
+    const old = document.getElementById('label-overlay');
+    if (old) old.remove();
+
+    // Overlay container
+    const overlay = document.createElement('div');
+    overlay.id = 'label-overlay';
+    overlay.style.cssText =
+        'position:absolute;top:0;left:0;width:100%;'
+        + 'height:100%;pointer-events:none;overflow:hidden;'
+        + 'display:none;z-index:5;';
+
+    // SVG for leader lines
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.style.cssText =
+        'position:absolute;top:0;left:0;'
+        + 'width:100%;height:100%;';
+    overlay.appendChild(svg);
+
+    // Left panel — part labels
+    const leftPanel = document.createElement('div');
+    leftPanel.style.cssText =
+        'position:absolute;left:8px;top:8px;bottom:40px;'
+        + 'display:flex;flex-direction:column;'
+        + 'justify-content:space-around;gap:2px;';
+    overlay.appendChild(leftPanel);
+
+    // Bottom panel — joint labels
+    const bottomPanel = document.createElement('div');
+    bottomPanel.style.cssText =
+        'position:absolute;bottom:8px;left:100px;right:8px;'
+        + 'display:flex;flex-direction:row;'
+        + 'justify-content:space-around;gap:4px;';
+    overlay.appendChild(bottomPanel);
+
+    // Build labels from metadata
+    const labels = LABEL_DATA;
+    const labelEls = {};
+    const lineEls = {};
+
+    function makeLabel(lb, parent) {
+        const el = document.createElement('div');
+        el.textContent = lb.name;
+        const isJ = lb.is_joint;
+        const color = isJ ? '#C62828' : '#1565C0';
+        el.style.cssText =
+            'font-size:' + (isJ ? '11' : '13') + 'px;'
+            + 'font-weight:bold;color:' + color + ';'
+            + 'background:rgba(255,255,255,0.92);'
+            + 'padding:2px 6px;border-radius:3px;'
+            + 'border:1px solid ' + color + ';'
+            + 'white-space:nowrap;';
+        parent.appendChild(el);
+        labelEls[lb.id] = el;
+
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('stroke-dasharray', '4,3');
+        line.setAttribute('opacity', '0');
+        svg.appendChild(line);
+        lineEls[lb.id] = line;
+    }
+
+    const partLabels = labels.filter(l => !l.is_joint).reverse();
+    const jointLabels = labels.filter(l => l.is_joint);
+    for (const lb of partLabels) makeLabel(lb, leftPanel);
+    for (const lb of jointLabels) makeLabel(lb, bottomPanel);
+
+    wrapper.appendChild(overlay);
+
+    let anchors = {};
+    const v3 = new THREE.Vector3();
+
+    window.__updateLabelAnchors = function(data) {
+        anchors = data;
+    };
+    window.__setLabelsVisible = function(show) {
+        overlay.style.display = show ? 'block' : 'none';
+    };
+
+    function tick() {
+        requestAnimationFrame(tick);
+        if (overlay.style.display === 'none') return;
+
+        const oRect = overlay.getBoundingClientRect();
+        const cRect = canvas.getBoundingClientRect();
+        const ox = cRect.left - oRect.left;
+        const oy = cRect.top - oRect.top;
+        const W = cRect.width;
+        const H = cRect.height;
+        if (W <= 0 || H <= 0) return;
+
+        const cam = sc.camera;
+
+        for (const lb of labels) {
+            const a = anchors[lb.id];
+            const line = lineEls[lb.id];
+            if (!a) {
+                line.setAttribute('opacity', '0');
+                continue;
+            }
+
+            v3.set(a[0], a[1], a[2]);
+            v3.project(cam);
+
+            // Behind camera
+            if (v3.z > 1) {
+                line.setAttribute('opacity', '0');
+                continue;
+            }
+            line.setAttribute('opacity', '0.5');
+
+            // NDC to screen (relative to overlay)
+            const sx = ox + (v3.x * 0.5 + 0.5) * W;
+            const sy = oy + (-v3.y * 0.5 + 0.5) * H;
+
+            // Label position (relative to overlay)
+            const el = labelEls[lb.id];
+            const elRect = el.getBoundingClientRect();
+            let lx, ly;
+            if (lb.is_joint) {
+                lx = elRect.left + elRect.width / 2
+                    - oRect.left;
+                ly = elRect.top - oRect.top;
+            } else {
+                lx = elRect.right - oRect.left;
+                ly = elRect.top + elRect.height / 2
+                    - oRect.top;
+            }
+
+            line.setAttribute('x1', lx);
+            line.setAttribute('y1', ly);
+            line.setAttribute('x2', sx);
+            line.setAttribute('y2', sy);
+        }
+    }
+    tick();
 })();
 """
 

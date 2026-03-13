@@ -13,27 +13,6 @@ from robot_arm_sim.models.robot import URDFRobot
 from .loaders import load_connection_points, load_flat_faces, load_mesh_centers
 
 
-def _make_offsets(
-    count: int, x: float, origins: list[list[float]] | None = None
-) -> list[tuple[float, float, float]]:
-    """Generate callout offsets for labels.
-
-    For co-located joints (origin distance < 5mm between consecutive joints),
-    apply alternating z-nudges of ±0.02 to prevent overlap.
-    """
-    offsets: list[tuple[float, float, float]] = []
-    for i in range(count):
-        z_nudge = 0.0
-        if origins and i > 0:
-            dist = (
-                sum((origins[i][k] - origins[i - 1][k]) ** 2 for k in range(3)) ** 0.5
-            )
-            if dist < 0.005:  # co-located (< 5mm)
-                z_nudge = 0.02 if i % 2 else -0.02
-        offsets.append((x, 0.0, z_nudge))
-    return offsets
-
-
 class SimulatorState:
     """Holds all shared state for the simulator UI."""
 
@@ -45,7 +24,6 @@ class SimulatorState:
         self.chain = robot.get_kinematic_chain()
         self.joint_angles: dict[str, float] = {j.name: 0.0 for j in self.chain}
         self.mesh_objects: dict[str, Any] = {}
-        self.callout_items: list[dict] = []
 
         # Toggle states
         self.labels_visible = {"value": False}
@@ -79,11 +57,25 @@ class SimulatorState:
         self.chain_link_names = chain_link_names
         self.visible_links: dict[str, bool] = dict.fromkeys(chain_link_names, True)
 
-        # Callout offsets
-        part_count = sum(1 for link in robot.links if link.mesh_path)
-        joint_origins = [j.origin_xyz for j in self.chain]
-        self.part_offsets = _make_offsets(part_count, -0.35)
-        self.joint_offsets = _make_offsets(len(self.chain), 0.35, joint_origins)
+        # Label metadata for JS overlay
+        self.label_metadata: list[dict] = []
+        for link in robot.links:
+            if link.mesh_path:
+                self.label_metadata.append(
+                    {
+                        "id": link.name,
+                        "name": Path(link.mesh_path).stem,
+                        "is_joint": False,
+                    }
+                )
+        for joint in self.chain:
+            self.label_metadata.append(
+                {
+                    "id": joint.name,
+                    "name": joint.name,
+                    "is_joint": True,
+                }
+            )
 
         # Joint labels
         self.joint_labels = self._build_joint_labels()
