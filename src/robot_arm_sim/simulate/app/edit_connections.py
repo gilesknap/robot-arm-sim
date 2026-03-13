@@ -1,4 +1,4 @@
-"""Edit Bores mode — interactive bore point assignment."""
+"""Edit Connections mode — interactive connection point assignment."""
 
 from __future__ import annotations
 
@@ -22,63 +22,62 @@ if TYPE_CHECKING:
     from .state import SimulatorState
 
 
-def build_edit_bores(state: SimulatorState) -> None:
-    """Build the Edit Bores mode UI and handlers."""
-    state.edit_bores_row = (
+def build_edit_connections(state: SimulatorState) -> None:
+    """Build the Edit Connections mode UI and handlers."""
+    state.edit_connections_row = (
         ui.row()
         .classes("q-pa-sm items-center")
         .style("width: 100%; gap: 8px; display: none;")
     )
-    with state.edit_bores_row:
-        bore_toggle = ui.toggle(
+    with state.edit_connections_row:
+        connection_toggle = ui.toggle(
             {"Proximal": "Proximal", "Distal": "Distal"},
             value="Proximal",
         ).props("dense flat no-caps toggle-color='' text-color=''")
 
         def _update_toggle_style(val: str) -> None:
             color = "green" if val == "Proximal" else "red"
-            bore_toggle.props(f"toggle-color={color}")
-            bore_toggle.update()
+            connection_toggle.props(f"toggle-color={color}")
+            connection_toggle.update()
 
-        def _on_bore_toggle(e: Any) -> None:
-            state.bore_end_toggle["value"] = e.value
+        def _on_connection_toggle(e: Any) -> None:
+            state.connection_end_toggle["value"] = e.value
             _update_toggle_style(e.value)
 
-        bore_toggle.on_value_change(_on_bore_toggle)
+        connection_toggle.on_value_change(_on_connection_toggle)
         _update_toggle_style("Proximal")
 
         ui.separator().props("vertical")
 
         centering_options = {
-            "surface_bbox": "Surface BBox",
             "surface": "Surface",
             "center": "Center",
         }
         ui.label("Centering").style("font-size: 0.85rem;")
         centering_select = ui.select(
             centering_options,
-            value="surface_bbox",
+            value="surface",
         ).props("dense options-dense borderless style='min-width: 110px;'")
 
         def _on_centering(e: Any) -> None:
-            state.bore_centering["value"] = e.value
-            target = getattr(state, "bore_center_target", None)
+            state.connection_centering["value"] = e.value
+            target = getattr(state, "connection_center_target", None)
             if target:
                 link_name, end = target
-                assigns = state.bore_assignments.get(link_name, {})
+                assigns = state.connection_assignments.get(link_name, {})
                 if end in assigns:
                     assigns[end]["centering"] = e.value
-                    state.bore_dirty_links.add(link_name)
+                    state.connection_dirty_links.add(link_name)
 
         centering_select.on_value_change(_on_centering)
 
-        state.bore_centering_select = centering_select
+        state.connection_centering_select = centering_select
 
         ui.separator().props("vertical")
 
         def _on_show_all(e: Any) -> None:
-            state.show_all_bores["value"] = e.value
-            _sync_bore_edit_visibility(state)
+            state.show_all_connections["value"] = e.value
+            _sync_connection_edit_visibility(state)
 
         ui.checkbox("Show All", value=False).props("dense").on_value_change(
             _on_show_all
@@ -86,17 +85,17 @@ def build_edit_bores(state: SimulatorState) -> None:
 
         ui.separator().props("vertical")
 
-        state.bore_status_label = ui.label("Click mesh or marker to assign").style(
-            "font-size: 0.85rem; color: #666;"
-        )
+        state.connection_status_label = ui.label(
+            "Click mesh or marker to assign"
+        ).style("font-size: 0.85rem; color: #666;")
 
         ui.space()
 
         async def _save_and_rebuild() -> None:
-            """Write bore assignments to YAML and regenerate URDF."""
+            """Write connection assignments to YAML and regenerate URDF."""
             analysis_dir = state.robot_dir / "analysis"
-            for link_name, assignments in state.bore_assignments.items():
-                if link_name not in state.bore_dirty_links:
+            for link_name, assignments in state.connection_assignments.items():
+                if link_name not in state.connection_dirty_links:
                     continue
                 link = state.robot.get_link(link_name)
                 if not link or not link.mesh_path:
@@ -107,17 +106,17 @@ def build_edit_bores(state: SimulatorState) -> None:
                     continue
                 model = load_part_yaml(yaml_path)
                 new_cps: list[ConnectionPoint] = []
-                for end, bore_data in assignments.items():
-                    centering_val = bore_data.get("centering", "surface_bbox")
+                for end, connection_data in assignments.items():
+                    centering_val = connection_data.get("centering", "surface")
                     cp = ConnectionPoint(
                         end=end,  # type: ignore[arg-type]
-                        position=[round(bore_data["centroid"][i], 3) for i in range(3)],
-                        axis=quantize_axis(bore_data["normal"]),
-                        radius_mm=round(bore_data["radius_mm"], 1),
+                        position=[
+                            round(connection_data["centroid"][i], 3) for i in range(3)
+                        ],
+                        axis=quantize_axis(connection_data["normal"]),
+                        radius_mm=round(connection_data["radius_mm"], 1),
                         method="manual",
-                        centering=centering_val
-                        if centering_val != "surface_bbox"
-                        else None,
+                        centering=centering_val,
                     )
                     new_cps.append(cp)
                 if new_cps:
@@ -138,8 +137,8 @@ def build_edit_bores(state: SimulatorState) -> None:
                     if lk.get("mesh")
                 }
 
-                # Clear visual_xyz for any link whose bores were edited
-                for link_name in state.bore_dirty_links:
+                # Clear visual_xyz for any link whose connections were edited
+                for link_name in state.connection_dirty_links:
                     link = state.robot.get_link(link_name)
                     if not link or not link.mesh_path:
                         continue
@@ -164,47 +163,49 @@ def build_edit_bores(state: SimulatorState) -> None:
                     state.robot_dir / "robot.urdf",
                 )
 
-            state.bore_status_label.text = "Saved! Reloading..."
+            state.connection_status_label.text = "Saved! Reloading..."
             await state.reload_urdf()
 
         ui.button("Save & Rebuild", on_click=_save_and_rebuild).props(
             "color=orange-7 flat dense"
         )
 
-    def _toggle_edit_bores() -> None:
-        state.edit_bores_active["value"] = not state.edit_bores_active["value"]
-        active = state.edit_bores_active["value"]
-        state.edit_bores_btn.text = "Exit Edit" if active else "Edit Bores"
-        state.edit_bores_row.style(
+    def _toggle_edit_connections() -> None:
+        state.edit_connections_active["value"] = not state.edit_connections_active[
+            "value"
+        ]
+        active = state.edit_connections_active["value"]
+        state.edit_connections_btn.text = "Exit Edit" if active else "Edit Connections"
+        state.edit_connections_row.style(
             "width: 100%; gap: 8px; display: flex;"
             if active
             else "width: 100%; gap: 8px; display: none;"
         )
         ui.run_javascript(
             f"window.__faceEditMode = {str(active).lower()};"
-            f" window.__setBoreEditMarkersVisible({str(active).lower()})"
+            f" window.__setConnEditMarkersVisible({str(active).lower()})"
         )
         if active:
             ui.run_javascript("window.__setMeshTransparency(0.25)")
-            state.bore_status_label.text = "Click mesh to assign"
-            _seed_bore_assignments(state)
-            _show_existing_bore_markers(state)
+            state.connection_status_label.text = "Click mesh to assign"
+            _seed_connection_assignments(state)
+            _show_existing_connection_markers(state)
             state.update_scene_now()
         else:
             if not state.transparent_mode["value"]:
                 ui.run_javascript("window.__setMeshTransparency(1.0)")
 
-    state.toggle_edit_bores = _toggle_edit_bores
+    state.toggle_edit_connections = _toggle_edit_connections
 
     def _on_visibility_changed() -> None:
-        if state.edit_bores_active["value"]:
-            _sync_bore_edit_visibility(state)
+        if state.edit_connections_active["value"]:
+            _sync_connection_edit_visibility(state)
 
     state.on_visibility_changed = _on_visibility_changed
 
     # Polling timer for face clicks
     async def _poll_face_click() -> None:
-        if not state.edit_bores_active["value"]:
+        if not state.edit_connections_active["value"]:
             return
         try:
             result = await ui.run_javascript(
@@ -221,38 +222,42 @@ def build_edit_bores(state: SimulatorState) -> None:
     ui.timer(0.2, _poll_face_click)
 
 
-def _show_existing_bore_markers(state: SimulatorState) -> None:
-    """Place all existing bore assignments as markers, then sync visibility."""
-    for link_name, assigns in state.bore_assignments.items():
-        for end, bore_data in assigns.items():
-            _place_bore_marker(
-                state, link_name, end, bore_data["centroid"], bore_data["radius_mm"]
+def _show_existing_connection_markers(state: SimulatorState) -> None:
+    """Place all existing connection assignments as markers, then sync visibility."""
+    for link_name, assigns in state.connection_assignments.items():
+        for end, connection_data in assigns.items():
+            _place_connection_marker(
+                state,
+                link_name,
+                end,
+                connection_data["centroid"],
+                connection_data["radius_mm"],
             )
-    _sync_bore_edit_visibility(state)
+    _sync_connection_edit_visibility(state)
 
 
-def _sync_bore_edit_visibility(state: SimulatorState) -> None:
-    """Show/hide bore edit markers based on part visibility and Show All."""
+def _sync_connection_edit_visibility(state: SimulatorState) -> None:
+    """Show/hide connection edit markers based on part visibility and Show All."""
     import json
 
-    show_all = state.show_all_bores.get("value", False)
+    show_all = state.show_all_connections.get("value", False)
     vis_map: dict[str, bool] = {}
-    for link_name, assigns in state.bore_assignments.items():
+    for link_name, assigns in state.connection_assignments.items():
         visible = show_all or state.visible_links.get(link_name, True)
         for end in assigns:
-            marker_id = f"bore_edit_{link_name}_{end}"
+            marker_id = f"conn_edit_{link_name}_{end}"
             vis_map[marker_id] = visible
-    ui.run_javascript(f"window.__setBoreEditMarkerVisibility({json.dumps(vis_map)})")
+    ui.run_javascript(f"window.__setConnEditMarkerVisibility({json.dumps(vis_map)})")
 
 
-def _place_bore_marker(
+def _place_connection_marker(
     state: SimulatorState,
     link_name: str,
     end: str,
     centroid_mm: list[float],
     radius_mm: float = 8.0,
 ) -> None:
-    """Place/update a bore edit marker sphere at the given position."""
+    """Place/update a connection edit marker sphere at the given position."""
     # Transform centroid from STL-space (mm) to world-space (m)
     transforms = _get_visual_transforms(state)
     tf_vis = transforms.get(link_name)
@@ -263,10 +268,10 @@ def _place_bore_marker(
     c_homo = np.array([c_m[0], c_m[1], c_m[2], 1.0])
     wp = tf_vis @ c_homo
 
-    marker_id = f"bore_edit_{link_name}_{end}"
+    marker_id = f"conn_edit_{link_name}_{end}"
     color = "0x00cc00" if end == "proximal" else "0xcc0000"
     ui.run_javascript(
-        f"window.__placeBoreEditMarker("
+        f"window.__placeConnEditMarker("
         f"'{marker_id}', {wp[0]:.6f}, {wp[1]:.6f}, {wp[2]:.6f},"
         f" {color}, {radius_mm:.1f})"
     )
@@ -296,37 +301,41 @@ def _get_visual_transforms(
     return visual_transforms
 
 
-def _assign_bore(
+def _assign_connection(
     state: SimulatorState,
     link_name: str,
     end: str,
-    bore_data: dict,
+    connection_data: dict,
 ) -> None:
-    """Assign a bore point and update markers."""
-    if link_name not in state.bore_assignments:
-        state.bore_assignments[link_name] = {}
+    """Assign a connection point and update markers."""
+    if link_name not in state.connection_assignments:
+        state.connection_assignments[link_name] = {}
 
-    assigns = state.bore_assignments[link_name]
+    assigns = state.connection_assignments[link_name]
 
     # Remove old marker for this end if any
     if end in assigns:
-        old_id = f"bore_edit_{link_name}_{end}"
-        ui.run_javascript(f"window.__removeBoreEditMarker('{old_id}')")
+        old_id = f"conn_edit_{link_name}_{end}"
+        ui.run_javascript(f"window.__removeConnEditMarker('{old_id}')")
 
-    assigns[end] = bore_data
-    _place_bore_marker(
-        state, link_name, end, bore_data["centroid"], bore_data["radius_mm"]
+    assigns[end] = connection_data
+    _place_connection_marker(
+        state,
+        link_name,
+        end,
+        connection_data["centroid"],
+        connection_data["radius_mm"],
     )
 
     # Mark this link as user-modified
-    state.bore_dirty_links.add(link_name)
+    state.connection_dirty_links.add(link_name)
 
-    # Sync centering dropdown to this bore's state
-    centering_val = bore_data.get("centering", "surface_bbox")
-    state.bore_centering_select.value = centering_val
-    state.bore_centering["value"] = centering_val
-    # Track which bore is currently selected for checkbox toggling
-    state.bore_center_target = (link_name, end)
+    # Sync centering dropdown to this connection's state
+    centering_val = connection_data.get("centering", "surface")
+    state.connection_centering_select.value = centering_val
+    state.connection_centering["value"] = centering_val
+    # Track which connection is currently selected for checkbox toggling
+    state.connection_center_target = (link_name, end)
 
     part_link = state.robot.get_link(link_name)
     part_name = (
@@ -334,13 +343,13 @@ def _assign_bore(
         if part_link and part_link.mesh_path
         else link_name
     )
-    state.bore_status_label.text = f"Set {part_name} {end}"
+    state.connection_status_label.text = f"Set {part_name} {end}"
 
 
-def _seed_bore_assignments(state: SimulatorState) -> None:
-    """Pre-populate bore_assignments from analysis connection_points."""
+def _seed_connection_assignments(state: SimulatorState) -> None:
+    """Pre-populate connection_assignments from analysis connection_points."""
     for link_name, cps in state.connection_points.items():
-        if link_name in state.bore_assignments:
+        if link_name in state.connection_assignments:
             continue
         assigns: dict[str, dict] = {}
         for cp in cps:
@@ -350,7 +359,7 @@ def _seed_bore_assignments(state: SimulatorState) -> None:
             # legacy 'center' boolean, default to surface_bbox.
             cp_centering = cp.get("centering")
             if cp_centering is None:
-                cp_centering = "center" if cp.get("center", False) else "surface_bbox"
+                cp_centering = "center" if cp.get("center", False) else "surface"
             assigns[end] = {
                 "centroid": [float(pos[i]) for i in range(3)],
                 "normal": [float(cp["axis"][i]) for i in range(3)],
@@ -359,13 +368,13 @@ def _seed_bore_assignments(state: SimulatorState) -> None:
                 "centering": cp_centering,
             }
         if assigns:
-            state.bore_assignments[link_name] = assigns
+            state.connection_assignments[link_name] = assigns
 
 
 def _handle_mesh_click(state: SimulatorState, result: dict) -> None:
-    """Process a direct mesh click — place bore at click point."""
+    """Process a direct mesh click — place connection at click point."""
     link_name = result["linkName"]
-    end = state.bore_end_toggle["value"].lower()
+    end = state.connection_end_toggle["value"].lower()
 
     # World-space hit point and face normal from JS (meters)
     wp = result.get("point", [0, 0, 0])
@@ -386,11 +395,11 @@ def _handle_mesh_click(state: SimulatorState, result: dict) -> None:
     if norm > 1e-8:
         stl_n = stl_n / norm
 
-    bore_data = {
+    connection_data = {
         "centroid": [round(float(v), 4) for v in stl_pt],
         "normal": [round(float(v), 4) for v in stl_n],
         "area_mm2": 78.54,  # cosmetic default ~5mm radius circle
         "radius_mm": 5.0,
-        "centering": state.bore_centering["value"],
+        "centering": state.connection_centering["value"],
     }
-    _assign_bore(state, link_name, end, bore_data)
+    _assign_connection(state, link_name, end, connection_data)

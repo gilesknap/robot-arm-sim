@@ -1,7 +1,7 @@
 """JavaScript snippets for the 3D simulator.
 
 These are injected into the browser to set up PBR materials, environment maps,
-coordinate frame helpers, bore markers, face markers, and transparency controls.
+coordinate frame helpers, connection markers, face markers, and transparency controls.
 """
 
 # Upgrades materials to PBR metal, generates a studio HDRI env map,
@@ -201,7 +201,7 @@ AXES_INIT_JS = """
 """
 
 
-BORE_INIT_JS = """
+CONNECTION_INIT_JS = """
 (async function() {
     const SceneLib = await import('nicegui-scene');
     const THREE = SceneLib.default
@@ -229,8 +229,8 @@ BORE_INIT_JS = """
     if (!sc) return;
     const spheres = {};
     const lines = {};
-    const bores = BORE_DATA;
-    for (const b of bores) {
+    const connections = CONNECTION_DATA;
+    for (const b of connections) {
         const r = Math.max(0.002, Math.min(0.015,
             b.radius_mm * 0.001 * 0.3));
         const color = b.end === 'proximal'
@@ -258,15 +258,15 @@ BORE_INIT_JS = """
         sc.scene.add(ln);
         lines[b.id] = ln;
     }
-    window.__boreSpheres = spheres;
-    window.__boreLines = lines;
-    window.__setBoresVisible = function(show) {
+    window.__connSpheres = spheres;
+    window.__connLines = lines;
+    window.__setConnectionsVisible = function(show) {
         Object.values(spheres).forEach(
             s => { s.visible = show; });
         Object.values(lines).forEach(
             l => { l.visible = show; });
     };
-    window.__updateBorePoses = function(data) {
+    window.__updateConnectionPoses = function(data) {
         for (const [id, pos] of Object.entries(data)) {
             const s = spheres[id];
             const ln = lines[id];
@@ -351,14 +351,14 @@ FACE_MARKER_INIT_JS = """
     window.__faceEditMode = false;
     window.__lastFaceClick = null;
 
-    // Bore edit markers (dynamic green/red spheres)
-    const boreEditMarkers = {};
-    window.__boreEditMarkers = boreEditMarkers;
+    // Connection edit markers (dynamic green/red spheres)
+    const connEditMarkers = {};
+    window.__connEditMarkers = connEditMarkers;
 
-    window.__placeBoreEditMarker = function(
+    window.__placeConnEditMarker = function(
         id, x, y, z, colorHex, radiusMm
     ) {
-        let m = boreEditMarkers[id];
+        let m = connEditMarkers[id];
         if (!m) {
             const g = new THREE.SphereGeometry(
                 1.0, 16, 12);
@@ -369,7 +369,7 @@ FACE_MARKER_INIT_JS = """
             });
             m = new THREE.Mesh(g, mt);
             sc.scene.add(m);
-            boreEditMarkers[id] = m;
+            connEditMarkers[id] = m;
         }
         const r = Math.max(0.002, Math.min(0.015,
             (radiusMm || 8) * 0.001 * 0.3));
@@ -379,13 +379,13 @@ FACE_MARKER_INIT_JS = """
         m.visible = true;
     };
 
-    window.__removeBoreEditMarker = function(id) {
-        const m = boreEditMarkers[id];
+    window.__removeConnEditMarker = function(id) {
+        const m = connEditMarkers[id];
         if (m) {
             sc.scene.remove(m);
             m.geometry.dispose();
             m.material.dispose();
-            delete boreEditMarkers[id];
+            delete connEditMarkers[id];
         }
     };
 
@@ -393,17 +393,17 @@ FACE_MARKER_INIT_JS = """
         window.__faceEditMode = show;
         Object.values(markers).forEach(
             m => { m.visible = show; });
-        Object.values(boreEditMarkers).forEach(
+        Object.values(connEditMarkers).forEach(
             m => { m.visible = show; });
     };
 
-    window.__setBoreEditMarkersVisible = function(show) {
-        Object.values(boreEditMarkers).forEach(
+    window.__setConnEditMarkersVisible = function(show) {
+        Object.values(connEditMarkers).forEach(
             m => { m.visible = show; });
     };
 
-    window.__setBoreEditMarkerVisibility = function(visMap) {
-        for (const [id, vis] of Object.entries(boreEditMarkers)) {
+    window.__setConnEditMarkerVisibility = function(visMap) {
+        for (const [id, vis] of Object.entries(connEditMarkers)) {
             vis.visible = !!visMap[id];
         }
     };

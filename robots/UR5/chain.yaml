@@ -38,7 +38,7 @@ joints:
     type: revolute
     parent: link_1
     child: link_2
-    axis: [0, 1, 0]  # shoulder distal bore axis
+    axis: [0, 1, 0]  # shoulder distal connection axis
     limits: [-6.2832, 6.2832]
     origin: [0, 0.13585, 0]   # d2: shoulder offset (Y)
     origin_rpy: [0, 1.570796327, 0]  # alpha1 = pi/2
@@ -47,7 +47,7 @@ joints:
     type: revolute
     parent: link_2
     child: link_3
-    axis: [0, 1, 0]  # upperarm distal bore axis
+    axis: [0, 1, 0]  # upperarm distal connection axis
     limits: [-6.2832, 6.2832]
     origin: [0, -0.1197, 0.425]  # d3: elbow offset (Y), |a2|: upper arm (Z)
 
@@ -55,7 +55,7 @@ joints:
     type: revolute
     parent: link_3
     child: link_4
-    axis: [0, 1, 0]  # forearm distal bore axis
+    axis: [0, 1, 0]  # forearm distal connection axis
     limits: [-6.2832, 6.2832]
     origin: [0, 0, 0.39225]   # |a3|: forearm length (Z)
     origin_rpy: [0, 1.570796327, 0]  # alpha4 = pi/2
@@ -64,12 +64,12 @@ joints:
     type: revolute
     parent: link_4
     child: link_5
-    axis: [0, 0, 1]  # wrist1 distal bore axis
+    axis: [0, 0, 1]  # wrist1 distal connection axis
     limits: [-6.2832, 6.2832]
 
   - name: joint_6
     type: revolute
     parent: link_5
     child: link_6
-    axis: [0, 1, 0]  # wrist2 distal bore axis
+    axis: [0, 1, 0]  # wrist2 distal connection axis
     limits: [-6.2832, 6.2832]

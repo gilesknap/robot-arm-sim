@@ -57,7 +57,7 @@ The simulation stage launches a web-based 3D viewer:
   and RPY conventions. The chain is traversed from root to tip on each
   joint-angle update.
 - **Web application** (`app/`) — a NiceGUI application split across several
-  modules (scene, controls, toolbar, state, edit-bores) that builds the
+  modules (scene, controls, toolbar, state, edit-connections) that builds the
   interactive 3D scene, joint-angle sliders, and toolbar controls. STL
   meshes are served as static files and loaded into a Three.js scene via
   NiceGUI's `ui.scene()` component.

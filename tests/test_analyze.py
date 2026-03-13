@@ -57,7 +57,7 @@ def test_run_analysis_summary_format(robot_dir: Path):
 
 
 def test_run_analysis_preserves_manual_connection_points(robot_dir: Path):
-    """Manual bore placements survive re-analysis by default."""
+    """Manual connection point placements survive re-analysis by default."""
     analysis_dir = robot_dir / "analysis"
 
     # Run initial analysis to generate YAMLs

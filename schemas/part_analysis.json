@@ -81,8 +81,7 @@
             {
               "enum": [
                 "center",
-                "surface",
-                "surface_bbox"
+                "surface"
               ],
               "type": "string"
             },

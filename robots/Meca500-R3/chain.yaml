@@ -110,4 +110,12 @@ links:
   name: link_5
 - mesh: EndEffector
   name: link_6
+  visual_xyz:
+  - 0.065795
+  - 0.000027
+  - -0.000051
+  visual_rpy:
+  - 0
+  - 1.3295
+  - 0.0198
 robot_name: Meca500-R3

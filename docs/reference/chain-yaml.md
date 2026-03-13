@@ -98,7 +98,7 @@ visual_rpy: [0, -1.5708, 0]   # -90° pitch rotates X to Z
 **Default:** `[0, 0, 0]`
 
 **This is additive.** The generator automatically computes a visual offset
-from the mesh's proximal connection point (so the bore centre sits at the
+from the mesh's proximal connection point (so the connection centre sits at the
 link frame origin). The `visual_xyz` value is added on top of that
 auto-computed offset.
 

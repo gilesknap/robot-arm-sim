@@ -26,7 +26,7 @@ def write_part_yaml(
 
     If *manual_connection_points* is provided, those raw dicts replace any
     auto-detected connection points for the same end (proximal/distal).
-    This preserves hand-tuned bore placements across re-analysis.
+    This preserves hand-tuned connection point placements across re-analysis.
     """
     if manual_connection_points:
         manual_ends = {cp["end"] for cp in manual_connection_points}

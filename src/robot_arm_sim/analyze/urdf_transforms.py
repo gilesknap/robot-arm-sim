@@ -74,7 +74,7 @@ def compute_visual_origin(
     *,
     messages: list[str],
 ) -> tuple[list[float], list[float]]:
-    """Compute visual origin xyz/rpy: proximal bore at frame origin."""
+    """Compute visual origin xyz/rpy: proximal connection point at frame origin."""
     conn_points = analysis.get("connection_points", [])
     proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
@@ -97,34 +97,14 @@ def compute_visual_origin(
     # Support both new 'centering' key and legacy 'center' boolean
     centering = proximal.get("centering")
     if centering is None:
-        centering = "center" if proximal.get("center", False) else "surface_bbox"
+        centering = "center" if proximal.get("center", False) else "surface"
 
-    bbox = analysis.get("geometry", {}).get("bounding_box", {})
     if abs(bore_axis[axis_idx]) > 0.5:
         if centering == "center":
             opp = _find_opposite_face(analysis, pos, bore_axis, axis_idx)
             if opp is not None:
                 pos[axis_idx] = (pos[axis_idx] + opp) / 2
-        elif centering == "surface":
-            radius = proximal.get("radius_mm", 0)
-            max_depth = radius * 4 if radius > 0 else None
-            opp = _find_opposite_face(
-                analysis,
-                pos,
-                bore_axis,
-                axis_idx,
-                max_depth=max_depth,
-                require_far_side=True,
-            )
-            if opp is not None:
-                pos[axis_idx] = (pos[axis_idx] + opp) / 2
-        else:  # surface_bbox (default)
-            if bbox:
-                bmin = bbox["min"][axis_idx]
-                bmax = bbox["max"][axis_idx]
-                closer_to_min = abs(pos[axis_idx] - bmin) < abs(pos[axis_idx] - bmax)
-                opposite_edge = bmax if closer_to_min else bmin
-                pos[axis_idx] = (pos[axis_idx] + opposite_edge) / 2
+        # centering == "surface": use raw position, no adjustment
 
     messages.append(
         f"  {link_name}: proximal @ origin,"
@@ -150,36 +130,59 @@ def compute_joint_origin(
 ) -> list[float]:
     """Compute joint origin xyz in parent frame.
 
-    Uses parent mesh's distal connection point if available,
-    falling back to explicit origin in chain spec.
+    For surface-mode connections, uses the parent's connection points
+    (surface-to-surface distance) so visuals align exactly.
+    For center-mode connections, uses DH-derived origins from chain spec.
     """
     parent_name = joint_spec["parent"]
     parent_spec = link_specs.get(parent_name, {})
     parent_mesh = parent_spec.get("mesh")
 
-    if "origin" in joint_spec:
-        return joint_spec["origin"]
-
+    # Check if parent has surface-mode connection points — if so, use them
+    # for the joint origin so that surface visuals align exactly.
     if parent_mesh and parent_mesh in analyses:
         analysis = analyses[parent_mesh]
         conn_points = analysis.get("connection_points", [])
-        distal = next(
-            (cp for cp in conn_points if cp["end"] == "distal"),
-            None,
-        )
+        proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
+        distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
 
+        if proximal is not None and distal is not None:
+            centering = proximal.get("centering")
+            if centering is None:
+                centering = "center" if proximal.get("center", False) else "surface"
+
+            if centering == "surface":
+                pp = proximal["position"]
+                dp = distal["position"]
+                xyz = [
+                    (dp[0] - pp[0]) / 1000,
+                    (dp[1] - pp[1]) / 1000,
+                    (dp[2] - pp[2]) / 1000,
+                ]
+
+                parent_rpy = parent_spec.get("visual_rpy", [0, 0, 0])
+                if parent_rpy != [0, 0, 0]:
+                    rot = rpy_to_rotation(parent_rpy)
+                    xyz = (rot @ np.array(xyz)).tolist()
+
+                rounded = [round(v, 4) for v in xyz]
+                messages.append(
+                    f"  {joint_spec['name']}: surface origin from"
+                    f" connection points = {rounded}"
+                )
+                return [round(v, 6) for v in xyz]
+
+    if "origin" in joint_spec:
+        return joint_spec["origin"]
+
+    # Fallback: connection points without surface mode
+    if parent_mesh and parent_mesh in analyses:
+        analysis = analyses[parent_mesh]
+        conn_points = analysis.get("connection_points", [])
+        distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
         if distal is not None:
             pos = distal["position"]
-            messages.append(
-                f"  {joint_spec['name']}: distal="
-                f"({pos[0]:.1f}, {pos[1]:.1f},"
-                f" {pos[2]:.1f})mm"
-            )
-            proximal = next(
-                (cp for cp in conn_points if cp["end"] == "proximal"),
-                None,
-            )
-
+            proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
             if proximal is not None:
                 pp = proximal["position"]
                 xyz = [
@@ -188,11 +191,7 @@ def compute_joint_origin(
                     (pos[2] - pp[2]) / 1000,
                 ]
             else:
-                xyz = [
-                    pos[0] / 1000,
-                    pos[1] / 1000,
-                    pos[2] / 1000,
-                ]
+                xyz = [pos[i] / 1000 for i in range(3)]
 
             parent_rpy = parent_spec.get("visual_rpy", [0, 0, 0])
             if parent_rpy != [0, 0, 0]:
@@ -205,10 +204,8 @@ def compute_joint_origin(
             )
             return [round(v, 6) for v in xyz]
 
-    messages.append(
-        f"  {joint_spec['name']}: no connection point data, using chain spec fallback"
-    )
-    return joint_spec.get("origin", [0, 0, 0])
+    messages.append(f"  {joint_spec['name']}: no connection point data, using default")
+    return [0, 0, 0]
 
 
 def rpy_to_rotation(rpy: list[float]) -> np.ndarray:

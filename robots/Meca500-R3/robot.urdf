@@ -49,7 +49,7 @@
   </link>
   <link name="link_6">
     <visual>
-      <origin xyz="0.065795 0.000027 -0.000051" rpy="0 1.3295 0.0198"/>
+      <origin xyz="0.065795 0.000027 -0.000051" rpy="0.000000 1.329500 0.019800"/>
       <geometry>
         <mesh filename="stl_files/EndEffector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -65,7 +65,7 @@
   <joint name="joint_2" type="revolute">
     <parent link="link_1"/>
     <child link="link_2"/>
-    <origin xyz="0.000000 0.000000 0.042000" rpy="0 0 0"/>
+    <origin xyz="-0.000419 -0.049821 0.036191" rpy="0 0 0"/>
     <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-1.2217" upper="1.5708" effort="100" velocity="1"/>
   </joint>
@@ -86,7 +86,7 @@
   <joint name="joint_5" type="revolute">
     <parent link="link_4"/>
     <child link="link_5"/>
-    <origin xyz="0.055000 0.000000 0.000000" rpy="0 0 0"/>
+    <origin xyz="0.058382 0.033858 -0.001709" rpy="0 0 0"/>
     <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-2.0071" upper="2.0071" effort="100" velocity="1"/>
   </joint>
