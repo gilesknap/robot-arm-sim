@@ -9,7 +9,7 @@
   </link>
   <link name="shoulder_link">
     <visual>
-      <origin xyz="0.000000 0.000000 0.174375" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 0.159955" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/shoulder_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -17,7 +17,7 @@
   </link>
   <link name="bicep_link">
     <visual>
-      <origin xyz="0.000000 0.000000 0.014849" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 0.019804" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/bicep_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -25,7 +25,7 @@
   </link>
   <link name="forearm_link">
     <visual>
-      <origin xyz="0.000000 0.000000 0.055941" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 0.088972" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/forearm_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -47,7 +47,7 @@
   </link>
   <link name="bracelet_link">
     <visual>
-      <origin xyz="0.000000 0.000000 0.016612" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 0.032617" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/bracelet_no_vision_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>

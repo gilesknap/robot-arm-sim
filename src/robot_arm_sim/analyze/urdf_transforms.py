@@ -207,6 +207,73 @@ def compute_joint_origin(
     return joint_spec.get("origin", [0, 0, 0])
 
 
+def close_surface_gaps_along_axis(
+    chain: dict,
+    analyses: dict,
+    visual_origins: dict[str, tuple[list[float], list[float]]],
+    joint_origins: dict[str, list[float]],
+    joint_rpys: dict[str, list[float]],
+    messages: list[str],
+) -> None:
+    """Shift surface-mode children along the joint axis to meet parent distal.
+
+    Only adjusts along the joint axis — cross-axis is already handled by
+    the per-mesh snap in compute_visual_origin.
+    """
+    link_specs = {lk["name"]: lk for lk in chain["links"]}
+
+    for joint_spec in chain["joints"]:
+        child_name = joint_spec["child"]
+        parent_name = joint_spec["parent"]
+        joint_name = joint_spec["name"]
+        axis = np.array(joint_spec["axis"], dtype=float)
+        axis = axis / (np.linalg.norm(axis) + 1e-12)
+
+        # Only surface-mode children
+        child_mesh = link_specs.get(child_name, {}).get("mesh")
+        if not child_mesh or child_mesh not in analyses:
+            continue
+        child_cps = analyses[child_mesh].get("connection_points", [])
+        child_prox = next((cp for cp in child_cps if cp["end"] == "proximal"), None)
+        if child_prox is None:
+            continue
+        if child_prox.get("centering", "surface") != "surface":
+            continue
+
+        # Parent distal in parent frame
+        parent_mesh = link_specs.get(parent_name, {}).get("mesh")
+        if not parent_mesh or parent_mesh not in analyses:
+            continue
+        parent_cps = analyses[parent_mesh].get("connection_points", [])
+        parent_dist = next((cp for cp in parent_cps if cp["end"] == "distal"), None)
+        if parent_dist is None:
+            continue
+
+        parent_viz_xyz, parent_viz_rpy = visual_origins[parent_name]
+        dp = np.array(parent_dist["position"]) * 0.001
+        if parent_viz_rpy != [0, 0, 0]:
+            dp = rpy_to_rotation(parent_viz_rpy) @ dp
+        distal_in_parent = np.array(parent_viz_xyz) + dp
+
+        # Transform to child frame
+        jnt_xyz = np.array(joint_origins[joint_name])
+        jnt_rpy = joint_rpys.get(joint_name, [0, 0, 0])
+        gap = distal_in_parent - jnt_xyz
+        if jnt_rpy != [0, 0, 0]:
+            gap = rpy_to_rotation(jnt_rpy).T @ gap
+
+        # Project gap onto joint axis — shift only along axis
+        along = float(np.dot(gap, axis))
+        shift = along * axis
+
+        child_viz_xyz, child_viz_rpy = visual_origins[child_name]
+        adjusted = [round(child_viz_xyz[i] + shift[i], 6) for i in range(3)]
+        messages.append(
+            f"  {child_name}: surface gap closed along axis, shift={along * 1000:.1f}mm"
+        )
+        visual_origins[child_name] = (adjusted, child_viz_rpy)
+
+
 def rpy_to_rotation(rpy: list[float]) -> np.ndarray:
     """Convert roll-pitch-yaw to 3x3 rotation matrix."""
     roll, pitch, yaw = rpy

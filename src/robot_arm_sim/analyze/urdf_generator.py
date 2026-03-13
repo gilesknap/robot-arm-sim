@@ -15,6 +15,7 @@ from pathlib import Path
 from robot_arm_sim.models import load_chain_yaml, load_part_yaml
 
 from .urdf_transforms import (
+    close_surface_gaps_along_axis,
     compute_joint_origin,
     compute_visual_origin,
     validate_fk,
@@ -94,6 +95,11 @@ def generate_urdf(
         )
         joint_origins[joint_spec["name"]] = jnt_xyz
         joint_rpys[joint_spec["name"]] = joint_spec.get("origin_rpy", [0, 0, 0])
+
+    # --- Pass 2: close surface gaps along axis only ---
+    close_surface_gaps_along_axis(
+        chain, analyses, visual_origins, joint_origins, joint_rpys, messages
+    )
 
     # --- Emit XML ---
     for link_spec in chain["links"]:
