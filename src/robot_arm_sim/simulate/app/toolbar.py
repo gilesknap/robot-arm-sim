@@ -89,8 +89,11 @@ def build_toolbar(state: SimulatorState) -> None:
             ("Labels", "Toggle part/joint name callouts in the 3D view"),
             ("Frames", "Show coordinate-frame axes at each joint"),
             ("Transparent", "Make meshes semi-transparent"),
-            ("Bores", "Highlight detected bore holes on each part"),
-            ("Edit Bores", "Assign bore holes to proximal/distal ends"),
+            ("Connections", "Highlight detected connection points on each part"),
+            (
+                "Edit Connections",
+                "Assign connection points to proximal/distal ends with centering",
+            ),
             ("Reload URDF", "Re-parse the URDF and refresh the scene"),
             ("Screenshot", "Download a PNG of the current 3D view"),
             ("Reset", "Zero all joint angles"),
@@ -146,19 +149,21 @@ def build_toolbar(state: SimulatorState) -> None:
         ui.separator().props("vertical")
 
         # --- Edit group ---
-        def toggle_bores():
-            state.bores_visible["value"] = not state.bores_visible["value"]
-            show = state.bores_visible["value"]
-            ui.run_javascript(f"window.__setBoresVisible({str(show).lower()})")
+        def toggle_connections():
+            state.connections_visible["value"] = not state.connections_visible["value"]
+            show = state.connections_visible["value"]
+            ui.run_javascript(f"window.__setConnectionsVisible({str(show).lower()})")
             if show:
                 state.update_scene_now()
-            _apply_toggle_style(bores_btn, show)
+            _apply_toggle_style(connections_btn, show)
 
-        bores_btn = ui.button("Bores", on_click=toggle_bores).props("flat dense")
+        connections_btn = ui.button("Connections", on_click=toggle_connections).props(
+            "flat dense"
+        )
 
-        state.edit_bores_btn = ui.button(
-            "Edit Bores",
-            on_click=lambda: state.toggle_edit_bores(),
+        state.edit_connections_btn = ui.button(
+            "Edit Connections",
+            on_click=lambda: state.toggle_edit_connections(),
         ).props("color=orange-7 flat dense")
 
         ui.button(
@@ -261,6 +266,7 @@ def build_visibility_section(state: SimulatorState) -> None:
             if lname in state.link_checkboxes:
                 state.link_checkboxes[lname].selected = val
         state.update_scene_now()
+        state.on_visibility_changed()
 
     with ui.expansion("Visible Parts", value=False).props("dense").classes("w-full"):
         with ui.row().classes("q-pa-xs").style("gap: 8px; flex-wrap: wrap"):
@@ -283,6 +289,7 @@ def build_visibility_section(state: SimulatorState) -> None:
                     def on_change(e):
                         state.visible_links[ln] = e.value
                         state.update_scene_now()
+                        state.on_visibility_changed()
 
                     return on_change
 

@@ -10,7 +10,7 @@ from nicegui import ui
 
 from .js_snippets import (
     AXES_INIT_JS,
-    BORE_INIT_JS,
+    CONNECTION_INIT_JS,
     FACE_MARKER_INIT_JS,
     POST_INIT_JS,
     SCENE_RESIZE_JS,
@@ -146,21 +146,23 @@ def build_scene(state: SimulatorState) -> None:
     axes_js = AXES_INIT_JS.replace("JOINT_NAMES", joint_names_js)
     ui.timer(2.5, lambda: ui.run_javascript(axes_js), once=True)
 
-    # Initialize bore center spheres
-    bore_data_list = []
+    # Initialize connection point spheres
+    connection_data_list = []
     for link_name, cps in state.connection_points.items():
         for i, cp in enumerate(cps):
-            bore_data_list.append(
+            connection_data_list.append(
                 {
                     "id": f"{link_name}_{cp['end']}_{i}",
                     "end": cp["end"],
                     "radius_mm": cp["radius_mm"],
                 }
             )
-    bore_js = BORE_INIT_JS.replace("BORE_DATA", json.dumps(bore_data_list))
-    ui.timer(2.5, lambda: ui.run_javascript(bore_js), once=True)
+    connection_js = CONNECTION_INIT_JS.replace(
+        "CONNECTION_DATA", json.dumps(connection_data_list)
+    )
+    ui.timer(2.5, lambda: ui.run_javascript(connection_js), once=True)
 
-    # Initialize face marker spheres for Edit Bores mode
+    # Initialize face marker spheres for Edit Connections mode
     face_data_list = []
     for link_name, faces in state.flat_faces.items():
         for i, _ff in enumerate(faces):

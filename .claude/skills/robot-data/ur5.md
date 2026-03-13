@@ -7,4 +7,4 @@
 - Needs origin_rpy=[0, pi/2, 0] at J2 and J4 for DH alpha rotations
 - Joint axes: Z-Y-Y-Y-Z-Y (shoulder_pan, shoulder_lift, elbow, wrist1, wrist2, wrist3)
 - 7 STL files: base, shoulder, upperarm, forearm, wrist1, wrist2, wrist3 (collision meshes)
-- Bore auto-detection unreliable on wrist parts: finds lateral motor bores, not kinematic bores — use Edit Bores mode for manual assignment
+- Bore auto-detection unreliable on wrist parts: finds lateral motor bores, not kinematic bores — use Edit Connections mode for manual assignment

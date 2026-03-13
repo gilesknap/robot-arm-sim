@@ -191,7 +191,7 @@ All presets assume the robot base is at origin. The robot stands ~0.46m tall at 
 | View | Camera Position | Target | Use Case |
 |------|----------------|--------|----------|
 | **Front** | `(0, -0.6, 0.25)` | `(0, 0, 0.25)` | Overall zero-config check |
-| **Side** | `(-0.6, 0, 0.25)` | `(0, 0, 0.25)` | Side profile, bore circle alignment |
+| **Side** | `(-0.6, 0, 0.25)` | `(0, 0, 0.25)` | Side profile, connection circle alignment |
 | **Side (close, base)** | `(-0.35, 0, 0.13)` | `(0, 0, 0.13)` | Inspect joint_1 / joint_2 area |
 | **Side (close, elbow)** | `(-0.35, 0, 0.27)` | `(0, 0, 0.27)` | Inspect joint_3 area |
 | **Side (close, wrist)** | `(-0.25, 0, 0.40)` | `(0, 0, 0.40)` | Inspect joint_4/5/6 area |

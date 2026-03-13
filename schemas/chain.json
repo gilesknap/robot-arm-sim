@@ -98,6 +98,11 @@
           ],
           "default": null,
           "title": "Velocity"
+        },
+        "user_added": {
+          "default": false,
+          "title": "User Added",
+          "type": "boolean"
         }
       },
       "required": [
@@ -156,6 +161,11 @@
           ],
           "default": null,
           "title": "Visual Xyz"
+        },
+        "user_added": {
+          "default": false,
+          "title": "User Added",
+          "type": "boolean"
         }
       },
       "required": [

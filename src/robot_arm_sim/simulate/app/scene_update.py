@@ -92,8 +92,8 @@ def update_scene(state: SimulatorState) -> None:
     # Coordinate frames
     _update_frames(state, transforms)
 
-    # Bore markers
-    _update_bores(state, visual_transforms, vis_set)
+    # Connection markers
+    _update_connections(state, visual_transforms, vis_set)
 
 
 def _update_callouts(
@@ -170,15 +170,17 @@ def _update_frames(state: SimulatorState, transforms: dict[str, np.ndarray]) -> 
     ui.run_javascript(f"window.__updateAxesPoses({js_data})")
 
 
-def _update_bores(
+def _update_connections(
     state: SimulatorState,
     visual_transforms: dict[str, np.ndarray],
     vis_set: set[str] | None,
 ) -> None:
-    show_bores = state.bores_visible and state.bores_visible.get("value", False)
-    if not (state.connection_points and show_bores):
+    show_connections = state.connections_visible and state.connections_visible.get(
+        "value", False
+    )
+    if not (state.connection_points and show_connections):
         return
-    bore_poses: dict[str, list[float]] = {}
+    connection_poses: dict[str, list[float]] = {}
     for link_name, cps in state.connection_points.items():
         tf_vis = visual_transforms.get(link_name)
         is_vis = vis_set is None or link_name in vis_set
@@ -190,7 +192,7 @@ def _update_bores(
                 wp = tf_vis @ cp_homo
                 world_axis = tf_vis[:3, :3] @ np.asarray(cp["axis"], dtype=float)
                 q = axis_to_quaternion(world_axis)
-                bore_poses[bid] = [
+                connection_poses[bid] = [
                     float(wp[0]),
                     float(wp[1]),
                     float(wp[2]),
@@ -201,5 +203,5 @@ def _update_bores(
                     q[3],
                 ]
             else:
-                bore_poses[bid] = [0.0, 0.0, -100.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-    ui.run_javascript(f"window.__updateBorePoses({json.dumps(bore_poses)})")
+                connection_poses[bid] = [0.0, 0.0, -100.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    ui.run_javascript(f"window.__updateConnectionPoses({json.dumps(connection_poses)})")

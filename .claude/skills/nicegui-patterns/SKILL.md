@@ -18,7 +18,7 @@ Gotchas and patterns for working with NiceGUI's 3D scene in this project. Consul
 
 - The Three.js scene component is found by walking the Vue vnode tree looking for a proxy with `renderer && scene && controls`. This is wrapped in `findSceneComp()` in several JS snippets.
 - `ui.run_javascript()` called from timers can throw `TimeoutError` or `RuntimeError` when a client disconnects during page reload. Always wrap in try/except.
-- NiceGUI's `scene.on_click` only reports hits on NiceGUI-managed objects. For custom JS-created meshes (bore markers, face markers), use a JS-side raycaster + `window.__lastFaceClick` + a Python polling timer.
+- NiceGUI's `scene.on_click` only reports hits on NiceGUI-managed objects. For custom JS-created meshes (connection markers, face markers), use a JS-side raycaster + `window.__lastFaceClick` + a Python polling timer.
 
 ## Deferred Handler Pattern
 
@@ -26,15 +26,15 @@ When a button must be created before its handler is defined (e.g., toolbar butto
 
 ```python
 # In toolbar (created first):
-state.edit_bores_btn = ui.button(
-    "Edit Bores",
-    on_click=lambda: state.toggle_edit_bores(),
+state.edit_connections_btn = ui.button(
+    "Edit Connections",
+    on_click=lambda: state.toggle_edit_connections(),
 )
 
-# In edit_bores builder (created later):
-def _toggle_edit_bores():
+# In edit_connections builder (created later):
+def _toggle_edit_connections():
     ...
-state.toggle_edit_bores = _toggle_edit_bores
+state.toggle_edit_connections = _toggle_edit_connections
 ```
 
 The lambda captures `state` by reference, so the call resolves correctly at click time.
@@ -46,5 +46,5 @@ The simulator UI is built with a `SimulatorState` class (in `state.py`) that hol
 - `build_scene(state)` — 3D viewport, meshes, callouts, JS init
 - `build_toolbar(state)` — toolbar buttons
 - `build_visibility_panel(state)` — per-part checkboxes
-- `build_edit_bores(state)` — interactive bore assignment mode
+- `build_edit_connections(state)` — interactive connection assignment mode
 - `build_controls_panel(state)` — joint/IK sliders, EE readout, state restore

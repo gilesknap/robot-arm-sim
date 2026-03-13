@@ -1,12 +1,13 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
 part_name: A6
 source_file: stl_files/A6.stl
 format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 0.162
+  - 2.288
   - 23.474
-  - 1.179
+  - -0.908
   axis:
   - 0.0
   - 1.0
@@ -25,6 +26,7 @@ connection_points:
   - 0.0
   radius_mm: 5.0
   method: manual
+  centering: surface
 geometry:
   vertex_count: 6079
   face_count: 12154
@@ -148,9 +150,9 @@ features:
   cylindrical_surfaces:
   - description: Cylindrical surface along X axis, radius 26.2 mm, length 91.3 mm
     axis:
-    - 1
-    - 0
-    - 0
+    - 1.0
+    - 0.0
+    - 0.0
     radius_mm: 26.22
     length_mm: 91.31
     center:
@@ -160,9 +162,9 @@ features:
     concave: false
   - description: Cylindrical surface along Z axis, radius 36.8 mm, length 45.0 mm
     axis:
-    - 0
-    - 0
-    - 1
+    - 0.0
+    - 0.0
+    - 1.0
     radius_mm: 36.76
     length_mm: 45.0
     center:
@@ -171,7 +173,6 @@ features:
     - 0.351
     concave: false
   holes: []
-text_description: "Part 'A6' from stl_files/A6.stl.\nBounding box: 91.5 x 65.2 x 45.0\
-  \ mm.\nWatertight solid, volume 167653.6 mm\xB3.\nSurface area: 19825.1 mm\xB2.\n\
-  Mesh complexity: 6079 vertices, 12154 faces.\nHas 8 significant flat face(s).\n\
+text_description: "Part 'A6' from stl_files/A6.stl.\nBounding box: 91.5 x 65.2 x 45.0 mm.\nWatertight solid, volume 167653.6\
+  \ mm\xB3.\nSurface area: 19825.1 mm\xB2.\nMesh complexity: 6079 vertices, 12154 faces.\nHas 8 significant flat face(s).\n\
   Has 2 cylindrical surface(s)."

@@ -172,7 +172,7 @@ def verify_urdf(
     return transforms, links, joints, joint_positions
 
 
-# Expected zero-config positions from bore-detected connection points.
+# Expected zero-config positions from auto-detected connection points.
 # These are the actual FK positions from the URDF, NOT derived from DH
 # algebra. DH params (a, d, alpha) don't map to world XYZ directly because
 # joints like J4 have their axis along X, not Z.
@@ -215,7 +215,7 @@ def validate_against_expected(
 
 
 def analyze_stl(stl_dir: Path):
-    """Analyze STL meshes to determine bore centers and visual origin offsets."""
+    """Analyze STL meshes to find connection points and visual origin offsets."""
     print("=== STL Mesh Analysis ===")
     stl_files = sorted(stl_dir.glob("*.stl"))
 

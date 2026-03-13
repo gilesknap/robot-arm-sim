@@ -80,7 +80,7 @@ def quantize_axis(normal: list[float]) -> list[float]:
 
 
 def load_connection_points(robot: URDFRobot, robot_dir: Path) -> dict[str, list[dict]]:
-    """Load bore connection points from analysis YAML files.
+    """Load connection points from analysis YAML files.
 
     Returns dict mapping link_name -> list of connection point dicts,
     each with keys: end, position (mm ndarray), axis, radius_mm.
@@ -108,7 +108,7 @@ def load_connection_points(robot: URDFRobot, robot_dir: Path) -> dict[str, list[
                         "position": np.array(cp.position),
                         "axis": cp.axis,
                         "radius_mm": cp.radius_mm,
-                        "center": cp.center if cp.center is not None else False,
+                        "centering": cp.centering or "surface",
                     }
                 )
             result[link.name] = points

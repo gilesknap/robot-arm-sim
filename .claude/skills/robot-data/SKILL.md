@@ -12,7 +12,7 @@ Per-robot kinematic parameters, detection notes, and known issues. Consult the r
 ## When to consult
 
 - Debugging FK/IK errors or joint axis issues
-- Adjusting bore detection or chain.yaml for a robot
+- Adjusting connection detection or chain.yaml for a robot
 - Verifying DH parameters against manufacturer specs
 
 

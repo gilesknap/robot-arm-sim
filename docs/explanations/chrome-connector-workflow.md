@@ -60,7 +60,7 @@ Claude presented the findings and proposed two fixes. The user's response
 set the tone for the rest of the session:
 
 > I would like you to autonomously iterate until there is an end effector
-> attached to the end of a6. Use bore edits of the EE if needed. OK?
+> attached to the end of a6. Use connection edits of the EE if needed. OK?
 
 ---
 

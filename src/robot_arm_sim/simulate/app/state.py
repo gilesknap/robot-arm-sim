@@ -50,18 +50,18 @@ class SimulatorState:
         # Toggle states
         self.labels_visible = {"value": False}
         self.frames_visible = {"value": False}
-        self.bores_visible = {"value": False}
+        self.connections_visible = {"value": False}
+        self.show_all_connections = {"value": False}
         self.transparent_mode = {"value": False}
-        self.edit_bores_active = {"value": False}
+        self.edit_connections_active = {"value": False}
 
-        # Edit bores tracking: {link_name: {end: {centroid, normal, ...}}}
-        self.bore_assignments: dict[str, dict[str, Any]] = {}
-        self.bore_end_toggle = {"value": "Proximal"}
-        self.keep_kinematics = {"value": True}
-        self.bore_centering = {"value": "surface_bbox"}
-        self.bore_centering_select: Any = None  # set by edit_bores UI
-        self.bore_center_target: tuple[str, str] | None = None
-        self.bore_dirty_links: set[str] = set()
+        # Edit connections tracking: {link_name: {end: {centroid, normal, ...}}}
+        self.connection_assignments: dict[str, dict[str, Any]] = {}
+        self.connection_end_toggle = {"value": "Proximal"}
+        self.connection_centering = {"value": "surface"}
+        self.connection_centering_select: Any = None  # set by edit_connections UI
+        self.connection_center_target: tuple[str, str] | None = None
+        self.connection_dirty_links: set[str] = set()
 
         # Loaded analysis data
         self.mesh_centers = load_mesh_centers(robot, robot_dir)
@@ -95,15 +95,16 @@ class SimulatorState:
         self.ik_labels: dict[str, Any] = {}
         self.link_checkboxes: dict[str, Any] = {}
         self.ee_readout_ref: list[ui.label | None] = [None, None]
-        self.bore_status_label: Any = None
-        self.edit_bores_btn: Any = None
-        self.edit_bores_row: Any = None
+        self.connection_status_label: Any = None
+        self.edit_connections_btn: Any = None
+        self.edit_connections_row: Any = None
         self.joint_panel: Any = None
         self.ik_panel: Any = None
 
         # Deferred handlers (set by builders)
-        self.toggle_edit_bores = lambda: None
+        self.toggle_edit_connections = lambda: None
         self.reset_all = lambda: None
+        self.on_visibility_changed = lambda: None
 
     def _build_joint_labels(self) -> dict[str, str]:
         joint_labels: dict[str, str] = {}

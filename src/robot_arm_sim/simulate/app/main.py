@@ -8,7 +8,7 @@ from nicegui import app, ui
 
 from ..urdf_loader import load_urdf
 from .controls import build_controls_panel
-from .edit_bores import build_edit_bores
+from .edit_connections import build_edit_connections
 from .js_snippets import BEFOREUNLOAD_JS
 from .scene_objects import build_scene
 from .state import SimulatorState
@@ -107,7 +107,7 @@ def _build_ui(robots: dict[str, Path], current_name: str) -> None:
         with ui.column().classes("h-full").style("flex: 1; gap: 0; min-width: 0"):
             build_scene(state)
             build_toolbar(state)
-            build_edit_bores(state)
+            build_edit_connections(state)
 
         # Right panel: controls + visibility
         with (

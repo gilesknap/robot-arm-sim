@@ -68,7 +68,14 @@ Need `origin_rpy` and may have lateral offsets:
 # J6: origin [0, 0, d5/1000]
 ```
 
-### 5. Write chain.yaml
+### 5. Preserve User-Added Links
+
+If `chain.yaml` already exists, read it first and collect any links/joints with
+`user_added: true`.  After building the new chain from manufacturer data,
+**re-append** those user-added links and joints at the end — do not overwrite them.
+This preserves end-effectors and other custom parts across regeneration.
+
+### 6. Write chain.yaml
 
 ```yaml
 robot_name: <Robot-Name>
@@ -123,6 +130,8 @@ Compare chain.yaml origins against bore-detected connection points:
 | `joints[].limits` | Joint angle limits in radians | Always |
 | `joints[].origin` | Joint position (metres) | **Always** — use DH params |
 | `joints[].origin_rpy` | Frame rotation (radians) | When DH alpha ≠ 0 |
+| `links[].user_added` | Marks link as user-added (not from manufacturer) | End-effectors, custom tools — preserved across regeneration |
+| `joints[].user_added` | Marks joint as user-added | Joint connecting a user-added link — preserved across regeneration |
 
 ## Output
 
