@@ -1,0 +1,957 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Kinematics and URDF Generation &#8212; robot-arm-sim 1.4 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=0ed52906"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/kinematics_and_urdf_generation';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.4';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reference" href="../reference.html" />
+    <link rel="prev" title="2. Adopt python-copier-template for project structure" href="decisions/0002-switched-to-python-copier-template.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.4" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">robot-arm-sim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Kinematics and URDF Generation</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Kinematics and URDF Generation</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="kinematics-and-urdf-generation">
+<h1>Kinematics and URDF Generation<a class="headerlink" href="#kinematics-and-urdf-generation" title="Link to this heading">#</a></h1>
+<p>How Denavit-Hartenberg parameters, bore detection, forward kinematics, and
+inverse kinematics interact to produce correct URDF joint origins, visual
+origins, and simulation.</p>
+<section id="dh-parameters">
+<h2>DH Parameters<a class="headerlink" href="#dh-parameters" title="Link to this heading">#</a></h2>
+<p>The <strong>Denavit-Hartenberg (DH) convention</strong> describes the kinematic chain of a
+serial robot as a sequence of four parameters per joint:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Joint angle</p></td>
+<td><p>θ</p></td>
+<td><p>Rotation about the Z axis (variable for revolute joints)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Link offset</p></td>
+<td><p>d</p></td>
+<td><p>Translation along the Z axis</p></td>
+</tr>
+<tr class="row-even"><td><p>Link length</p></td>
+<td><p>a</p></td>
+<td><p>Translation along the X axis</p></td>
+</tr>
+<tr class="row-odd"><td><p>Link twist</p></td>
+<td><p>α</p></td>
+<td><p>Rotation about the X axis</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Each (θ, d, a, α) tuple defines the homogeneous transform from frame <em>i−1</em>
+to frame <em>i</em>.  Manufacturers publish these tables in datasheets — for example,
+the UR5 datasheet gives:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Joint</p></th>
+<th class="head"><p>θ</p></th>
+<th class="head"><p>d (mm)</p></th>
+<th class="head"><p>a (mm)</p></th>
+<th class="head"><p>α (rad)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>89.159</p></td>
+<td><p>0</p></td>
+<td><p>π/2</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>0</p></td>
+<td><p>135.85</p></td>
+<td><p>−425.0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>0</p></td>
+<td><p>−119.7</p></td>
+<td><p>−392.25</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>109.15</p></td>
+<td><p>0</p></td>
+<td><p>π/2</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>0</p></td>
+<td><p>94.65</p></td>
+<td><p>0</p></td>
+<td><p>−π/2</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p>0</p></td>
+<td><p>82.3</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="mapping-dh-to-urdf">
+<h3>Mapping DH to URDF<a class="headerlink" href="#mapping-dh-to-urdf" title="Link to this heading">#</a></h3>
+<p>In URDF, each <code class="docutils literal notranslate"><span class="pre">&lt;joint&gt;</span></code> has an <code class="docutils literal notranslate"><span class="pre">&lt;origin</span> <span class="pre">xyz=&quot;...&quot;</span> <span class="pre">rpy=&quot;...&quot;&gt;</span></code> that positions
+the child frame relative to the parent frame.  The DH parameters map to these
+as follows:</p>
+<ul class="simple">
+<li><p><strong>d</strong> → translation along the parent Z axis</p></li>
+<li><p><strong>a</strong> → translation along the (rotated) X axis</p></li>
+<li><p><strong>α</strong> → rotation about the X axis (maps to <code class="docutils literal notranslate"><span class="pre">rpy</span></code>)</p></li>
+</ul>
+<p>The exact mapping depends on axis conventions, but the key point is: <strong>DH
+parameters define the distance between consecutive joint axes</strong>, measured
+center-to-center through the link.</p>
+</section>
+</section>
+<section id="bore-geometry">
+<h2>Bore Geometry<a class="headerlink" href="#bore-geometry" title="Link to this heading">#</a></h2>
+<p>A <strong>bore</strong> is a cylindrical opening in a robot link where a joint shaft or
+bearing is inserted.  Each link typically has two bores:</p>
+<ul class="simple">
+<li><p><strong>Proximal bore</strong>: where the link connects to the parent joint</p></li>
+<li><p><strong>Distal bore</strong>: where the link connects to the child joint</p></li>
+</ul>
+<section id="face-vs-center">
+<h3>Face vs Center<a class="headerlink" href="#face-vs-center" title="Link to this heading">#</a></h3>
+<p>Bore detection can report two positions along the bore axis:</p>
+<ul class="simple">
+<li><p><strong>Bore face</strong>: the flat surface at the opening of the cylindrical bore.
+This corresponds to the bounding-box extreme along the bore axis — where the
+link material actually starts/ends.</p></li>
+<li><p><strong>Bore center</strong> (barrel center): the geometric midpoint of the barrel
+cross-section along the bore axis.  This is where the actual joint rotation
+axis passes through.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                  bore axis
+                     │
+     ┌───────────────┼───────────────┐
+     │               │               │
+     │   ┌───────────┼───────────────┤ ← bore face (bbox extreme)
+     │   │           │    barrel     │
+     │   │           ●───────────────┤ ← bore center (bbox midpoint)
+     │   │           │               │
+     │   └───────────┼───────────────┤
+     │               │               │
+     └───────────────┼───────────────┘
+                     │
+              ← r →  ← r →
+              (half barrel diameter)
+</pre></div>
+</div>
+<p>The face and center differ by approximately half the barrel diameter,
+typically 50–70 mm on UR-sized robots.</p>
+</section>
+</section>
+<section id="forward-kinematics-fk">
+<h2>Forward Kinematics (FK)<a class="headerlink" href="#forward-kinematics-fk" title="Link to this heading">#</a></h2>
+<p><strong>Forward kinematics</strong> is the process of computing the position and orientation
+of every link in the robot given a set of joint angles.  It is the direct
+consumer of DH parameters: FK walks the kinematic chain from base to tip,
+multiplying 4×4 homogeneous transforms at each joint to accumulate the
+world-frame pose of every link.</p>
+<p>For each joint in the chain the transform is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>T_child = T_parent × T_origin × R_joint(θ)
+</pre></div>
+</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><strong>T_origin</strong> is the fixed offset from the parent frame to the joint frame,
+derived from the DH parameters (d, a, α) and stored in the URDF as
+<code class="docutils literal notranslate"><span class="pre">&lt;joint&gt;&lt;origin</span> <span class="pre">xyz=&quot;...&quot;</span> <span class="pre">rpy=&quot;...&quot;&gt;</span></code>.</p></li>
+<li><p><strong>R_joint(θ)</strong> is the rotation produced by the current joint angle θ around
+the joint axis.</p></li>
+</ul>
+<p>Starting from the base link at identity, FK multiplies these transforms
+sequentially to produce a dictionary of <code class="docutils literal notranslate"><span class="pre">link_name</span> <span class="pre">→</span> <span class="pre">4×4</span> <span class="pre">matrix</span></code> in world
+coordinates.  The translation column of the final matrix is the end-effector
+position; the rotation sub-matrix is its orientation.</p>
+<section id="relationship-to-the-other-concepts-on-this-page">
+<h3>Relationship to the other concepts on this page<a class="headerlink" href="#relationship-to-the-other-concepts-on-this-page" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Concept</p></th>
+<th class="head"><p>Role in FK</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>DH parameters</strong></p></td>
+<td><p>Source of the fixed joint-origin transforms (T_origin)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Bore geometry</strong></p></td>
+<td><p>Determines the <em>visual</em> mesh offset so that rendered links align with the FK-computed frames — FK itself only uses DH-derived origins, not bore positions</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>URDF joint origins</strong></p></td>
+<td><p>The concrete encoding of DH parameters that FK reads at runtime</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Visual origins</strong></p></td>
+<td><p>Shift meshes so the proximal bore center coincides with the frame origin that FK computes for that link</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>In short: DH parameters define <em>where</em> each joint frame sits, bore geometry
+defines <em>how</em> the mesh is shifted to match, and FK multiplies the chain of
+joint-frame transforms to get world-space poses for simulation and rendering.</p>
+</section>
+</section>
+<section id="inverse-kinematics-ik">
+<h2>Inverse Kinematics (IK)<a class="headerlink" href="#inverse-kinematics-ik" title="Link to this heading">#</a></h2>
+<p><strong>Inverse kinematics</strong> is the reverse of FK: given a desired end-effector
+position (and optionally orientation), find the set of joint angles that
+achieves it.  While FK has a unique closed-form solution — multiply transforms
+down the chain — IK is generally harder:</p>
+<ul class="simple">
+<li><p>There may be <strong>multiple solutions</strong> (a 6-DOF arm can often reach the same
+point with different elbow/wrist configurations).</p></li>
+<li><p>There may be <strong>no solution</strong> (the target is outside the workspace).</p></li>
+<li><p>For general robots the problem is solved <strong>numerically</strong> rather than
+analytically.</p></li>
+</ul>
+<p>This project uses a custom <strong>damped least-squares</strong> (DLS) solver built on the
+geometric Jacobian.  It computes the 6×N Jacobian analytically from the URDF
+joint chain and iteratively drives both position and orientation error to zero.
+The solver takes:</p>
+<ol class="arabic simple">
+<li><p>A <strong>4×4 target pose matrix</strong> (position + orientation) in world coordinates.</p></li>
+<li><p>The <strong>current joint angles</strong> as an initial guess to seed the iteration and
+bias toward nearby solutions.</p></li>
+</ol>
+<p>It returns a new set of joint angles whose FK result places the end-effector
+at (or near) the target pose, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the solver does not converge.</p>
+<section id="how-ik-relates-to-the-other-concepts-on-this-page">
+<h3>How IK relates to the other concepts on this page<a class="headerlink" href="#how-ik-relates-to-the-other-concepts-on-this-page" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Concept</p></th>
+<th class="head"><p>Role in IK</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>DH parameters</strong></p></td>
+<td><p>Define the kinematic model that IK must invert — link lengths and twists determine the reachable workspace</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>FK</strong></p></td>
+<td><p>The IK solver evaluates FK internally on every iteration to compute the Jacobian and measure the current error</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>URDF</strong></p></td>
+<td><p>The solver reads joint origins, axes, and limits directly from the URDF model — correct joint origins (from DH) are essential for accurate IK</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Bore geometry</strong></p></td>
+<td><p>Not directly involved — IK operates on joint-space kinematics, not visual mesh positioning</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The IK solver lives in <code class="docutils literal notranslate"><span class="pre">src/robot_arm_sim/simulate/ik_solver.py</span></code>.</p>
+</section>
+</section>
+<section id="how-they-connect">
+<h2>How They Connect<a class="headerlink" href="#how-they-connect" title="Link to this heading">#</a></h2>
+<p><strong>DH distances measure center-to-center</strong>, not face-to-face.</p>
+<p>When bore detection reports <em>face</em> positions, the face-to-face distance
+between two connected bores is shorter than the DH distance by the sum of the
+two half-barrel offsets at each end.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  Parent link                           Child link
+  ┌──────────────┐                     ┌──────────────┐
+  │         ╔════╗│   DH distance d    │╔════╗        │
+  │         ║ B1 ║├───────────────────►│║ B2 ║        │
+  │         ╚════╝│                     │╚════╝        │
+  └──────────────┘                     └──────────────┘
+            │  │                        │  │
+         center face                 face center
+            │  │                        │  │
+            ├──┤                        ├──┤
+             r1                          r2
+
+  DH distance = face-to-face + r1 + r2
+  gap = DH distance − face-to-face distance = r1 + r2
+</pre></div>
+</div>
+</section>
+<section id="effect-on-urdf-generation">
+<h2>Effect on URDF Generation<a class="headerlink" href="#effect-on-urdf-generation" title="Link to this heading">#</a></h2>
+<section id="joint-origins-kinematics">
+<h3>Joint origins (kinematics)<a class="headerlink" href="#joint-origins-kinematics" title="Link to this heading">#</a></h3>
+<p>Joint origins come directly from DH parameters (or the manufacturer chain
+spec).  They are <strong>not affected</strong> by bore position definition — they always
+measure the correct center-to-center distance.</p>
+</section>
+<section id="visual-origins-rendering">
+<h3>Visual origins (rendering)<a class="headerlink" href="#visual-origins-rendering" title="Link to this heading">#</a></h3>
+<p>Visual origins shift each mesh so that its reference point aligns with its
+frame origin.  We use the <strong>proximal bore</strong> as the reference point: negate its
+position to shift the mesh so the proximal bore lands at (0, 0, 0).</p>
+<ul class="simple">
+<li><p><strong>Using face positions</strong>: the mesh is shifted so the proximal bore <em>face</em> is
+at the origin.  But DH distances measure to the bore <em>center</em>, so the mesh
+sits offset by half a barrel diameter, creating a visible gap.</p></li>
+<li><p><strong>Using center positions</strong>: the mesh is shifted so the proximal bore
+<em>center</em> (barrel midpoint) is at the origin.  This matches the DH distance
+convention, closing the gap.</p></li>
+</ul>
+<p>We compute the bore center by replacing the bore-axis component of the face
+position with the bounding-box midpoint along that axis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+<span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox_min</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox_max</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="ur5-worked-example-shoulder-upperarm">
+<h2>UR5 Worked Example: Shoulder → Upperarm<a class="headerlink" href="#ur5-worked-example-shoulder-upperarm" title="Link to this heading">#</a></h2>
+<p>Consider the connection between shoulder (link_1) and upperarm (link_2)
+at joint_2, which has DH parameter d₂ = 135.85 mm along Y.</p>
+<p><strong>Shoulder distal bore</strong> (on link_1):</p>
+<ul class="simple">
+<li><p>Bore axis: Y</p></li>
+<li><p>Face position: Y = 70.5 mm (bbox extreme)</p></li>
+<li><p>Center position: Y ≈ 5.4 mm (bbox midpoint)</p></li>
+</ul>
+<p><strong>Upperarm proximal bore</strong> (on link_2):</p>
+<ul class="simple">
+<li><p>Bore axis: Y</p></li>
+<li><p>Face position: Y = −65.2 mm (bbox extreme)</p></li>
+<li><p>Center position: Y ≈ 1.7 mm (bbox midpoint)</p></li>
+</ul>
+<p><strong>With face positioning</strong>:</p>
+<ul class="simple">
+<li><p>Shoulder mesh ends at Y = 70.5 mm (face)</p></li>
+<li><p>Upperarm mesh starts at Y = −65.2 mm in its own frame</p></li>
+<li><p>After joint_2 translation of 135.85 mm, the upperarm face is at
+135.85 − 65.2 = 70.65 mm → flush with shoulder face (0.15 mm gap)</p></li>
+<li><p>But the mesh is only shifted to its face, not its center, leaving the
+visual center of the barrel offset from the joint axis</p></li>
+</ul>
+<p><strong>With center positioning</strong>:</p>
+<ul class="simple">
+<li><p>Shoulder mesh is centered at Y ≈ 5.4 mm</p></li>
+<li><p>Upperarm mesh center at Y ≈ 1.7 mm → shifted to origin</p></li>
+<li><p>After joint_2 translation, meshes overlap by the barrel thickness,
+producing the correct visual appearance with the joint axis passing
+through the barrel center on both sides</p></li>
+</ul>
+</section>
+<section id="where-to-find-these-in-a-robot-folder">
+<h2>Where to Find These in a Robot Folder<a class="headerlink" href="#where-to-find-these-in-a-robot-folder" title="Link to this heading">#</a></h2>
+<p>Each robot lives under <code class="docutils literal notranslate"><span class="pre">robots/&lt;RobotName&gt;/</span></code>.  The core files that relate to
+the concepts on this page are:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code></strong> — the kinematic chain specification: DH params, joint
+definitions (axes, origins, limits), and link list with visual offsets.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code></strong> — the generated URDF encoding joint origins (from DH/chain)
+and visual origins (from bore analysis) that FK reads at runtime.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">analysis/&lt;part&gt;.yaml</span></code></strong> — per-link bore geometry: proximal/distal
+connection points (position, axis, radius).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">stl_files/&lt;part&gt;.stl</span></code></strong> — visual meshes positioned by bore offsets.</p></li>
+</ul>
+<p>Individual robots may also include specs files with manufacturer DH tables,
+FK verification scripts, reference images, or view mappings.</p>
+<p>The FK implementation is in <code class="docutils literal notranslate"><span class="pre">src/robot_arm_sim/simulate/kinematics.py</span></code>
+(<code class="docutils literal notranslate"><span class="pre">forward_kinematics()</span></code>) and the IK solver is in
+<code class="docutils literal notranslate"><span class="pre">src/robot_arm_sim/simulate/ik_solver.py</span></code> (<code class="docutils literal notranslate"><span class="pre">solve_ik()</span></code>).</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="decisions/0002-switched-to-python-copier-template.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">2. Adopt python-copier-template for project structure</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../reference.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dh-parameters">DH Parameters</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mapping-dh-to-urdf">Mapping DH to URDF</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bore-geometry">Bore Geometry</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#face-vs-center">Face vs Center</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#forward-kinematics-fk">Forward Kinematics (FK)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relationship-to-the-other-concepts-on-this-page">Relationship to the other concepts on this page</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inverse-kinematics-ik">Inverse Kinematics (IK)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-ik-relates-to-the-other-concepts-on-this-page">How IK relates to the other concepts on this page</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-they-connect">How They Connect</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#effect-on-urdf-generation">Effect on URDF Generation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-origins-kinematics">Joint origins (kinematics)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visual-origins-rendering">Visual origins (rendering)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ur5-worked-example-shoulder-upperarm">UR5 Worked Example: Shoulder → Upperarm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-find-these-in-a-robot-folder">Where to Find These in a Robot Folder</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/1.4/docs/explanations/kinematics_and_urdf_generation.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/explanations/kinematics_and_urdf_generation.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
