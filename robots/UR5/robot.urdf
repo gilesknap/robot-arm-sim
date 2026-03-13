@@ -58,28 +58,28 @@
   <joint name="joint_1" type="revolute">
     <parent link="base_link"/>
     <child link="link_1"/>
-    <origin xyz="-0.001408 0.004207 0.024002" rpy="0 0 0"/>
+    <origin xyz="0.000000 0.000000 0.089159" rpy="0 0 0"/>
     <axis xyz="0.000000 0.000000 1.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_2" type="revolute">
     <parent link="link_1"/>
     <child link="link_2"/>
-    <origin xyz="-0.000820 0.064150 0.064174" rpy="0.000000 1.570796 0.000000"/>
+    <origin xyz="0.000000 0.135850 0.000000" rpy="0.000000 1.570796 0.000000"/>
     <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_3" type="revolute">
     <parent link="link_2"/>
     <child link="link_3"/>
-    <origin xyz="-0.002902 0.000000 0.430568" rpy="0 0 0"/>
+    <origin xyz="0.000000 -0.119700 0.425000" rpy="0 0 0"/>
     <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>
   <joint name="joint_4" type="revolute">
     <parent link="link_3"/>
     <child link="link_4"/>
-    <origin xyz="-0.000590 -0.006999 0.395787" rpy="0.000000 1.570796 0.000000"/>
+    <origin xyz="0.000000 0.000000 0.392250" rpy="0.000000 1.570796 0.000000"/>
     <axis xyz="0.000000 1.000000 0.000000"/>
     <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
   </joint>

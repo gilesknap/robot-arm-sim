@@ -130,59 +130,36 @@ def compute_joint_origin(
 ) -> list[float]:
     """Compute joint origin xyz in parent frame.
 
-    For surface-mode connections, uses the parent's connection points
-    (surface-to-surface distance) so visuals align exactly.
-    For center-mode connections, uses DH-derived origins from chain spec.
+    Uses parent mesh's distal connection point if available,
+    falling back to explicit origin in chain spec.
     """
     parent_name = joint_spec["parent"]
     parent_spec = link_specs.get(parent_name, {})
     parent_mesh = parent_spec.get("mesh")
 
-    # Check if parent has surface-mode connection points — if so, use them
-    # for the joint origin so that surface visuals align exactly.
-    if parent_mesh and parent_mesh in analyses:
-        analysis = analyses[parent_mesh]
-        conn_points = analysis.get("connection_points", [])
-        proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
-        distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
-
-        if proximal is not None and distal is not None:
-            centering = proximal.get("centering")
-            if centering is None:
-                centering = "center" if proximal.get("center", False) else "surface"
-
-            if centering == "surface":
-                pp = proximal["position"]
-                dp = distal["position"]
-                xyz = [
-                    (dp[0] - pp[0]) / 1000,
-                    (dp[1] - pp[1]) / 1000,
-                    (dp[2] - pp[2]) / 1000,
-                ]
-
-                parent_rpy = parent_spec.get("visual_rpy", [0, 0, 0])
-                if parent_rpy != [0, 0, 0]:
-                    rot = rpy_to_rotation(parent_rpy)
-                    xyz = (rot @ np.array(xyz)).tolist()
-
-                rounded = [round(v, 4) for v in xyz]
-                messages.append(
-                    f"  {joint_spec['name']}: surface origin from"
-                    f" connection points = {rounded}"
-                )
-                return [round(v, 6) for v in xyz]
-
     if "origin" in joint_spec:
         return joint_spec["origin"]
 
-    # Fallback: connection points without surface mode
     if parent_mesh and parent_mesh in analyses:
         analysis = analyses[parent_mesh]
         conn_points = analysis.get("connection_points", [])
-        distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
+        distal = next(
+            (cp for cp in conn_points if cp["end"] == "distal"),
+            None,
+        )
+
         if distal is not None:
             pos = distal["position"]
-            proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
+            messages.append(
+                f"  {joint_spec['name']}: distal="
+                f"({pos[0]:.1f}, {pos[1]:.1f},"
+                f" {pos[2]:.1f})mm"
+            )
+            proximal = next(
+                (cp for cp in conn_points if cp["end"] == "proximal"),
+                None,
+            )
+
             if proximal is not None:
                 pp = proximal["position"]
                 xyz = [
@@ -191,7 +168,11 @@ def compute_joint_origin(
                     (pos[2] - pp[2]) / 1000,
                 ]
             else:
-                xyz = [pos[i] / 1000 for i in range(3)]
+                xyz = [
+                    pos[0] / 1000,
+                    pos[1] / 1000,
+                    pos[2] / 1000,
+                ]
 
             parent_rpy = parent_spec.get("visual_rpy", [0, 0, 0])
             if parent_rpy != [0, 0, 0]:
@@ -204,8 +185,10 @@ def compute_joint_origin(
             )
             return [round(v, 6) for v in xyz]
 
-    messages.append(f"  {joint_spec['name']}: no connection point data, using default")
-    return [0, 0, 0]
+    messages.append(
+        f"  {joint_spec['name']}: no connection point data, using chain spec fallback"
+    )
+    return joint_spec.get("origin", [0, 0, 0])
 
 
 def rpy_to_rotation(rpy: list[float]) -> np.ndarray:
