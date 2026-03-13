@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=../../../schemas/summary.json
+robot_name: ABB-IRB2400
+part_count: 7
+parts:
+- name: base_link
+  file: base_link.yaml
+  role_hint: large part; flat bottom face (possible base); 1 cylindrical surface(s); combined part (may span multiple joints)
+- name: link_1
+  file: link_1.yaml
+  role_hint: large part; 2 cylindrical surface(s); combined part (may span multiple joints)
+- name: link_2
+  file: link_2.yaml
+  role_hint: large part; 2 cylindrical surface(s); combined part (may span multiple joints)
+- name: link_3
+  file: link_3.yaml
+  role_hint: large part; combined part (may span multiple joints)
+- name: link_4
+  file: link_4.yaml
+  role_hint: large part; 1 cylindrical surface(s); combined part (may span multiple joints)
+- name: link_5
+  file: link_5.yaml
+  role_hint: large part; combined part (may span multiple joints)
+- name: link_6
+  file: link_6.yaml
+  role_hint: large part; 1 cylindrical surface(s); combined part (may span multiple joints)
+assembly_hints:
+- 'Parts: base_link, link_1, link_2, link_3, link_4, link_5, link_6'
+- base_link, link_1, link_2, link_3, link_4, link_5, link_6 are combined parts, may span multiple joints

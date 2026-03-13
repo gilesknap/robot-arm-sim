@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<robot name="Kinova-Gen3">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <mesh filename="stl_files/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="shoulder_link">
+    <visual>
+      <origin xyz="0.000000 0.000000 0.159955" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/shoulder_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="bicep_link">
+    <visual>
+      <origin xyz="0.000000 0.000000 0.019804" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/bicep_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="forearm_link">
+    <visual>
+      <origin xyz="0.000000 0.000000 0.088972" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/forearm_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="spherical_wrist_1_link">
+    <visual>
+      <geometry>
+        <mesh filename="stl_files/spherical_wrist_1_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="spherical_wrist_2_link">
+    <visual>
+      <geometry>
+        <mesh filename="stl_files/spherical_wrist_2_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="bracelet_link">
+    <visual>
+      <origin xyz="0.000000 0.000000 0.032617" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/bracelet_no_vision_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="shoulder_link"/>
+    <origin xyz="0.000000 0.000000 0.156430" rpy="3.141600 0.000000 0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_2" type="revolute">
+    <parent link="shoulder_link"/>
+    <child link="bicep_link"/>
+    <origin xyz="0.000000 0.005375 -0.128380" rpy="1.570800 0.000000 0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-2.24" upper="2.24" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_3" type="revolute">
+    <parent link="bicep_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="0.000000 -0.410000 0.000000" rpy="3.141600 0.000000 0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-2.57" upper="2.57" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_4" type="revolute">
+    <parent link="forearm_link"/>
+    <child link="spherical_wrist_1_link"/>
+    <origin xyz="0.000000 0.208430 -0.006375" rpy="1.570800 0.000000 0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_5" type="revolute">
+    <parent link="spherical_wrist_1_link"/>
+    <child link="spherical_wrist_2_link"/>
+    <origin xyz="0.000000 -0.000175 -0.105930" rpy="-1.570800 0.000000 0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-2.09" upper="2.09" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_6" type="revolute">
+    <parent link="spherical_wrist_2_link"/>
+    <child link="bracelet_link"/>
+    <origin xyz="0.000000 0.105930 -0.000175" rpy="1.570800 0.000000 0.000000"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+</robot>

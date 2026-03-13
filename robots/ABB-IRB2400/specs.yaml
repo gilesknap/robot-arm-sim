@@ -1,0 +1,113 @@
+# ABB IRB 2400 Robot Specifications
+# ABB IRB 2400/16 - 6-DOF Industrial Robot Arm
+#
+# Joint origins from ROS-Industrial abb_irb2400_support URDF.
+# DH parameters derived from joint origins and cross-validated
+# against ABB product documentation.
+#
+# Convention: Standard Denavit-Hartenberg
+
+robot_name: ABB-IRB2400
+manufacturer: ABB
+type: industrial
+dof: 6
+total_reach_mm: 1550
+payload_kg: 16
+weight_kg: 380
+
+# DH Parameters (Standard DH convention)
+# All linear dimensions in mm, angles in degrees
+#
+# Joint layout: base rotation (Z), shoulder (Y), elbow (Y),
+#               wrist1 (X), wrist2 (Y), wrist3 (X)
+
+dh_params:
+  - joint: 1
+    name: base
+    d_mm: 615
+    a_mm: 100
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  - joint: 2
+    name: shoulder
+    d_mm: 0
+    a_mm: 705
+    alpha_deg: 0
+    theta_offset_deg: 0
+
+  - joint: 3
+    name: elbow
+    d_mm: 0
+    a_mm: 135
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  - joint: 4
+    name: wrist1
+    d_mm: 755
+    a_mm: 0
+    alpha_deg: 90
+    theta_offset_deg: 0
+
+  - joint: 5
+    name: wrist2
+    d_mm: 0
+    a_mm: 0
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  - joint: 6
+    name: wrist3
+    d_mm: 85
+    a_mm: 0
+    alpha_deg: 0
+    theta_offset_deg: 0
+
+# Physical offsets (from ROS-Industrial URDF)
+physical_offsets:
+  base_height_mm: 615
+  shoulder_offset_mm: 100
+  upper_arm_mm: 705
+  elbow_offset_z_mm: 135
+  elbow_offset_x_mm: 258
+  forearm_mm: 497
+  flange_mm: 85
+
+# Joint limits (from ROS-Industrial URDF)
+joint_limits:
+  - joint: 1
+    name: base
+    min_deg: -180
+    max_deg: 180
+  - joint: 2
+    name: shoulder
+    min_deg: -100
+    max_deg: 110
+  - joint: 3
+    name: elbow
+    min_deg: -60
+    max_deg: 65
+  - joint: 4
+    name: wrist1
+    min_deg: -200
+    max_deg: 200
+  - joint: 5
+    name: wrist2
+    min_deg: -120
+    max_deg: 120
+  - joint: 6
+    name: wrist3
+    min_deg: -400
+    max_deg: 400
+
+# Zero configuration description:
+# All joints at 0 degrees - arm extends straight up with shoulder
+# offset to the side, upper arm vertical, then forearm extends
+# horizontally along X.
+
+references:
+  - url: https://new.abb.com/products/robotics/robots/articulated-robots/irb-2400
+    description: ABB official product page
+  - url: https://github.com/ros-industrial/abb
+    description: ROS-Industrial ABB support package

@@ -101,33 +101,26 @@ def _update_callouts(
     joint_positions: dict[str, tuple[float, ...]],
     link_center_positions: dict[str, tuple[float, ...]],
 ) -> None:
-    if not state.callout_items:
-        return
     show = state.labels_visible and state.labels_visible.get("value", False)
-    for item in state.callout_items:
-        if not show:
-            item["text"].visible(False)
-            item["line"].visible(False)
-            item["text"].move(*HIDDEN_POS)
-            item["line"].move(*HIDDEN_POS)
-            continue
+    ui.run_javascript(
+        f"window.__setLabelsVisible && window.__setLabelsVisible({str(show).lower()})"
+    )
+    if not show:
+        return
 
-        name = item["name"]
-        ox, oy, oz = item["offset"]
-
+    anchors: dict[str, list[float]] = {}
+    for item in state.label_metadata:
         if item["is_joint"]:
-            anchor = joint_positions.get(name)
+            pos = joint_positions.get(item["id"])
         else:
-            anchor = link_center_positions.get(name)
+            pos = link_center_positions.get(item["id"])
+        if pos:
+            anchors[item["id"]] = list(pos)
 
-        if anchor is None:
-            continue
-
-        ax, ay, az = anchor
-        item["text"].visible(True)
-        item["line"].visible(True)
-        item["text"].move(ax + ox, ay + oy, az + oz)
-        item["line"].move(ax, ay, az)
+    data = json.dumps(anchors)
+    ui.run_javascript(
+        f"window.__updateLabelAnchors && window.__updateLabelAnchors({data})"
+    )
 
 
 def _update_ee_readout(

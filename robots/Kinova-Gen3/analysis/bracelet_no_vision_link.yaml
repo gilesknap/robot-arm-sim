@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: bracelet_no_vision_link
+source_file: stl_files/bracelet_no_vision_link.stl
+format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - -0.396
+  - -37.5
+  - -16.612
+  axis:
+  - 0.0
+  - 1.0
+  - 0.0
+  radius_mm: 34.1
+  method: cross_section
+- end: distal
+  position:
+  - -0.0
+  - -0.0
+  - 0.0
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 33.9
+  method: cross_section
+geometry:
+  vertex_count: 13299
+  face_count: 26686
+  bounding_box:
+    min:
+    - -38.32210922241211
+    - -37.5
+    - -64.42499542236328
+    max:
+    - 38.23139953613281
+    - 37.5
+    - 1.5199186691461364e-06
+    extents:
+    - 76.55350875854492
+    - 75.0
+    - 64.42499694228195
+  volume_mm3: 131646.7813458091
+  surface_area_mm2: 51830.89632734928
+  center_of_mass:
+  - 0.10532443187561653
+  - -0.09457847036549213
+  - -22.35165474372851
+  is_watertight: true
+inertia:
+  principal_moments:
+  - 75745718.90896253
+  - 79814444.38548343
+  - 87148190.41819653
+  principal_axes:
+  - - 0.9992984746676248
+    - -0.005916018920866663
+    - -0.03698052524081727
+  - - 0.008476166444509398
+    - 0.9975486590182475
+    - 0.06946097820576147
+  - - 0.03647894090244053
+    - -0.069725702657085
+    - 0.9968989985247316
+features:
+  flat_faces:
+  - description: "Large flat face on top, area 2957.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 0.0
+    - 1.0
+    area_mm2: 2957.05
+    centroid:
+    - 0.0
+    - 0.0
+    - 0.0
+  - description: "Large flat face on bottom, area 2957.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 0.0
+    - -1.0
+    area_mm2: 2957.05
+    centroid:
+    - 0.0
+    - -0.0
+    - -32.0
+  - description: "Large flat face on top, area 2456.4 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - 0.0
+    - 1.0
+    area_mm2: 2456.39
+    centroid:
+    - 2.8867
+    - 2.3816
+    - -59.7928
+  - description: "Large flat face on bottom, area 2388.9 mm\xB2, likely mating surface"
+    normal:
+    - -0.0
+    - -0.0
+    - -1.0
+    area_mm2: 2388.94
+    centroid:
+    - 2.3311
+    - -5.3211
+    - -60.7928
+  cylindrical_surfaces:
+  - description: Cylindrical surface along Y axis, radius 34.1 mm, length 74.0 mm
+    axis:
+    - 0.0
+    - 1.0
+    - 0.0
+    radius_mm: 34.1
+    length_mm: 74.04
+    center:
+    - -0.151
+    - -4.2282
+    - -47.184
+    concave: false
+  - description: Cylindrical surface along Z axis, radius 33.9 mm, length 60.1 mm
+    axis:
+    - 0.0
+    - 0.0
+    - 1.0
+    radius_mm: 33.9
+    length_mm: 60.1
+    center:
+    - -0.4161
+    - -4.7103
+    - -45.1722
+    concave: false
+  holes: []
+text_description: "Part 'bracelet_no_vision_link' from stl_files/bracelet_no_vision_link.stl.\nBounding box: 76.6 x 75.0 x\
+  \ 64.4 mm.\nWatertight solid, volume 131646.8 mm\xB3.\nSurface area: 51830.9 mm\xB2.\nMesh complexity: 13299 vertices, 26686\
+  \ faces.\nHas 4 significant flat face(s).\nHas 2 cylindrical surface(s)."

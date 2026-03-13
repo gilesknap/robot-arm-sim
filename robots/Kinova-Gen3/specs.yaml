@@ -1,0 +1,110 @@
+# Kinova Gen3 6-DOF Robot Specifications
+# Kinova Gen3 - 6-DOF Collaborative Robot Arm
+#
+# Joint origins from Kinova ros_kortex package (gen3/6dof variant).
+# All joints rotate about Z-axis with frame rotations via origin_rpy.
+#
+# Convention: Modified DH / Kinova proprietary frame convention
+
+robot_name: Kinova-Gen3
+manufacturer: Kinova
+type: collaborative
+dof: 6
+total_reach_mm: 902
+payload_kg: 4
+weight_kg: 7.2
+repeat_precision_mm: 0.1
+
+# DH-equivalent parameters derived from ros_kortex xacro
+# The Kinova Gen3 uses alternating pi and pi/2 roll rotations
+# between frames, with all joints rotating about local Z.
+
+dh_params:
+  - joint: 1
+    name: base_to_shoulder
+    d_mm: 156.43
+    a_mm: 0
+    alpha_deg: 180
+    theta_offset_deg: 0
+
+  - joint: 2
+    name: shoulder_to_bicep
+    d_mm: 128.38
+    a_mm: 5.375
+    alpha_deg: 90
+    theta_offset_deg: 0
+
+  - joint: 3
+    name: bicep_to_forearm
+    d_mm: 0
+    a_mm: 410.0
+    alpha_deg: 180
+    theta_offset_deg: 0
+
+  - joint: 4
+    name: forearm_to_wrist1
+    d_mm: 6.375
+    a_mm: 208.43
+    alpha_deg: 90
+    theta_offset_deg: 0
+
+  - joint: 5
+    name: wrist1_to_wrist2
+    d_mm: 105.93
+    a_mm: 0.17505
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  - joint: 6
+    name: wrist2_to_bracelet
+    d_mm: 0.17505
+    a_mm: 105.93
+    alpha_deg: 90
+    theta_offset_deg: 0
+
+# Physical offsets
+physical_offsets:
+  base_height_mm: 156.43
+  shoulder_to_bicep_mm: 128.38
+  bicep_length_mm: 410.0
+  forearm_to_wrist_mm: 208.43
+  wrist_segment_mm: 105.93
+  end_effector_mm: 61.525
+
+# Joint limits (from ros_kortex xacro)
+joint_limits:
+  - joint: 1
+    name: base
+    min_deg: -360
+    max_deg: 360
+  - joint: 2
+    name: shoulder
+    min_deg: -128.3
+    max_deg: 128.3
+  - joint: 3
+    name: elbow
+    min_deg: -147.2
+    max_deg: 147.2
+  - joint: 4
+    name: wrist1
+    min_deg: -360
+    max_deg: 360
+  - joint: 5
+    name: wrist2
+    min_deg: -119.7
+    max_deg: 119.7
+  - joint: 6
+    name: wrist3
+    min_deg: -360
+    max_deg: 360
+
+# Zero configuration description:
+# All joints at 0 degrees - arm extends straight up from base.
+# The alternating frame rotations cause small Y-offsets (5.375mm, 6.375mm)
+# but the arm is essentially vertical with total height ~1115mm.
+
+references:
+  - url: https://github.com/Kinovarobotics/ros_kortex
+    description: Kinova ros_kortex ROS package
+  - url: https://www.kinovarobotics.com/product/gen3-robots
+    description: Kinova Gen3 product page

@@ -1,0 +1,104 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: link_6
+source_file: stl_files/link_6.stl
+format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - -6.0
+  - -0.272
+  - -0.019
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 20.0
+  method: cross_section
+- end: distal
+  position:
+  - -0.0
+  - -0.0
+  - -0.0
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 20.0
+  method: cross_section
+geometry:
+  vertex_count: 197
+  face_count: 390
+  bounding_box:
+    min:
+    - -5.999999046325684
+    - -20.0
+    - -20.0
+    max:
+    - -1.7881393432617188e-06
+    - 19.97433090209961
+    - 20.0
+    extents:
+    - 5.99999725818634
+    - 39.97433090209961
+    - 40.0
+  volume_mm3: 7511.464692409932
+  surface_area_mm2: 3225.5693686749246
+  center_of_mass:
+  - -3.005877234104355
+  - -0.0002536197806390928
+  - -1.8250116370479275e-12
+  is_watertight: true
+inertia:
+  principal_moments:
+  - 770806.8649062368
+  - 770844.94824731
+  - 1496740.3861024668
+  principal_axes:
+  - - 2.445193071586592e-06
+    - 0.9999999999970105
+    - 8.427862488297175e-10
+  - - 2.5459839519612e-15
+    - -8.427862488384626e-10
+    - 1.0
+  - - -0.9999999999970105
+    - 2.445193071586592e-06
+    - 4.6067590484418515e-15
+features:
+  flat_faces:
+  - description: "Large flat face on left, area 1254.5 mm\xB2, likely mating surface"
+    normal:
+    - -1.0
+    - -0.0
+    - 0.0
+    area_mm2: 1254.51
+    centroid:
+    - -6.0
+    - -2.1482
+    - -5.9713
+  - description: "Large flat face on right, area 1192.5 mm\xB2, likely mating surface"
+    normal:
+    - 1.0
+    - 0.0
+    - 0.0
+    area_mm2: 1192.55
+    centroid:
+    - -0.0
+    - 4.4347
+    - -4.2155
+  cylindrical_surfaces:
+  - description: Cylindrical surface along X axis, radius 20.0 mm, length 1.8 mm
+    axis:
+    - 1.0
+    - 0.0
+    - 0.0
+    radius_mm: 19.98
+    length_mm: 1.83
+    center:
+    - -3.2717
+    - -0.2486
+    - 0.0
+    concave: false
+  holes: []
+text_description: "Part 'link_6' from stl_files/link_6.stl.\nBounding box: 6.0 x 40.0 x 40.0 mm.\nWatertight solid, volume\
+  \ 7511.5 mm\xB3.\nSurface area: 3225.6 mm\xB2.\nMesh complexity: 197 vertices, 390 faces.\nHas 2 significant flat face(s).\n\
+  Has 1 cylindrical surface(s)."

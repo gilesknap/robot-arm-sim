@@ -1,0 +1,135 @@
+# FANUC LR Mate 200iD Robot Specifications
+# 6-DOF Industrial Robot Arm
+#
+# DH Parameters derived from FANUC official catalog (LRMateiD(E)-07.pdf)
+# and cross-validated against ROS-Industrial URDF.
+#
+# Convention: Standard Denavit-Hartenberg
+#
+# Reference: FANUC official catalog dimensioned drawings (page 2)
+
+robot_name: FANUC-LRMate200iD
+manufacturer: FANUC
+type: industrial
+dof: 6
+total_reach_mm: 717
+payload_kg: 7
+weight_kg: 25
+repeat_precision_mm: 0.01
+
+# DH Parameters (Standard DH convention)
+# All linear dimensions in mm, angles in degrees
+#
+# Joint layout: base rotation (Z), shoulder (Y), elbow (-Y),
+#               wrist1 (-X), wrist2 (-Y), wrist3 (-X)
+#
+# Note on alpha values:
+#   - Joint 1: alpha = -90 deg
+#   - Joint 3: alpha = -90 deg
+#   - Joint 4: alpha = 90 deg
+#   - Joint 5: alpha = -90 deg
+#   These require frame rotations in the URDF chain definition.
+
+dh_params:
+  # Joint 1 (Base): rotates about Z, d=330mm base height, a=50mm shoulder offset
+  - joint: 1
+    name: base
+    d_mm: 330
+    a_mm: 50
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  # Joint 2 (Shoulder): upper arm link, a=330mm
+  - joint: 2
+    name: shoulder
+    d_mm: 0
+    a_mm: 330
+    alpha_deg: 0
+    theta_offset_deg: 0
+
+  # Joint 3 (Elbow): a=35mm offset to wrist
+  - joint: 3
+    name: elbow
+    d_mm: 0
+    a_mm: 35
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  # Joint 4 (Wrist 1): d=335mm forearm length
+  - joint: 4
+    name: wrist1
+    d_mm: 335
+    a_mm: 0
+    alpha_deg: 90
+    theta_offset_deg: 0
+
+  # Joint 5 (Wrist 2)
+  - joint: 5
+    name: wrist2
+    d_mm: 0
+    a_mm: 0
+    alpha_deg: -90
+    theta_offset_deg: 0
+
+  # Joint 6 (Tool flange): d=80mm
+  - joint: 6
+    name: wrist3
+    d_mm: 80
+    a_mm: 0
+    alpha_deg: 0
+    theta_offset_deg: 0
+
+# Physical offsets
+physical_offsets:
+  base_height_mm: 330       # J1 axis height
+  shoulder_offset_mm: 50    # lateral offset J1→J2
+  upper_arm_mm: 330         # J2→J3 link length
+  elbow_offset_mm: 35       # J3→J4 offset
+  forearm_mm: 335           # J4 wrist run
+  flange_mm: 80             # J5→J6 tool flange
+
+# Joint limits
+joint_limits:
+  - joint: 1
+    name: base
+    min_deg: -170
+    max_deg: 170
+    max_speed_deg_s: 450
+  - joint: 2
+    name: shoulder
+    min_deg: -100
+    max_deg: 145
+    max_speed_deg_s: 380
+  - joint: 3
+    name: elbow
+    min_deg: -70
+    max_deg: 205
+    max_speed_deg_s: 520
+  - joint: 4
+    name: wrist1
+    min_deg: -190
+    max_deg: 190
+    max_speed_deg_s: 550
+  - joint: 5
+    name: wrist2
+    min_deg: -125
+    max_deg: 125
+    max_speed_deg_s: 545
+  - joint: 6
+    name: wrist3
+    min_deg: -360
+    max_deg: 360
+    max_speed_deg_s: 1000
+
+# Zero configuration description:
+# All joints at 0 degrees - arm extends straight up from base.
+# The shoulder and elbow links (330mm + 35mm + 335mm) are the
+# dominant dimensions. Forearm extends along X-axis of the wrist.
+
+references:
+  - url: https://www.fanuc.com/fvl/vn/product/catalog/LRMateiD(E)-07.pdf
+    description: FANUC official catalog with dimensioned drawings
+  - url: https://www.fanucamerica.com/products/robots/series/lr-mate/lr-mate-200id
+    description: FANUC America product page
+  - url: https://robodk.com/robot/Fanuc/LR-Mate-200iD
+    description: RoboDK specifications

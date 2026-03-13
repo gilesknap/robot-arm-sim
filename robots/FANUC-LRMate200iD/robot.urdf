@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<robot name="FANUC-LRMate200iD">
+  <link name="base_link">
+    <visual>
+      <origin xyz="-0.000000 -0.000000 -0.043448" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_1">
+    <visual>
+      <origin xyz="0.000000 0.000000 -0.213521" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/link_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_2">
+    <visual>
+      <origin xyz="-0.000000 -0.121868 -0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/link_2.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_3">
+    <visual>
+      <origin xyz="0.000000 -0.122457 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/link_3.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_4">
+    <visual>
+      <origin xyz="-0.175026 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/link_4.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_5">
+    <visual>
+      <origin xyz="-0.000000 0.003703 -0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/link_5.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="link_6">
+    <visual>
+      <origin xyz="-0.039998 0.000000 0.000000" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="stl_files/link_6.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link_1"/>
+    <origin xyz="0.000000 0.000000 0.330000" rpy="0 0 0"/>
+    <axis xyz="0.000000 0.000000 1.000000"/>
+    <limit lower="-2.9671" upper="2.9671" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_2" type="revolute">
+    <parent link="link_1"/>
+    <child link="link_2"/>
+    <origin xyz="0.050000 0.000000 0.000000" rpy="0 0 0"/>
+    <axis xyz="0.000000 1.000000 0.000000"/>
+    <limit lower="-1.7453" upper="2.5307" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_3" type="revolute">
+    <parent link="link_2"/>
+    <child link="link_3"/>
+    <origin xyz="0.000000 0.000000 0.330000" rpy="0 0 0"/>
+    <axis xyz="0.000000 -1.000000 0.000000"/>
+    <limit lower="-1.2217" upper="3.5779" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_4" type="revolute">
+    <parent link="link_3"/>
+    <child link="link_4"/>
+    <origin xyz="0.000000 0.000000 0.035000" rpy="0 0 0"/>
+    <axis xyz="-1.000000 0.000000 0.000000"/>
+    <limit lower="-3.3161" upper="3.3161" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_5" type="revolute">
+    <parent link="link_4"/>
+    <child link="link_5"/>
+    <origin xyz="0.335000 0.000000 0.000000" rpy="0 0 0"/>
+    <axis xyz="0.000000 -1.000000 0.000000"/>
+    <limit lower="-2.1817" upper="2.1817" effort="100" velocity="1"/>
+  </joint>
+  <joint name="joint_6" type="revolute">
+    <parent link="link_5"/>
+    <child link="link_6"/>
+    <origin xyz="0.080000 0.000000 0.000000" rpy="0 0 0"/>
+    <axis xyz="-1.000000 0.000000 0.000000"/>
+    <limit lower="-6.2832" upper="6.2832" effort="100" velocity="1"/>
+  </joint>
+</robot>

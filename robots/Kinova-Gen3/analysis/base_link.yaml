@@ -1,0 +1,114 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: base_link
+source_file: stl_files/base_link.stl
+format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - 7.212
+  - -1.053
+  - 0.0
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 20.0
+  method: cross_section
+- end: distal
+  position:
+  - -0.0
+  - -0.0
+  - 170.85
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 45.9
+  method: cross_section
+geometry:
+  vertex_count: 2126
+  face_count: 4194
+  bounding_box:
+    min:
+    - -46.05232238769531
+    - -46.0
+    - 3.091992084591766e-08
+    max:
+    - 46.4397087097168
+    - 46.156734466552734
+    - 170.84999084472656
+    extents:
+    - 92.49203109741211
+    - 92.15673446655273
+    - 170.84999081380664
+  volume_mm3: 0.0
+  surface_area_mm2: 82377.4183401782
+  center_of_mass:
+  - -0.7192435368138389
+  - 0.11117223970279322
+  - 78.05696246782928
+  is_watertight: false
+inertia:
+  principal_moments:
+  - 1143389205.1608794
+  - 2739777304.979526
+  - 2763820307.3506165
+  principal_axes:
+  - - 0.01802356951091402
+    - 0.0013560256221372136
+    - 0.9998366427254991
+  - - 0.9998232059171641
+    - 0.0053343923558154
+    - -0.01803056204665959
+  - - 0.005357970848135841
+    - -0.9999848526116318
+    - 0.001259641093407038
+features:
+  flat_faces:
+  - description: "Large flat face on bottom, area 6755.5 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 0.0
+    - -1.0
+    area_mm2: 6755.52
+    centroid:
+    - 0.774
+    - -1.5365
+    - 0.0
+  - description: "Large flat face on left, area 5140.3 mm\xB2, likely mating surface"
+    normal:
+    - -1.0
+    - -0.0
+    - 0.0
+    area_mm2: 5140.26
+    centroid:
+    - -46.0523
+    - 1.6629
+    - 70.722
+  - description: "Large flat face on top, area 4984.5 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 0.0
+    - 1.0
+    area_mm2: 4984.47
+    centroid:
+    - 0.062
+    - 0.1567
+    - 156.425
+  cylindrical_surfaces:
+  - description: Cylindrical surface along Z axis, radius 45.1 mm, length 162.1 mm
+    axis:
+    - 0.0
+    - 0.0
+    - 1.0
+    radius_mm: 45.08
+    length_mm: 162.15
+    center:
+    - -1.4662
+    - -0.5718
+    - 67.6539
+    concave: false
+  holes: []
+text_description: "Part 'base_link' from stl_files/base_link.stl.\nBounding box: 92.5 x 92.2 x 170.8 mm.\nNon-watertight mesh\
+  \ (volume not computed).\nSurface area: 82377.4 mm\xB2.\nMesh complexity: 2126 vertices, 4194 faces.\nHas 3 significant\
+  \ flat face(s).\nHas 1 cylindrical surface(s)."

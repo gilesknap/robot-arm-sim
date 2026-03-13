@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../schemas/view_mapping.json
+views:
+  - manufacturer_label: "Side (datasheet dimensional drawing)"
+    viewcube_face: RIGHT
+    reference_image: "images/reference_datasheet.pdf"
+    dir: [0, -1, 0]
+    up: [0, 0, 1]
+    notes: "Page 2 left column shows LR Mate 200iD side profile with dimensions"
+
+  - manufacturer_label: "Front"
+    viewcube_face: FRONT
+    reference_image: "images/reference_robodk_3quarter.png"
+    dir: [1, 0, 0]
+    up: [0, 0, 1]
+    notes: "RoboDK 3/4 view - approximate front comparison"
+
+  - manufacturer_label: "Top"
+    viewcube_face: TOP
+    dir: [0, 0, 1]
+    up: [0, -1, 0]
+    notes: "Plan view for base rotation centering check"

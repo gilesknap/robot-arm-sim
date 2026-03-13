@@ -1,0 +1,101 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: spherical_wrist_1_link
+source_file: stl_files/spherical_wrist_1_link.stl
+format: binary_stl
+connection_points:
+- end: distal
+  position:
+  - 0.0
+  - -0.0
+  - 0.0
+  axis:
+  - 0.0
+  - 0.0
+  - 1.0
+  radius_mm: 30.7
+  method: cross_section
+geometry:
+  vertex_count: 5469
+  face_count: 10928
+  bounding_box:
+    min:
+    - -35.0
+    - -35.0
+    - -141.00367736816406
+    max:
+    - 34.998382568359375
+    - 53.046478271484375
+    - 0.0
+    extents:
+    - 69.99838256835938
+    - 88.04647827148438
+    - 141.00367736816406
+  volume_mm3: 0.0
+  surface_area_mm2: 98722.01549745834
+  center_of_mass:
+  - -0.00168765369872331
+  - 9.240189332858181
+  - -62.99137080491269
+  is_watertight: false
+inertia:
+  principal_moments:
+  - 128290281.0490784
+  - 595594777.4715415
+  - 616581053.3015258
+  principal_axes:
+  - - 7.34894389157011e-05
+    - -0.18991048349344264
+    - 0.9818014070363668
+  - - 0.9999999888871993
+    - -0.00011339387741420786
+    - -9.678548380857659e-05
+  - - -0.0001297108464198121
+    - -0.9818014032385145
+    - -0.18991047304975273
+features:
+  flat_faces:
+  - description: "Large flat face on bottom, area 2957.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 0.0
+    - -1.0
+    area_mm2: 2957.05
+    centroid:
+    - -0.0
+    - -0.0
+    - -32.0
+  - description: "Large flat face on top, area 2957.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - -0.0
+    - 1.0
+    area_mm2: 2957.05
+    centroid:
+    - 0.0
+    - -0.0
+    - 0.0
+  - description: "Large flat face on front, area 2957.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - 1.0
+    - 0.0
+    area_mm2: 2957.05
+    centroid:
+    - 0.0
+    - 31.8249
+    - -105.9251
+  - description: "Large flat face on back, area 2957.1 mm\xB2, likely mating surface"
+    normal:
+    - 0.0
+    - -1.0
+    - -0.0
+    area_mm2: 2957.05
+    centroid:
+    - 0.0
+    - -0.1751
+    - -105.9251
+  cylindrical_surfaces: []
+  holes: []
+text_description: "Part 'spherical_wrist_1_link' from stl_files/spherical_wrist_1_link.stl.\nBounding box: 70.0 x 88.0 x 141.0\
+  \ mm.\nNon-watertight mesh (volume not computed).\nSurface area: 98722.0 mm\xB2.\nMesh complexity: 5469 vertices, 10928\
+  \ faces.\nHas 4 significant flat face(s)."

@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
+part_name: link_5
+source_file: stl_files/link_5.stl
+format: binary_stl
+connection_points:
+- end: proximal
+  position:
+  - 74.0
+  - -3.286
+  - 0.181
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 39.0
+  method: cross_section
+- end: distal
+  position:
+  - 34.002
+  - 36.974
+  - 4.214
+  axis:
+  - 0.0
+  - 1.0
+  - 0.0
+  radius_mm: 55.3
+  method: cross_section
+geometry:
+  vertex_count: 1616
+  face_count: 3246
+  bounding_box:
+    min:
+    - -42.699127197265625
+    - -36.973506927490234
+    - -42.725101470947266
+    max:
+    - 74.0
+    - 36.973506927490234
+    - 42.461952209472656
+    extents:
+    - 116.69912719726562
+    - 73.94701385498047
+    - 85.18705368041992
+  volume_mm3: 0.0
+  surface_area_mm2: 35994.15750112936
+  center_of_mass:
+  - 19.049422681759086
+  - 2.4922674077808717
+  - -0.008244235006245498
+  is_watertight: false
+inertia:
+  principal_moments:
+  - 421163762.724756
+  - 694681195.14815
+  - 742552210.3339058
+  principal_axes:
+  - - 0.9976548356295092
+    - -0.06844577059418364
+    - 7.370770351695139e-05
+  - - 1.8600893059388883e-05
+    - -0.0008057533459082482
+    - -0.9999996752077233
+  - - 0.0684458077537547
+    - 0.9976545129699528
+    - -0.0008025905694108304
+features:
+  flat_faces:
+  - description: "Large flat face on right, area 4233.2 mm\xB2, likely mating surface"
+    normal:
+    - 1.0
+    - 0.0
+    - -0.0
+    area_mm2: 4233.24
+    centroid:
+    - 74.0
+    - 10.9366
+    - 4.0792
+  - description: "Large flat face on front, area 3516.6 mm\xB2, likely mating surface"
+    normal:
+    - -0.0118
+    - 0.9999
+    - 0.0008
+    area_mm2: 3516.6
+    centroid:
+    - 13.5367
+    - 36.1905
+    - -0.0
+  cylindrical_surfaces:
+  - description: Cylindrical surface along X axis, radius 39.1 mm, length 110.3 mm
+    axis:
+    - 1.0
+    - 0.0
+    - 0.0
+    radius_mm: 39.05
+    length_mm: 110.27
+    center:
+    - 24.5368
+    - -7.1629
+    - 1.4589
+    concave: false
+  - description: Cylindrical surface along Y axis, radius 55.3 mm, length 73.5 mm
+    axis:
+    - 0.0
+    - 1.0
+    - 0.0
+    radius_mm: 55.29
+    length_mm: 73.54
+    center:
+    - 35.1
+    - 1.4279
+    - 1.2548
+    concave: false
+  holes: []
+text_description: "Part 'link_5' from stl_files/link_5.stl.\nBounding box: 116.7 x 73.9 x 85.2 mm.\nNon-watertight mesh (volume\
+  \ not computed).\nSurface area: 35994.2 mm\xB2.\nMesh complexity: 1616 vertices, 3246 faces.\nHas 2 significant flat face(s).\n\
+  Has 2 cylindrical surface(s)."
