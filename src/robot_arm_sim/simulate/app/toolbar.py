@@ -165,6 +165,7 @@ def build_toolbar(state: SimulatorState) -> None:
         connections_btn = ui.button("Connections", on_click=toggle_connections).props(
             "flat dense"
         )
+        state.connections_btn = connections_btn
 
         state.edit_connections_btn = ui.button(
             "Edit Connections",

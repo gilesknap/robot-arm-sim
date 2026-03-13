@@ -213,6 +213,11 @@ def build_edit_connections(state: SimulatorState) -> None:
             import copy
 
             ui.run_javascript("window.__setMeshTransparency(0.25)")
+            # Hide view-mode connection spheres while editing
+            ui.run_javascript(
+                "window.__setConnectionsVisible"
+                " && window.__setConnectionsVisible(false)"
+            )
             state.connection_status_label.text = "Click mesh to assign"
             _seed_connection_assignments(state)
             # Snapshot after seeding so we capture the YAML-derived state
@@ -223,7 +228,9 @@ def build_edit_connections(state: SimulatorState) -> None:
             # Restore assignments from snapshot, discarding unsaved edits
             state.connection_assignments.clear()
             if state.conn_snapshot:
-                state.connection_assignments.update(state.conn_snapshot)
+                import copy
+
+                state.connection_assignments.update(copy.deepcopy(state.conn_snapshot))
             state.connection_dirty_links.clear()
             state.part_visual_offsets.clear()
             state.connection_center_target = None
@@ -238,18 +245,17 @@ def build_edit_connections(state: SimulatorState) -> None:
                 "  window.__connEditMarkers = {};"
                 "}"
             )
-            # Revert any visual mesh offsets by refreshing the scene
-            state.update_scene_now()
             if not state.transparent_mode["value"]:
                 ui.run_javascript("window.__setMeshTransparency(1.0)")
-            # Ensure view-mode connection spheres are visible after edit
+            # Ensure view-mode connection spheres are visible —
+            # set BEFORE update_scene_now so _update_connections runs
             state.connections_visible["value"] = True
-            ui.run_javascript(
-                "window.__setConnectionsVisible && window.__setConnectionsVisible(true)"
-            )
-            # Force position update (update_scene_now above may have
-            # skipped it if connections_visible was false at the time)
             state.update_scene_now()
+            # Sync the toolbar Connections button style
+            if state.connections_btn is not None:
+                state.connections_btn.props("dense color=primary")
+                state.connections_btn.classes(add="bg-blue-1")
+                state.connections_btn.update()
 
     state.toggle_edit_connections = _toggle_edit_connections
 
