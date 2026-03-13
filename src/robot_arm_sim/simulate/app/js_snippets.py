@@ -231,8 +231,7 @@ CONNECTION_INIT_JS = """
     const lines = {};
     const connections = CONNECTION_DATA;
     for (const b of connections) {
-        const r = Math.max(0.002, Math.min(0.015,
-            b.radius_mm * 0.001 * 0.3));
+        const r = 0.005;
         const color = b.end === 'proximal'
             ? 0x00cc00 : 0xcc0000;
         const geo = new THREE.SphereGeometry(r, 16, 12);
@@ -356,7 +355,7 @@ FACE_MARKER_INIT_JS = """
     window.__connEditMarkers = connEditMarkers;
 
     window.__placeConnEditMarker = function(
-        id, x, y, z, colorHex, radiusMm
+        id, x, y, z, colorHex
     ) {
         let m = connEditMarkers[id];
         if (!m) {
@@ -371,9 +370,7 @@ FACE_MARKER_INIT_JS = """
             sc.scene.add(m);
             connEditMarkers[id] = m;
         }
-        const r = Math.max(0.002, Math.min(0.015,
-            (radiusMm || 8) * 0.001 * 0.3));
-        m.scale.setScalar(r);
+        m.scale.setScalar(0.005);
         m.material.color.setHex(colorHex);
         m.position.set(x, y, z);
         m.visible = true;

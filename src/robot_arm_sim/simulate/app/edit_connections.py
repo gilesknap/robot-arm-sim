@@ -231,7 +231,6 @@ def _show_existing_connection_markers(state: SimulatorState) -> None:
                 link_name,
                 end,
                 connection_data["centroid"],
-                connection_data["radius_mm"],
             )
     _sync_connection_edit_visibility(state)
 
@@ -255,7 +254,6 @@ def _place_connection_marker(
     link_name: str,
     end: str,
     centroid_mm: list[float],
-    radius_mm: float = 8.0,
 ) -> None:
     """Place/update a connection edit marker sphere at the given position."""
     # Transform centroid from STL-space (mm) to world-space (m)
@@ -273,7 +271,7 @@ def _place_connection_marker(
     ui.run_javascript(
         f"window.__placeConnEditMarker("
         f"'{marker_id}', {wp[0]:.6f}, {wp[1]:.6f}, {wp[2]:.6f},"
-        f" {color}, {radius_mm:.1f})"
+        f" {color})"
     )
 
 
@@ -324,7 +322,6 @@ def _assign_connection(
         link_name,
         end,
         connection_data["centroid"],
-        connection_data["radius_mm"],
     )
 
     # Mark this link as user-modified
