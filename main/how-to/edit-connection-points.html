@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Edit connection points &#8212; robot-arm-sim 1.5.dev9+ge6c0168e9 documentation</title>
+    <title>Edit connection points &#8212; robot-arm-sim 1.6.dev11+gd4ebbf338 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d301b140"></script>
+    <script src="../_static/documentation_options.js?v=54a5df10"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -556,11 +556,74 @@ proximal connection; all other links have both.</p>
 within its link frame. The goal is always the same: place the proximal
 connection point at the link frame origin so the joint rotates around the
 correct axis.</p>
+<section id="axis-snapping-both-modes">
+<h3>Axis snapping (both modes)<a class="headerlink" href="#axis-snapping-both-modes" title="Link to this heading">#</a></h3>
+<p>Regardless of centering mode, <code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code> always <strong>snaps the
+proximal bore center onto the joint axis line</strong>. It decomposes the proximal
+position into along-axis and cross-axis components relative to the joint
+axis, then zeros the cross-axis error:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">Axis snapping and centering logic in compute_visual_origin</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">proximal</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># mm, mesh coords</span>
+
+    <span class="c1"># Joint axis direction in mesh coordinates</span>
+    <span class="n">ja</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">joint_axis</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">!=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="c1"># viz_rpy rotates mesh→URDF, so mesh_axis = R^T @ urdf_axis</span>
+        <span class="n">ja</span> <span class="o">=</span> <span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">ja</span>
+    <span class="n">ja</span> <span class="o">=</span> <span class="n">ja</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ja</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span>  <span class="c1"># normalise</span>
+
+    <span class="c1"># Decompose proximal position into along-axis and cross-axis</span>
+    <span class="n">along_scalar</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">ja</span><span class="p">))</span>
+    <span class="n">along_vec</span> <span class="o">=</span> <span class="n">along_scalar</span> <span class="o">*</span> <span class="n">ja</span>
+    <span class="n">cross_vec</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">-</span> <span class="n">along_vec</span>
+
+    <span class="c1"># Bore axis for center-mode opposite-face lookup</span>
+    <span class="n">bore_axis</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;axis&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="n">centering</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;centering&quot;</span><span class="p">,</span> <span class="s2">&quot;surface&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">centering</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="n">opp</span> <span class="o">=</span> <span class="n">_find_opposite_face</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">bore_axis</span><span class="p">,</span> <span class="n">axis_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">opp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Average proximal with opposite face along bore axis</span>
+            <span class="n">centered</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">centered</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">opp</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">along_scalar</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">centered</span><span class="p">,</span> <span class="n">ja</span><span class="p">))</span>
+            <span class="n">along_vec</span> <span class="o">=</span> <span class="n">along_scalar</span> <span class="o">*</span> <span class="n">ja</span>
+
+    <span class="c1"># Snapped position: along-axis preserved, cross-axis zeroed</span>
+    <span class="n">snapped</span> <span class="o">=</span> <span class="n">along_vec</span>
+</pre></div>
+</div>
+</div>
+<p>This means each mesh independently positions itself — no cross-link
+dependencies, no error accumulation up the chain.</p>
+</section>
 <section id="surface-mode-default">
 <h3><code class="docutils literal notranslate"><span class="pre">surface</span></code> mode (default)<a class="headerlink" href="#surface-mode-default" title="Link to this heading">#</a></h3>
-<p>The marker sits on the <strong>bore surface</strong> — a flat mating face. The raw marker
-position is used directly as the visual origin reference point. No axial
-adjustment is applied.</p>
+<p>The marker sits on the <strong>bore surface</strong> — a flat mating face. The along-axis
+component of the proximal position is used as-is (only cross-axis is zeroed).</p>
+<p>After all visual origins are computed, a second pass
+(<code class="docutils literal notranslate"><span class="pre">close_surface_gaps_along_axis</span></code>) shifts each surface-mode child <strong>along the
+joint axis only</strong> so its proximal surface meets the parent’s distal surface:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">close_surface_gaps_along_axis docstring</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">close_surface_gaps_along_axis</span><span class="p">(</span>
+    <span class="n">chain</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">analyses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">visual_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span>
+    <span class="n">joint_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="n">joint_rpys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="s2">&quot;&quot;&quot;Shift surface-mode children along the joint axis to meet parent distal.</span>
+
+<span class="s2">    Only adjusts along the joint axis — cross-axis is already handled by</span>
+<span class="s2">    the per-mesh snap in compute_visual_origin.</span>
+</pre></div>
+</div>
+</div>
 <p>This is the right choice when the connection is a flat face mating against
 another flat face (the most common case).</p>
 </section>
@@ -569,63 +632,13 @@ another flat face (the most common case).</p>
 <p>The marker sits on a <strong>surface face that represents where the rotation axis
 should pass through</strong> — typically the end of a through-bore or shaft hole.
 The pipeline finds the opposite flat face along the bore axis and averages
-the two positions to compute the bore midpoint:</p>
-<div class="literal-block-wrapper docutils container" id="id3">
-<div class="code-block-caption"><span class="caption-text">Centering logic in compute_visual_origin</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="c1"># Adjust bore-axis component from face to barrel center.</span>
-    <span class="c1"># Two centering modes:</span>
-    <span class="c1">#   center       — marker is at bore center (use opposite face, no depth limit)</span>
-    <span class="c1">#   surface      — marker on bore face, find opposite via flat faces with</span>
-    <span class="c1">#                  depth limit; no adjustment if not found (shallow bore)</span>
-    <span class="n">bore_axis</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;axis&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-    <span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-    <span class="n">centering</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;centering&quot;</span><span class="p">,</span> <span class="s2">&quot;surface&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">centering</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span><span class="p">:</span>
-            <span class="n">opp</span> <span class="o">=</span> <span class="n">_find_opposite_face</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">bore_axis</span><span class="p">,</span> <span class="n">axis_idx</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">opp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">opp</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="c1"># centering == &quot;surface&quot;: use raw position, no adjustment</span>
-</pre></div>
-</div>
-</div>
+the two positions to compute the bore midpoint. The result is then projected
+onto the joint axis.</p>
 <p>This is the right choice when the connection is a through-bore where the
 rotation axis must pass through the geometric center of the bore, not a
-surface face.</p>
+surface face. Center-mode connections are <strong>not</strong> adjusted by the gap-closing
+pass — their bore centering already defines the rotation axis precisely.</p>
 </section>
-</section>
-<section id="why-close-surface-gaps-skips-center-mode-connections">
-<h2>Why <code class="docutils literal notranslate"><span class="pre">close_surface_gaps</span></code> skips center-mode connections<a class="headerlink" href="#why-close-surface-gaps-skips-center-mode-connections" title="Link to this heading">#</a></h2>
-<p>After computing visual origins, a second pass called <code class="docutils literal notranslate"><span class="pre">close_surface_gaps</span></code>
-walks the kinematic chain and shifts each child mesh so its proximal surface
-meets the parent’s distal surface exactly — closing any small gaps caused by
-mesh tolerances.</p>
-<p><strong>This pass only applies to <code class="docutils literal notranslate"><span class="pre">surface</span></code>-mode connections.</strong> Center-mode
-connections are skipped:</p>
-<div class="literal-block-wrapper docutils container" id="id4">
-<div class="code-block-caption"><span class="caption-text">close_surface_gaps docstring explaining the skip</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="sd">&quot;&quot;&quot;Adjust visual origins so surface connections touch parent distal.</span>
-
-<span class="sd">    Walks the kinematic chain and, for each child whose proximal is in</span>
-<span class="sd">    surface mode, shifts the child mesh so its proximal surface meets</span>
-<span class="sd">    the parent&#39;s distal surface exactly.  Center-mode connections are</span>
-<span class="sd">    left unchanged — their bore centering defines the rotation axis,</span>
-<span class="sd">    and cross-axis shifts would accumulate up the chain, skewing</span>
-<span class="sd">    axial rotations.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-</pre></div>
-</div>
-</div>
-<p>The reason: gap-closing computes a 3D shift vector between parent distal and
-child proximal positions. For surface-mode connections this shift is
-predominantly along the bore axis (closing an axial gap), which is harmless.
-But for center-mode connections the bore centering already defines the
-rotation axis precisely. Applying a cross-axis shift (perpendicular to the
-bore) would accumulate errors up the kinematic chain, progressively skewing
-each joint’s axial rotation. This was discovered during debugging when
-center-mode parts drifted sideways through the chain, causing visible
-rotation misalignment.</p>
 </section>
 <section id="how-connection-points-and-visual-rpy-work-together">
 <h2>How connection points and <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> work together<a class="headerlink" href="#how-connection-points-and-visual-rpy-work-together" title="Link to this heading">#</a></h2>
@@ -634,12 +647,15 @@ part’s proximal and distal faces are on different planes — for example, an
 L-shaped link where the proximal bore faces along Z but the distal bore
 faces along Y — the mesh also needs to be <strong>rotated</strong> so the proximal axis
 aligns with the joint frame. This is what <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> does.</p>
-<p>The URDF generation pipeline works in two steps per link:</p>
+<p>The URDF generation pipeline works in two passes:</p>
 <ol class="arabic simple">
-<li><p><strong>Rotation</strong> (<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>) — rotate the mesh so the proximal connection
-axis aligns with the joint’s rotation axis in the link frame.</p></li>
-<li><p><strong>Translation</strong> (<code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code>) — shift the rotated mesh so the
-proximal connection point sits at the link frame origin (0, 0, 0).</p></li>
+<li><p><strong>Pass 1 — per-mesh snap</strong> (<code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code>) — for each link,
+rotate the mesh (<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>) and snap its proximal bore center onto the
+joint axis line, zeroing cross-axis error. Along-axis placement depends
+on centering mode.</p></li>
+<li><p><strong>Pass 2 — surface gap closure</strong> (<code class="docutils literal notranslate"><span class="pre">close_surface_gaps_along_axis</span></code>) — for
+surface-mode connections only, shift the child mesh along the joint axis
+so its proximal face meets the parent’s distal face.</p></li>
 </ol>
 <p>When <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> is <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> (the default), the translation is a simple
 negation of the proximal position. When a rotation is applied, the proximal
@@ -647,9 +663,9 @@ position is rotated first, then negated:</p>
 <div class="literal-block-wrapper docutils container" id="id5">
 <div class="code-block-caption"><span class="caption-text">visual_rpy applied before translation in compute_visual_origin</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
-        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">pos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">snapped</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">snapped</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
     <span class="n">extra</span> <span class="o">=</span> <span class="n">link_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;visual_xyz&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">extra</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -675,10 +691,11 @@ coordinates don’t naturally align with the link frame), you need a
 along the same axis, <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> can stay at <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code>. For L-shaped or
 angled parts where the two connections face different directions, you need a
 rotation to align the proximal axis with the joint frame.</p>
-<p><strong>Work from base to tip.</strong> Each link’s visual origin depends on its proximal
-connection being correctly placed at the joint frame origin. If a parent
-link is wrong, every child link downstream will be wrong too — errors
-compound along the chain.</p>
+<p><strong>Work from base to tip.</strong> Each link’s visual origin is computed
+independently (snapped to its own joint axis), so errors no longer compound
+along the chain. However, surface gap closure still references the parent’s
+distal position, so fixing a parent link’s connections first makes it easier
+to verify child links visually.</p>
 </section>
 </section>
 <section id="how-to-edit-connection-points">
@@ -723,15 +740,15 @@ directly. After editing:</p>
 <tbody>
 <tr class="row-even"><td><p>Flat mating faces (most joints)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">surface</span></code></p></td>
-<td><p>Marker on face surface; gap-closing applies normally</p></td>
+<td><p>Marker on face surface; gap-closing shifts along axis to meet parent</p></td>
 </tr>
 <tr class="row-odd"><td><p>Through-bores / shaft holes</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">center</span></code></p></td>
-<td><p>Marker at bore center; pipeline averages with opposite face for precise axis</p></td>
+<td><p>Marker at bore center; pipeline averages with opposite face, snaps to axis</p></td>
 </tr>
 <tr class="row-even"><td><p>Barrel bores (large concentric cylinders)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">center</span></code></p></td>
-<td><p>Bore center defines the rotation axis</p></td>
+<td><p>Bore center defines the rotation axis; snapped onto axis line</p></td>
 </tr>
 <tr class="row-odd"><td><p>Shallow surface features</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">surface</span></code></p></td>
@@ -794,11 +811,11 @@ directly. After editing:</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-connection-points-are">What connection points are</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-centering-modes">The two centering modes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#axis-snapping-both-modes">Axis snapping (both modes)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#surface-mode-default"><code class="docutils literal notranslate"><span class="pre">surface</span></code> mode (default)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#center-mode"><code class="docutils literal notranslate"><span class="pre">center</span></code> mode</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-close-surface-gaps-skips-center-mode-connections">Why <code class="docutils literal notranslate"><span class="pre">close_surface_gaps</span></code> skips center-mode connections</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-connection-points-and-visual-rpy-work-together">How connection points and <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> work together</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-this-matters-for-fixing-jumbled-parts">Why this matters for fixing jumbled parts</a></li>
 </ul>
