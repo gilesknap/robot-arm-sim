@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
+from robot_arm_sim import __version__
+
 from .js_snippets import SCREENSHOT_JS
 
 if TYPE_CHECKING:
@@ -74,6 +76,7 @@ def build_toolbar(state: SimulatorState) -> None:
         ui.card().style("max-width: 480px; text-align: left"),
     ):
         ui.label("About Robot Arm Simulator").classes("text-h6")
+        ui.label(f"Version {__version__}").style("color: #888; font-size: 0.8rem;")
         ui.label(
             "Automatically generates interactive robot simulations from"
             " STL mesh files. Powered by Claude Code and Python, it infers"
