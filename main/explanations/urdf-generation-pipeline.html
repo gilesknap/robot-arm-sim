@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>URDF generation pipeline &#8212; robot-arm-sim 1.7.dev25+gfa691f2e0 documentation</title>
+    <title>URDF generation pipeline &#8212; robot-arm-sim 1.8.dev1+g8e377c049 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=11873c1e"></script>
+    <script src="../_static/documentation_options.js?v=c963d06f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -924,6 +924,13 @@ end-effector)</p></li>
 </ul>
 <p>The base link has only a distal connection; the end-effector has only a
 proximal connection; all other links have both.</p>
+<p>On multi-axis (L-shaped) parts where bores face along two perpendicular
+axes, the auto-detector assigns proximal/distal by <strong>Z-position</strong> of the
+detected bore centers: the bore at lower Z is proximal (toward the base)
+and the bore at higher Z is distal (toward the tip). This relies on the
+STL convention of Z-up. For parts with no cylindrical surfaces (e.g. an
+end-effector flange), the detector falls back to the largest flat face
+along any axis.</p>
 <p>Each connection point has these fields:</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-text">ConnectionPoint model</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
@@ -1012,28 +1019,28 @@ position into along-axis and cross-axis components relative to the joint
 axis, then zeros the cross-axis error:</p>
 <div class="literal-block-wrapper docutils container" id="id4">
 <div class="code-block-caption"><span class="caption-text">Axis snapping and centering logic in compute_visual_origin</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="c1"># For center mode, average proximal with opposite face along bore axis</span>
-    <span class="n">bore_axis</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;axis&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-    <span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-    <span class="n">centering</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;centering&quot;</span><span class="p">,</span> <span class="s2">&quot;surface&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>        <span class="n">link_name</span> <span class="o">=</span> <span class="n">link_spec</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;visual_rpy&quot;</span> <span class="ow">in</span> <span class="n">link_spec</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># explicitly set in chain.yaml, don&#39;t override</span>
 
-    <span class="k">if</span> <span class="n">centering</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
-        <span class="n">opp</span> <span class="o">=</span> <span class="n">_find_opposite_face</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">bore_axis</span><span class="p">,</span> <span class="n">axis_idx</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">opp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">opp</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">creating_joint</span> <span class="o">=</span> <span class="n">child_to_joint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">creating_joint</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># base link</span>
 
-    <span class="c1"># Visual origin = -proximal/1000: places proximal at frame origin (on axis)</span>
-    <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">link_name</span><span class="si">}</span><span class="s2">: proximal @ origin,&quot;</span>
-        <span class="sa">f</span><span class="s2">&quot; proximal=(</span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">)mm&quot;</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
-        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">origin_rpy</span> <span class="o">=</span> <span class="n">creating_joint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;origin_rpy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">origin_rpy</span><span class="p">):</span>
+            <span class="k">continue</span>  <span class="c1"># no rotation, no flip possible</span>
 
-    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">viz_xyz</span><span class="p">],</span> <span class="n">viz_rpy</span>
+        <span class="n">outgoing_joint</span> <span class="o">=</span> <span class="n">parent_to_joint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">outgoing_joint</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># tip link, no next joint to compare against</span>
+
+        <span class="n">mesh_name</span> <span class="o">=</span> <span class="n">link_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mesh&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mesh_name</span> <span class="ow">or</span> <span class="n">mesh_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">analyses</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">analysis</span> <span class="o">=</span> <span class="n">analyses</span><span class="p">[</span><span class="n">mesh_name</span><span class="p">]</span>
+        <span class="n">conn_pts</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_points&quot;</span><span class="p">,</span> <span class="p">[])</span>
 </pre></div>
 </div>
 </div>
@@ -1049,18 +1056,18 @@ component of the proximal position is used as-is (only cross-axis is zeroed).</p
 joint axis only</strong> so its proximal surface meets the parent’s distal surface:</p>
 <div class="literal-block-wrapper docutils container" id="id5">
 <div class="code-block-caption"><span class="caption-text">close_surface_gaps_along_axis docstring</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">close_surface_gaps_along_axis</span><span class="p">(</span>
-    <span class="n">chain</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-    <span class="n">analyses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-    <span class="n">visual_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span>
-    <span class="n">joint_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
-    <span class="n">joint_rpys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
-    <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="s2">&quot;&quot;&quot;Shift surface-mode children along the joint axis to meet parent distal.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
-<span class="s2">    Only adjusts along the joint axis — cross-axis is already handled by</span>
-<span class="s2">    the per-mesh snap in compute_visual_origin.</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">viz_xyz</span><span class="p">],</span> <span class="n">viz_rpy</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_joint_origin</span><span class="p">(</span>
+    <span class="n">joint_spec</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">link_specs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">analyses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">dh_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
 </pre></div>
 </div>
 </div>
@@ -1106,12 +1113,12 @@ negation of the proximal position. When a rotation is applied, the proximal
 position is rotated first, then negated:</p>
 <div class="literal-block-wrapper docutils container" id="id6">
 <div class="code-block-caption"><span class="caption-text">visual_rpy applied before translation in compute_visual_origin</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
-        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>        <span class="n">mesh_name</span> <span class="o">=</span> <span class="n">link_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mesh&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mesh_name</span> <span class="ow">or</span> <span class="n">mesh_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">analyses</span><span class="p">:</span>
+            <span class="k">continue</span>
 
-    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">viz_xyz</span><span class="p">],</span> <span class="n">viz_rpy</span>
+        <span class="n">analysis</span> <span class="o">=</span> <span class="n">analyses</span><span class="p">[</span><span class="n">mesh_name</span><span class="p">]</span>
+        <span class="n">conn_pts</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_points&quot;</span><span class="p">,</span> <span class="p">[])</span>
 </pre></div>
 </div>
 </div>

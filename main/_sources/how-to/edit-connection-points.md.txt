@@ -32,7 +32,8 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    - **Proximal Surface** (green) — places a `surface`-mode proximal marker.
    - **Distal** (red) — places a distal marker (tells gap-closing which parent
      surface the child should meet).
-   - **Move Parts** (amber) — drag a part or use arrow keys (0.1 mm per press).
+   - **Move Parts** (amber) — drag a part or use arrow keys (0.1 mm per press,
+     hold Shift for 2 mm steps).
 
    See {ref}`when-to-use-each-mode` below for guidance on `surface` vs `center`.
 
