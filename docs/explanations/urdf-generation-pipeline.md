@@ -18,6 +18,14 @@ attaches to its neighbours in the kinematic chain:
 The base link has only a distal connection; the end-effector has only a
 proximal connection; all other links have both.
 
+On multi-axis (L-shaped) parts where bores face along two perpendicular
+axes, the auto-detector assigns proximal/distal by **Z-position** of the
+detected bore centers: the bore at lower Z is proximal (toward the base)
+and the bore at higher Z is distal (toward the tip). This relies on the
+STL convention of Z-up. For parts with no cylindrical surfaces (e.g. an
+end-effector flange), the detector falls back to the largest flat face
+along any axis.
+
 Each connection point has these fields:
 
 ```{literalinclude} ../../src/robot_arm_sim/models/models.py

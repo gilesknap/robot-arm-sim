@@ -2,7 +2,18 @@
 part_name: link_5
 source_file: stl_files/link_5.stl
 format: binary_stl
-connection_points: []
+connection_points:
+- end: distal
+  position:
+  - -2.717
+  - -21.0
+  - -0.167
+  axis:
+  - 0.0
+  - -1.0
+  - 0.0
+  radius_mm: 60.2
+  method: largest_face_fallback
 geometry:
   vertex_count: 244
   face_count: 484

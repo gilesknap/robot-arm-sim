@@ -18,7 +18,7 @@
   </link>
   <link name="bicep_link">
     <visual>
-      <origin xyz="0.046000 0.410123 0.010129" rpy="0 0 0"/>
+      <origin xyz="0.000618 0.410101 0.048115" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/bicep_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -26,7 +26,7 @@
   </link>
   <link name="forearm_link">
     <visual>
-      <origin xyz="0.001281 -0.012313 0.098650" rpy="0 0 0"/>
+      <origin xyz="0.001281 -0.012313 0.022678" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/forearm_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>

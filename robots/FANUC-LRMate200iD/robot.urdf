@@ -2,7 +2,7 @@
 <robot name="FANUC-LRMate200iD">
   <link name="base_link">
     <visual>
-      <origin xyz="0.009361 -0.095000 -0.043448" rpy="0 0 0"/>
+      <origin xyz="0.020093 -0.000599 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/base_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -10,7 +10,7 @@
   </link>
   <link name="link_1">
     <visual>
-      <origin xyz="0.000220 0.002364 -0.213521" rpy="0 0 0"/>
+      <origin xyz="0.000220 0.002364 -0.126625" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -26,7 +26,7 @@
   </link>
   <link name="link_3">
     <visual>
-      <origin xyz="-0.088500 -0.120093 -0.036650" rpy="0 0 0"/>
+      <origin xyz="0.016462 -0.115552 0.052394" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_3.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -34,7 +34,7 @@
   </link>
   <link name="link_4">
     <visual>
-      <origin xyz="-0.263526 0.002000 0.050000" rpy="0 0 0"/>
+      <origin xyz="-0.053602 0.002000 0.050000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_4.stl" scale="0.001 0.001 0.001"/>
       </geometry>

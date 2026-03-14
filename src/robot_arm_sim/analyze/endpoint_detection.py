@@ -32,7 +32,29 @@ def detect_base_connection(
         f for f in features if f.kind == "flat_face" and f.normal and f.normal[2] > 0.9
     ]
     if not top_faces:
-        return []
+        # Fallback: use the largest flat face along any axis
+        all_flat = [
+            f for f in features if f.kind == "flat_face" and f.normal and f.centroid
+        ]
+        if not all_flat:
+            return []
+        best_face = max(all_flat, key=lambda f: f.area_mm2 or 0)
+        normal = np.array(best_face.normal)
+        axis_idx = int(np.argmax(np.abs(normal)))
+        axis_vec = [0.0, 0.0, 0.0]
+        axis_vec[axis_idx] = float(np.sign(normal[axis_idx]))
+        c = best_face.centroid
+        assert c is not None  # guaranteed by all_flat filter
+        r = float(np.sqrt((best_face.area_mm2 or 0) / np.pi))
+        return [
+            ConnectionPoint(
+                end="distal",
+                position=[round(c[0], 3), round(c[1], 3), round(c[2], 3)],
+                axis=[round(v, 4) for v in axis_vec],
+                radius_mm=round(r, 1),
+                method="largest_face_fallback",
+            )
+        ]
 
     top_face = max(top_faces, key=lambda f: f.area_mm2 or 0)
 
@@ -79,18 +101,19 @@ def detect_multi_axis_connections(
     cylinders: list[GeometricFeature],
     axis_groups: list[list[GeometricFeature]],
 ) -> list[ConnectionPoint]:
-    """Multi-axis part (e.g., L-shaped): proximal along first dominant axis,
-    distal along second dominant axis.
+    """Multi-axis part (e.g., L-shaped): detect bore centers along each axis,
+    then assign proximal/distal by Z-position (lower Z = proximal).
 
     Uses flat face evidence to determine which end of each axis has the bore
     opening, rather than assuming min/max — critical for L-shaped parts where
     bore openings face outward from the junction.
     """
-    points = []
     bounds = mesh.bounds
     flat_faces = [f for f in features if f.kind == "flat_face" and f.normal]
 
-    for end, group in [("proximal", axis_groups[0]), ("distal", axis_groups[1])]:
+    # Phase 1: detect bore center for each axis group (no end label yet)
+    candidates: list[tuple[np.ndarray, list[float], float]] = []  # (pos, axis, radius)
+    for group in axis_groups[:2]:
         axis = np.array(group[0].axis)
         axis_norm = np.linalg.norm(axis)
         if axis_norm < 1e-6:
@@ -98,7 +121,6 @@ def detect_multi_axis_connections(
         axis = axis / axis_norm
         axis_idx = int(np.argmax(np.abs(axis)))
 
-        # Use flat face evidence to find which end has the bore opening
         bore_val, direction = find_bore_end_for_axis(axis, axis_idx, bounds, flat_faces)
 
         center = find_circle_center_at_slice(
@@ -109,23 +131,13 @@ def detect_multi_axis_connections(
             radius = cyl.radius_mm if cyl and cyl.radius_mm is not None else 20.0
             pos = center.copy()
             pos[axis_idx] = bore_val
-            points.append(
-                ConnectionPoint(
-                    end=end,  # type: ignore[arg-type]
-                    position=[round(v, 3) for v in pos],
-                    axis=[round(a, 4) for a in axis.tolist()],
-                    radius_mm=round(radius, 1),
-                    method="cross_section",
-                )
-            )
+            candidates.append((pos, axis.tolist(), radius))
         else:
-            # Fallback: use the largest aligned flat face centroid
             matching_faces = [
                 f
                 for f in flat_faces
                 if f.normal and abs(float(np.dot(f.normal, axis))) > 0.9 and f.centroid
             ]
-            # Filter to faces near the bore end
             mid = (bounds[0][axis_idx] + bounds[1][axis_idx]) / 2.0
             if direction == "above":
                 matching_faces = [
@@ -142,17 +154,30 @@ def detect_multi_axis_connections(
             if matching_faces:
                 bf = max(matching_faces, key=lambda f: f.area_mm2 or 0)
                 if bf.centroid:
-                    pos = list(bf.centroid)
+                    pos = np.array(list(bf.centroid))
                     pos[axis_idx] = bore_val
-                    points.append(
-                        ConnectionPoint(
-                            end=end,  # type: ignore[arg-type]
-                            position=[round(v, 3) for v in pos],
-                            axis=[round(a, 4) for a in axis.tolist()],
-                            radius_mm=20.0,
-                            method="centroid_fallback",
-                        )
-                    )
+                    candidates.append((pos, axis.tolist(), 20.0))
+
+    if not candidates:
+        return []
+
+    # Phase 2: assign proximal/distal by Z-position (lower Z = proximal)
+    if len(candidates) >= 2:
+        candidates.sort(key=lambda c: c[0][2])  # sort by Z coordinate
+
+    end_labels = ["proximal", "distal"]
+    points: list[ConnectionPoint] = []
+    for i, (pos, ax, radius) in enumerate(candidates):
+        end = end_labels[i] if i < len(end_labels) else "distal"
+        points.append(
+            ConnectionPoint(
+                end=end,  # type: ignore[arg-type]
+                position=[round(float(v), 3) for v in pos],
+                axis=[round(float(a), 4) for a in ax],
+                radius_mm=round(radius, 1),
+                method="cross_section",
+            )
+        )
 
     return points
 

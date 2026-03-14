@@ -5,17 +5,6 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 88.5
-  - 3.873
-  - 36.65
-  axis:
-  - 1.0
-  - 0.0
-  - 0.0
-  radius_mm: 74.8
-  method: cross_section
-- end: distal
-  position:
   - -16.462
   - -0.668
   - -52.394
@@ -24,6 +13,17 @@ connection_points:
   - 0.0
   - 1.0
   radius_mm: 84.6
+  method: cross_section
+- end: distal
+  position:
+  - 88.5
+  - 3.873
+  - 36.65
+  axis:
+  - 1.0
+  - 0.0
+  - 0.0
+  radius_mm: 74.8
   method: cross_section
 geometry:
   vertex_count: 2927
