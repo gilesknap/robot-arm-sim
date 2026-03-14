@@ -1,8 +1,6 @@
-Base directory for this skill: /workspaces/robot-arm-sim/.claude/skills/edit-connections-ui
+# Edit Connections
 
-# Edit Connections UI Skill
-
-How to drive the Edit Connections mode in the simulator to assign proximal/distal connection points on robot meshes.
+Drive the Edit Connections mode in the simulator to assign proximal/distal connection points on robot meshes.
 
 ## Entering Edit Connections Mode
 
@@ -54,11 +52,11 @@ The raycast from a click needs to hit the target face head-on for accurate posit
 | Right-facing flange | RIGHT | from -Y |
 | Left-facing flange | LEFT | from +Y |
 
-Use the `zoom-rotate-camera` skill's Ortho Named View One-liner to set the view before clicking.
+Use the Ortho Named View One-liner in [camera.md](camera.md) to set the view before clicking.
 
 ## Workflow for One Link
 
-1. **Isolate the link** — use `set-visible-parts` skill to show only the target link
+1. **Isolate the link** — use [visible-parts.md](visible-parts.md) to show only the target link
 2. **Set Proximal toggle** (verify it's green)
 3. **Set Centering** (Surface for flat face, Center for bore)
 4. **Switch to orthogonal view** perpendicular to the proximal surface
@@ -76,7 +74,7 @@ Use the `zoom-rotate-camera` skill's Ortho Named View One-liner to set the view 
 - The page reloads with new URDF
 - Edit Connections mode exits
 - Camera may reset — you'll need to re-enter Edit Connections and re-navigate for the next link
-- **IMPORTANT: The page reload preserves visibility state from before Save, which was likely isolating one link. You MUST re-show all parts** using `set-visible-parts` skill (expand Visible Parts, click "All" chip to enable all) before evaluating the result
+- **IMPORTANT: The page reload preserves visibility state from before Save, which was likely isolating one link. You MUST re-show all parts** using [visible-parts.md](visible-parts.md) — click "All" chip to enable all — before evaluating the result
 - Check the result by switching to RIGHT/FRONT views and comparing against reference
 
 ## Finding UI Elements

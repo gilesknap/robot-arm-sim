@@ -1,12 +1,10 @@
-Base directory for this skill: /workspaces/robot-arm-sim/.claude/skills/set-visible-parts
-
-# Set Visible Parts Skill
+# Visible Parts
 
 Control which robot parts are visible in the simulator using the Visible Parts chip toggles.
 
 ## When to Use
 
-Use this skill when you need to show/hide specific robot links in the simulator, such as:
+Use when you need to show/hide specific robot links in the simulator, such as:
 - Isolating a single link for inspection during visual refinement
 - Showing a subset of links (e.g. base_link + link_1 to check a joint)
 - Restoring all parts to visible
@@ -29,7 +27,7 @@ Use `mcp__claude-in-chrome__find` to get element references:
 find: "selectable chip buttons for visible parts"
 ```
 
-This returns refs like:
+Returns refs like:
 - `ref_124`: "All"
 - `ref_127`: "base_link"
 - `ref_130`: "link_1"
@@ -68,6 +66,6 @@ ref: ref_124  (the "All" chip)
 ## Key Details
 
 - The chips are Quasar `q-chip` elements, NOT standard checkboxes
-- Clicking the chip body toggles selection — coordinate clicks may miss, so **always use `ref` parameter**
+- Clicking the chip body toggles selection — **always use `ref` parameter**
 - The "All" chip has special behavior: toggling it off deselects every link, toggling it on selects every link
 - After toggling, the 3D scene updates automatically (no need to call reload)

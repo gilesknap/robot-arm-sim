@@ -2,7 +2,7 @@
 
 This page walks through a real Claude Code session that diagnosed and fixed
 a missing end-effector on the Meca500-R3 simulator. It demonstrates the
-browser automation tools (Chrome connector), the `zoom-rotate-camera` skill,
+browser automation tools (Chrome connector), the `control-simulator` skill,
 and iterative URDF tuning — all driven from a single conversation.
 
 ```{contents}
@@ -97,7 +97,7 @@ the Chrome connector to reload the simulator and verify visually.
 ### Using the camera skill
 
 At this scale, the EndEffector (~20 mm) was nearly invisible in the default
-overview. Claude used the `zoom-rotate-camera` skill to position the camera
+overview. Claude used the `control-simulator` skill to position the camera
 directly at the arm tip:
 
 ```javascript
@@ -186,7 +186,7 @@ After reloading, the user confirmed:
 | `mcp__claude-in-chrome__computer` (zoom) | Pixel-level inspection of small features |
 | `mcp__claude-in-chrome__navigate` | Reload the simulator after URDF changes |
 | `mcp__claude-in-chrome__javascript_tool` | Execute JS for camera control |
-| `/zoom-rotate-camera` skill | Position the Three.js camera programmatically |
+| `/control-simulator` skill | Camera control, part visibility, connection editing |
 | `/robot-data` skill | Understand robot analysis YAML structure |
 | `Explore` sub-agent | Parallel codebase investigation |
 
@@ -196,7 +196,7 @@ The workflow followed a tight loop:
 
 1. **Edit** the URDF or Python code
 2. **Reload** the simulator via the Chrome connector
-3. **Position camera** using the `zoom-rotate-camera` skill
+3. **Position camera** using the `control-simulator` skill
 4. **Screenshot and zoom** to inspect the result
 5. **Diagnose** any remaining issues from the visual
 6. Repeat
@@ -215,7 +215,7 @@ conversation.
 
 - **Camera control via JavaScript is essential.** Mouse-dragging the 3D
   viewport risks accidentally moving joint sliders. The
-  `zoom-rotate-camera` skill provides reliable, repeatable camera
+  `control-simulator` skill provides reliable, repeatable camera
   positioning.
 
 - **Mesh geometry is not always axis-aligned.** The EndEffector's bore axis
