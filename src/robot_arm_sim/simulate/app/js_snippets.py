@@ -631,6 +631,7 @@ FACE_MARKER_INIT_JS = """
         dragLinkName = ln;
         selectedMesh = hit.object;
         selectedLinkName = ln;
+        window.__lastPartSelect = {linkName: ln};
         dragStartPos = dragMesh.position.clone();
         dragStartMouse = screenToWorld(e, dragStartPos);
         e.stopPropagation();

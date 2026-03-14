@@ -42,7 +42,12 @@ class SimulatorState:
         self.connection_center_target: tuple[str, str] | None = None
         self.connection_dirty_links: set[str] = set()
         self.part_visual_offsets: dict[str, list[float]] = {}
+        self.part_visual_rpys: dict[str, list[float]] = {}
         self.conn_snapshot: dict[str, dict[str, Any]] = {}
+        self.selected_part_name: str | None = None
+        self.selected_part_label: Any = None
+        self.undo_stack: list[dict] = []
+        self.redo_stack: list[dict] = []
 
         # Loaded analysis data
         self.mesh_centers = load_mesh_centers(robot, robot_dir)

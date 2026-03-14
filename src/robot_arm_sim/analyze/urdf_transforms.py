@@ -250,6 +250,22 @@ def close_surface_gaps_along_axis(
         visual_origins[child_name] = (adjusted, child_viz_rpy)
 
 
+def rotation_matrix_to_rpy(rot: np.ndarray) -> list[float]:
+    """Convert a 3x3 rotation matrix to roll-pitch-yaw angles."""
+    sy = -rot[2, 0]
+    # Clamp to handle numerical noise at gimbal lock
+    sy = float(np.clip(sy, -1.0, 1.0))
+    pitch = float(np.arcsin(sy))
+    if abs(sy) < 1.0 - 1e-6:
+        roll = float(np.arctan2(rot[2, 1], rot[2, 2]))
+        yaw = float(np.arctan2(rot[1, 0], rot[0, 0]))
+    else:
+        # Gimbal lock
+        roll = float(np.arctan2(-rot[1, 2], rot[1, 1]))
+        yaw = 0.0
+    return [roll, pitch, yaw]
+
+
 def rpy_to_rotation(rpy: list[float]) -> np.ndarray:
     """Convert roll-pitch-yaw to 3x3 rotation matrix."""
     roll, pitch, yaw = rpy

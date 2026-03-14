@@ -18,7 +18,15 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    existing connection markers appear (green = proximal surface,
    blue = proximal centred, red = distal).
 
-3. Select a mode from the toolbar:
+   The editor toolbar is split across two rows:
+
+   - **Row 1:** Mode buttons, **Show All** checkbox, and the currently
+     selected part name.
+   - **Row 2:** **Undo**/**Redo**, **Rot X**/**Rot Y**/**Rot Z**,
+     **Remove Part Conns**, status label, **Save & Rebuild**, and
+     **Remove Connections**.
+
+3. Select a mode from row 1:
 
    - **Proximal Centred** (blue) — places a `center`-mode proximal marker.
    - **Proximal Surface** (green) — places a `surface`-mode proximal marker.
@@ -29,16 +37,26 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    See {ref}`when-to-use-each-mode` below for guidance on `surface` vs `center`.
 
 4. Click directly on any mesh surface to place the marker at the click point.
-   The face normal at that point becomes the marker's axis.
+   The face normal at that point becomes the marker's axis. Clicking a mesh
+   also selects it — the selected part name appears in row 1.
 
 5. Use the **Show All** checkbox to see markers for all parts at once.
 
-6. Click **Save & Rebuild** — this writes changes to three places:
+6. Use **Undo** / **Redo** (row 2) to step back and forward through edits
+   (connection assignments, part moves, and rotations).
+
+7. Use **Rot X** / **Rot Y** / **Rot Z** (row 2) to rotate the selected part
+   90° around that axis. Useful for aligning a part whose STL orientation
+   doesn't match the link frame. On save, the rotation is composed with any
+   existing `visual_rpy` in `chain.yaml`.
+
+8. Click **Save & Rebuild** — this writes changes to three places:
 
    - **`analysis/*.yaml`** — updated connection points (with `method: manual`)
    - **`chain.yaml`** — if you used Move Parts, the accumulated offset is
-     saved as `visual_xyz`; if you only edited connections without moving,
-     any stale `visual_xyz` is cleared
+     saved as `visual_xyz`; if you rotated a part, the rotation is composed
+     with existing `visual_rpy`; if you only edited connections without
+     moving or rotating, any stale `visual_xyz` is cleared
    - **`robot.urdf`** — regenerated from the updated analysis and chain data
 
 ## Editing analysis YAML directly
@@ -117,7 +135,7 @@ entirely with `visual_xyz` offsets.
 fixing each one individually is slower than positioning parts manually.
 
 **How:** in the simulator, enter **Edit Connections** mode and click
-**Remove Connections** (red button). This:
+**Remove Connections** (red button, row 2). This:
 
 1. **Bakes current placement into `visual_xyz`** — each link's current URDF
    visual origin is saved as `visual_xyz` in `chain.yaml`, preserving exact
@@ -129,6 +147,16 @@ fixing each one individually is slower than positioning parts manually.
 
 Parts do not move — the visual result is the same before and after.
 
-After removal, fine-tune placement with **Move Parts** mode or by editing
-`visual_xyz` values directly in `chain.yaml`. Rotation editing
-(`visual_rpy`) is planned for a future release.
+To remove connections for a **single part** instead, select it first (click on
+the mesh) then click **Remove Part Conns** (row 2). This bakes placement and
+clears connection points for that link only.
+
+After removal, fine-tune placement with **Move Parts** mode, **Rot X/Y/Z**
+buttons, or by editing `visual_xyz` / `visual_rpy` values directly in
+`chain.yaml`.
+
+## Exiting without saving
+
+Clicking **Exit Edit** discards all unsaved changes — connection assignments,
+part moves, and rotations are all restored to their state when you entered
+edit mode. Dragged meshes snap back to their original positions.
