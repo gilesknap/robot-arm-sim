@@ -560,13 +560,17 @@ FACE_MARKER_INIT_JS = """
     let dragLinkName = null;
     let dragStartMouse = null;
     let dragStartPos = null;
+    let selectedMesh = null;
+    let selectedLinkName = null;
     window.__lastPartMove = null;
 
     window.__enablePartDrag = function(enable) {
         dragEnabled = enable;
-        if (!enable && dragMesh) {
+        if (!enable) {
             dragging = false;
             dragMesh = null;
+            selectedMesh = null;
+            selectedLinkName = null;
         }
     };
 
@@ -625,6 +629,8 @@ FACE_MARKER_INIT_JS = """
         dragging = true;
         dragMesh = hit.object;
         dragLinkName = ln;
+        selectedMesh = hit.object;
+        selectedLinkName = ln;
         dragStartPos = dragMesh.position.clone();
         dragStartMouse = screenToWorld(e, dragStartPos);
         e.stopPropagation();
@@ -655,6 +661,29 @@ FACE_MARKER_INIT_JS = """
         };
         dragging = false;
         dragMesh = null;
+    });
+
+    // Arrow-key nudge: move selected part 0.1 mm per keypress
+    document.addEventListener('keydown', function(e) {
+        if (!dragEnabled || !window.__faceEditMode) return;
+        if (!selectedMesh || !selectedLinkName) return;
+        const key = e.key;
+        if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key))
+            return;
+        e.preventDefault();
+        e.stopPropagation();
+        const step = 0.0001;  // 0.1 mm in metres
+        const axes = getViewPlaneAxes();
+        const startPos = selectedMesh.position.clone();
+        if (key === 'ArrowRight') selectedMesh.position[axes.u] += step;
+        if (key === 'ArrowLeft')  selectedMesh.position[axes.u] -= step;
+        if (key === 'ArrowUp')    selectedMesh.position[axes.v] += step;
+        if (key === 'ArrowDown')  selectedMesh.position[axes.v] -= step;
+        const delta = selectedMesh.position.clone().sub(startPos);
+        window.__lastPartMove = {
+            linkName: selectedLinkName,
+            delta: [delta.x, delta.y, delta.z]
+        };
     });
 
     // Click: raycast markers first, then STL meshes
