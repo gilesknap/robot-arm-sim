@@ -49,6 +49,8 @@ extensions = [
     "sphinx_design",
     # So we can write markdown files
     "myst_parser",
+    # Render Mermaid diagrams
+    "sphinxcontrib.mermaid",
 ]
 
 # So we can use the ::: syntax
