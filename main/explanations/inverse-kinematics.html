@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Architectural Decision Records &#8212; robot-arm-sim 1.7.dev3+g525a5b9df documentation</title>
+    <title>Inverse kinematics solver &#8212; robot-arm-sim 1.7.dev3+g525a5b9df documentation</title>
   
   
   
@@ -47,7 +47,7 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/decisions';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/inverse-kinematics';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
@@ -58,8 +58,8 @@
     <link rel="icon" href="../_static/dls-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="1. Record architecture decisions" href="decisions/0001-record-architecture-decisions.html" />
-    <link rel="prev" title="Inverse kinematics solver" href="inverse-kinematics.html" />
+    <link rel="next" title="Architectural Decision Records" href="decisions.html" />
+    <link rel="prev" title="Architecture" href="architecture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -402,8 +402,8 @@
 <li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Architectural Decision Records</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Inverse kinematics solver</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
 </ul>
@@ -452,7 +452,7 @@
     
     <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Architectural Decision Records</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Inverse kinematics solver</span></li>
   </ul>
 </nav>
 </div>
@@ -469,16 +469,151 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="architectural-decision-records">
-<h1>Architectural Decision Records<a class="headerlink" href="#architectural-decision-records" title="Link to this heading">#</a></h1>
-<p>Architectural decisions are made throughout a project’s lifetime. As a way of keeping track of these decisions, we record these decisions in Architecture Decision Records (ADRs) listed below.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+  <section id="inverse-kinematics-solver">
+<h1>Inverse kinematics solver<a class="headerlink" href="#inverse-kinematics-solver" title="Link to this heading">#</a></h1>
+<p>How the custom damped least-squares IK solver works, why it was built, and
+how it relates to the rest of the simulator.</p>
+<section id="why-a-custom-solver">
+<h2>Why a custom solver<a class="headerlink" href="#why-a-custom-solver" title="Link to this heading">#</a></h2>
+<p>The original implementation used <a class="reference external" href="https://github.com/Phylliade/ikpy">ikpy</a>,
+a pure-Python IK library. It was replaced with a custom solver for two
+reasons:</p>
+<ol class="arabic simple">
+<li><p><strong>URDF integration</strong> — the solver reads joint origins, axes, and limits
+directly from the <code class="docutils literal notranslate"><span class="pre">URDFRobot</span></code> model, avoiding the need to re-parse the
+URDF into ikpy’s chain format and maintain two kinematic representations.</p></li>
+<li><p><strong>Control</strong> — a purpose-built solver allows tuning convergence parameters
+(damping, tolerances, iteration count) and handling 6-DOF position +
+orientation targets without wrapper code.</p></li>
+</ol>
+<p>The solver lives in <code class="docutils literal notranslate"><span class="pre">src/robot_arm_sim/simulate/ik_solver.py</span></code>.</p>
+</section>
+<section id="algorithm-damped-least-squares">
+<h2>Algorithm: damped least-squares<a class="headerlink" href="#algorithm-damped-least-squares" title="Link to this heading">#</a></h2>
+<p>The solver uses the <strong>damped least-squares</strong> (DLS) method, also known as the
+Levenberg–Marquardt method applied to IK.</p>
+<section id="problem-statement">
+<h3>Problem statement<a class="headerlink" href="#problem-statement" title="Link to this heading">#</a></h3>
+<p>Given a target end-effector pose (4×4 homogeneous transform) and the current
+joint angles, find joint angle updates <strong>dq</strong> that drive the end-effector
+toward the target.</p>
+</section>
+<section id="iteration">
+<h3>Iteration<a class="headerlink" href="#iteration" title="Link to this heading">#</a></h3>
+<p>On each iteration the solver:</p>
+<ol class="arabic">
+<li><p><strong>Evaluates FK</strong> to get the current end-effector pose and all link
+transforms.</p></li>
+<li><p><strong>Computes the 6-vector error</strong>:</p>
+<ul class="simple">
+<li><p>Position error: <code class="docutils literal notranslate"><span class="pre">e_pos</span> <span class="pre">=</span> <span class="pre">p_target</span> <span class="pre">-</span> <span class="pre">p_current</span></code> (3 elements, metres)</p></li>
+<li><p>Orientation error: <code class="docutils literal notranslate"><span class="pre">e_rot</span> <span class="pre">=</span> <span class="pre">axis_angle(R_target</span> <span class="pre">×</span> <span class="pre">R_current^T)</span></code>
+(3 elements, radians)</p></li>
 </ul>
+</li>
+<li><p><strong>Builds the 6×N geometric Jacobian</strong> analytically from the URDF joint
+chain (see below).</p></li>
+<li><p><strong>Solves for joint updates</strong> using the DLS formula:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dq = J^T (J J^T + λ²I)^{-1} e
+</pre></div>
 </div>
-<p>For more information on ADRs see this <a class="reference external" href="http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions">blog by Michael Nygard</a>.</p>
+<p>where λ is the damping factor.</p>
+</li>
+<li><p><strong>Updates joint angles</strong> and clamps to joint limits.</p></li>
+<li><p><strong>Checks convergence</strong> — if position error &lt; <code class="docutils literal notranslate"><span class="pre">pos_tol</span></code> and rotation
+error &lt; <code class="docutils literal notranslate"><span class="pre">rot_tol</span></code>, returns the solution.</p></li>
+</ol>
+<p>If the solver does not converge within <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> iterations, it returns
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</section>
+<section id="default-parameters">
+<h3>Default parameters<a class="headerlink" href="#default-parameters" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_iter</span></code></p></td>
+<td><p>100</p></td>
+<td><p>Maximum iterations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pos_tol</span></code></p></td>
+<td><p>1e-4 m (0.1 mm)</p></td>
+<td><p>Position convergence threshold</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rot_tol</span></code></p></td>
+<td><p>1e-3 rad (~0.057°)</p></td>
+<td><p>Orientation convergence threshold</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">damping</span></code></p></td>
+<td><p>0.05</p></td>
+<td><p>Damping factor λ</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="geometric-jacobian-construction">
+<h2>Geometric Jacobian construction<a class="headerlink" href="#geometric-jacobian-construction" title="Link to this heading">#</a></h2>
+<p>The Jacobian <code class="docutils literal notranslate"><span class="pre">J</span></code> is a 6×N matrix where N is the number of active
+(revolute or continuous) joints. For each joint <em>i</em>:</p>
+<ul class="simple">
+<li><p><strong>z_i</strong> — the joint axis in world coordinates, computed by transforming
+the URDF axis vector through the parent link transform and joint origin.</p></li>
+<li><p><strong>p_i</strong> — the joint pivot position in world coordinates.</p></li>
+<li><p><strong>p_ee</strong> — the end-effector position.</p></li>
+</ul>
+<p>The Jacobian columns are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>J[:3, i] = z_i × (p_ee - p_i)    (linear velocity contribution)
+J[3:, i] = z_i                    (angular velocity contribution)
+</pre></div>
+</div>
+<p>This is the standard geometric Jacobian for revolute joints.</p>
+</section>
+<section id="the-role-of-damping">
+<h2>The role of damping<a class="headerlink" href="#the-role-of-damping" title="Link to this heading">#</a></h2>
+<p>The undamped pseudo-inverse <code class="docutils literal notranslate"><span class="pre">J^T</span> <span class="pre">(J</span> <span class="pre">J^T)^{-1}</span></code> becomes numerically unstable
+near <strong>kinematic singularities</strong> — configurations where the robot loses a
+degree of freedom (e.g. fully extended arm, aligned wrist axes).</p>
+<p>Adding λ²I to the denominator ensures the matrix is always invertible at
+the cost of slightly less accurate steps. The default λ = 0.05 provides a
+good balance: convergence is barely affected in normal configurations, but
+the solver remains stable through singular regions.</p>
+</section>
+<section id="convergence-behaviour">
+<h2>Convergence behaviour<a class="headerlink" href="#convergence-behaviour" title="Link to this heading">#</a></h2>
+<p>For typical 6-DOF robots (Meca500-R3, UR5) reaching targets within their
+workspace, the solver converges in 5–30 iterations. Targets near workspace
+boundaries or requiring large joint-angle changes from the initial guess may
+take more iterations or fail to converge.</p>
+<p>The solver is called on every IK slider change in the simulator UI, so
+the current joint angles always serve as a nearby initial guess, giving
+fast incremental convergence as the user drags sliders.</p>
+</section>
+<section id="orientation-error-computation">
+<h2>Orientation error computation<a class="headerlink" href="#orientation-error-computation" title="Link to this heading">#</a></h2>
+<p>The orientation error is extracted from the rotation error matrix
+<code class="docutils literal notranslate"><span class="pre">R_err</span> <span class="pre">=</span> <span class="pre">R_target</span> <span class="pre">×</span> <span class="pre">R_current^T</span></code> using the axis-angle decomposition:</p>
+<ul class="simple">
+<li><p><strong>Small-angle case</strong> (trace &gt; 3 - ε): uses the linear approximation
+from the skew-symmetric part, avoiding numerical issues with <code class="docutils literal notranslate"><span class="pre">arccos</span></code>.</p></li>
+<li><p><strong>General case</strong>: computes <code class="docutils literal notranslate"><span class="pre">angle</span> <span class="pre">=</span> <span class="pre">arccos((trace</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">/</span> <span class="pre">2)</span></code> and extracts
+the axis from the skew-symmetric components.</p></li>
+</ul>
+</section>
+<section id="relationship-to-fk">
+<h2>Relationship to FK<a class="headerlink" href="#relationship-to-fk" title="Link to this heading">#</a></h2>
+<p>The IK solver evaluates forward kinematics internally on every iteration
+to compute both the Jacobian (which needs all link transforms) and the
+current end-effector pose (to measure error). A correct URDF — with joint
+origins derived from DH parameters — is therefore essential for accurate IK.</p>
+<p>See <a class="reference internal" href="kinematics_and_urdf_generation.html"><span class="doc">Kinematics and URDF Generation</span></a> for how DH
+parameters, connection geometry, and FK interact.</p>
+</section>
 </section>
 
 
@@ -492,20 +627,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="inverse-kinematics.html"
+       href="architecture.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Inverse kinematics solver</p>
+        <p class="prev-next-title">Architecture</p>
       </div>
     </a>
     <a class="right-next"
-       href="decisions/0001-record-architecture-decisions.html"
+       href="decisions.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">1. Record architecture decisions</p>
+        <p class="prev-next-title">Architectural Decision Records</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -521,10 +656,33 @@
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-a-custom-solver">Why a custom solver</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithm-damped-least-squares">Algorithm: damped least-squares</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#problem-statement">Problem statement</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iteration">Iteration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#default-parameters">Default parameters</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#geometric-jacobian-construction">Geometric Jacobian construction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-role-of-damping">The role of damping</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convergence-behaviour">Convergence behaviour</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-error-computation">Orientation error computation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relationship-to-fk">Relationship to FK</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/explanations/decisions.md">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/explanations/inverse-kinematics.md">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -540,7 +698,7 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/explanations/decisions.md.txt"
+      <li><a href="../_sources/explanations/inverse-kinematics.md.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

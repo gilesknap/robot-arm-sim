@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Add a new robot &#8212; robot-arm-sim 1.6.dev18+gf06d1ddaa documentation</title>
+    <title>Add a new robot &#8212; robot-arm-sim 1.7.dev3+g525a5b9df documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d65a969c"></script>
+    <script src="../_static/documentation_options.js?v=4dbbe363"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -399,6 +399,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Add a new robot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy-kubernetes.html">Deploy on Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points</a></li>
 <li class="toctree-l1"><a class="reference internal" href="run-container.html">Run in a container</a></li>
 </ul>
@@ -466,15 +467,13 @@
 <p>This guide walks through the complete process of taking a set of STL mesh
 files for a robot arm and producing a working interactive simulation. It
 covers using Claude Code with the project’s built-in skills to automate much
-of the work, and using the claude-in-chrome MCP server for visual refinement.</p>
+of the work.</p>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>A working devcontainer (see <a class="reference internal" href="run-container.html"><span class="doc">Run in a container</span></a>)</p></li>
 <li><p>Claude Code installed and authenticated</p></li>
 <li><p>STL mesh files for your robot (one per link, in millimetres)</p></li>
-<li><p>Optionally: the <a class="reference external" href="https://github.com/anthropics/claude-in-chrome">claude-in-chrome</a>
-MCP server for visual tuning (see Setting up claude-in-chrome below)</p></li>
 </ul>
 </section>
 <section id="step-1-prepare-stl-files">
@@ -549,11 +548,13 @@ Meca500-R3 example at <code class="docutils literal notranslate"><span class="pr
 </section>
 <section id="step-3-launch-the-simulator">
 <h2>Step 3: Launch the simulator<a class="headerlink" href="#step-3-launch-the-simulator" title="Link to this heading">#</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/MyRobot/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots
 </pre></div>
 </div>
 <p>Open <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code> in a browser. You should see the 3D model with
-joint sliders on the right. Check that:</p>
+joint sliders on the right.</p>
+<p>Select your robot from the dropdown if not already selected.</p>
+<p>Check that:</p>
 <ul class="simple">
 <li><p>All meshes are visible and roughly in the right place</p></li>
 <li><p>Sliders rotate the correct parts</p></li>
@@ -578,8 +579,9 @@ points by clicking on flat face markers. See below for details.</p></li>
 </ul>
 <p>If the robot looks correct, you are done. If parts are misaligned, continue
 to the visual tuning step below.</p>
-<section id="fixing-connection-points-with-edit-connections">
-<h3>Fixing connection points with Edit Connections<a class="headerlink" href="#fixing-connection-points-with-edit-connections" title="Link to this heading">#</a></h3>
+</section>
+<section id="step-4-fix-connection-points">
+<h2>Step 4: Fix connection points<a class="headerlink" href="#step-4-fix-connection-points" title="Link to this heading">#</a></h2>
 <p>Auto-detection of connection points works well for most parts, but can
 fail on ambiguous geometries (e.g. wrist links with multiple cylindrical
 surfaces). When detection picks the wrong face, the URDF generator
@@ -600,114 +602,8 @@ and reloaded.</p></li>
 <p>This is particularly useful for robots like the UR5, where wrist parts have
 lateral motor bores that confuse the auto-detector. Manual assignment lets
 you pick the correct kinematic connection faces directly.</p>
-</section>
-</section>
-<section id="step-4-visual-tuning-with-reference-images">
-<h2>Step 4: Visual tuning with reference images<a class="headerlink" href="#step-4-visual-tuning-with-reference-images" title="Link to this heading">#</a></h2>
-<p>This is where the project’s visual skills and claude-in-chrome come together
-to iteratively refine the URDF until the simulation matches reality.</p>
-<section id="setting-up-claude-in-chrome">
-<h3>Setting up claude-in-chrome<a class="headerlink" href="#setting-up-claude-in-chrome" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">claude-in-chrome</span></code> MCP server lets Claude Code control a Chrome browser —
-navigating pages, clicking, taking screenshots, and running JavaScript. This
-project uses it to interact with the NiceGUI simulator.</p>
-<ol class="arabic simple">
-<li><p>Install the claude-in-chrome extension in Chrome following the
-instructions at its repository</p></li>
-<li><p>The project’s <code class="docutils literal notranslate"><span class="pre">.claude/settings.json</span></code> already includes the permission
-<code class="docutils literal notranslate"><span class="pre">mcp__claude-in-chrome__*</span></code>, so Claude Code can use it without prompting</p></li>
-</ol>
-<p>Once configured, Claude can:</p>
-<ul class="simple">
-<li><p>Open the simulator in a Chrome tab</p></li>
-<li><p>Set camera angles via JavaScript (using the <code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code> skill)</p></li>
-<li><p>Set joint poses via slider automation</p></li>
-<li><p>Take screenshots for comparison against reference photos</p></li>
-<li><p>Snap to orthographic named views via the ViewCube for precise comparison</p></li>
-<li><p>Click the Fit button to auto-zoom the robot into the viewport</p></li>
-</ul>
-</section>
-<section id="using-the-manufacturer-comparison-skill">
-<h3>Using the manufacturer-comparison skill<a class="headerlink" href="#using-the-manufacturer-comparison-skill" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code> skill is the most systematic approach to visual
-tuning. It automates finding dimensioned technical drawings from the
-manufacturer, setting up orthographic comparison views, and iterating with
-measurable convergence criteria.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">manufacturer</span><span class="o">-</span><span class="n">comparison</span>
-</pre></div>
-</div>
-<p>This skill follows a six-phase workflow:</p>
-<ol class="arabic simple">
-<li><p><strong>Find reference images</strong> — searches for dimensioned technical drawings,
-CAD renders, and product photos. Saves them to <code class="docutils literal notranslate"><span class="pre">robots/&lt;name&gt;/images/</span></code> for
-reuse across sessions.</p></li>
-<li><p><strong>Map manufacturer views</strong> — determines how the manufacturer’s labelled
-views (front, side, top) correspond to the simulator’s ViewCube faces, since
-conventions often differ.</p></li>
-<li><p><strong>Set up orthographic comparison</strong> — snaps the camera to the matching
-ViewCube face in orthographic projection, ensuring no parallax errors when
-comparing against technical drawings.</p></li>
-<li><p><strong>Part-by-part comparison</strong> — works base-to-tip, checking link lengths,
-silhouettes, joint positions, and gaps against the manufacturer’s dimensions.</p></li>
-<li><p><strong>Adjust and iterate</strong> — edits <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>, regenerates the URDF, and
-re-compares until each link is within <strong>2mm</strong> of manufacturer specs.</p></li>
-<li><p><strong>Multi-view validation</strong> — verifies accuracy across multiple orthographic
-views and at non-zero joint angles to confirm rotation centres are correct.</p></li>
-</ol>
-<p>This is the recommended skill when manufacturer datasheets or technical drawings
-are available, since it uses actual dimensions as ground truth rather than
-relying solely on visual appearance.</p>
-</section>
-<section id="common-adjustments">
-<h3>Common adjustments<a class="headerlink" href="#common-adjustments" title="Link to this heading">#</a></h3>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Symptom</p></th>
-<th class="head"><p>Fix in chain.yaml</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Part too high or low</p></td>
-<td><p>Adjust Z in <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> on the link</p></td>
-</tr>
-<tr class="row-odd"><td><p>Part shifted sideways</p></td>
-<td><p>Adjust X or Y in <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Part rotated wrong</p></td>
-<td><p>Adjust <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> on the link</p></td>
-</tr>
-<tr class="row-odd"><td><p>Gap between parts</p></td>
-<td><p>Reduce origin distance or adjust <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Parts overlapping</p></td>
-<td><p>Increase origin distance or adjust <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Joint rotates wrong point</p></td>
-<td><p>Adjust <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> to centre connection on joint</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="important-rules">
-<h3>Important rules<a class="headerlink" href="#important-rules" title="Link to this heading">#</a></h3>
-<ul>
-<li><p><strong>Never edit <code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code> directly</strong> — always edit <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> and
-regenerate with <code class="docutils literal notranslate"><span class="pre">robot-arm-sim</span> <span class="pre">generate</span></code></p></li>
-<li><p><strong>Restart the simulator process</strong> after regenerating the URDF — refreshing
-the browser is not enough:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pkill<span class="w"> </span>-9<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;robot-arm-sim simulate&quot;</span>
-sleep<span class="w"> </span><span class="m">3</span>
-uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/MyRobot/
-</pre></div>
-</div>
-</li>
-<li><p><strong>Work from base to tip</strong> — fix the base link first, then link 1, then
-link 2, and so on. Errors compound along the kinematic chain.</p></li>
-<li><p><strong>One change at a time</strong> — adjust one parameter, regenerate, and compare
-before making the next change.</p></li>
-</ul>
-</section>
+<p>For a detailed explanation of connection points, centering modes, and how
+they interact with <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>, see <a class="reference internal" href="edit-connection-points.html"><span class="doc">Edit connection points</span></a>.</p>
 </section>
 <section id="step-5-verify-and-commit">
 <h2>Step 5: Verify and commit<a class="headerlink" href="#step-5-verify-and-commit" title="Link to this heading">#</a></h2>
@@ -741,11 +637,7 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 <td><p>Full pipeline: analyze, infer chain, generate, verify</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/make-robot</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">manufacturer-comparison</span></code></p></td>
-<td><p>Compare against manufacturer technical drawings</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/manufacturer-comparison</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zoom-rotate-camera</span></code></p></td>
 <td><p>Position the 3D camera programmatically</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/zoom-rotate-camera</span></code></p></td>
 </tr>
@@ -810,17 +702,8 @@ directly.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chain-yaml-key-fields">chain.yaml key fields</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-launch-the-simulator">Step 3: Launch the simulator</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixing-connection-points-with-edit-connections">Fixing connection points with Edit Connections</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-visual-tuning-with-reference-images">Step 4: Visual tuning with reference images</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-claude-in-chrome">Setting up claude-in-chrome</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-manufacturer-comparison-skill">Using the manufacturer-comparison skill</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-adjustments">Common adjustments</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#important-rules">Important rules</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-launch-the-simulator">Step 3: Launch the simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-fix-connection-points">Step 4: Fix connection points</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-verify-and-commit">Step 5: Verify and commit</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-skills-used">Summary of skills used</a></li>
 </ul>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Architectural Decision Records &#8212; robot-arm-sim 1.7.dev3+g525a5b9df documentation</title>
+    <title>Deploy on Kubernetes &#8212; robot-arm-sim 1.7.dev3+g525a5b9df documentation</title>
   
   
   
@@ -47,7 +47,7 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/decisions';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/deploy-kubernetes';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
@@ -58,8 +58,8 @@
     <link rel="icon" href="../_static/dls-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="1. Record architecture decisions" href="decisions/0001-record-architecture-decisions.html" />
-    <link rel="prev" title="Inverse kinematics solver" href="inverse-kinematics.html" />
+    <link rel="next" title="Edit connection points" href="edit-connection-points.html" />
+    <link rel="prev" title="Contribute to the project" href="contribute.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -153,14 +153,14 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../how-to.html">
     How-to Guides
   </a>
 </li>
 
 
-<li class="nav-item current active">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../explanations.html">
     Explanations
   </a>
@@ -301,14 +301,14 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../how-to.html">
     How-to Guides
   </a>
 </li>
 
 
-<li class="nav-item current active">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../explanations.html">
     Explanations
   </a>
@@ -397,18 +397,11 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Architectural Decision Records</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="kinematics_and_urdf_generation.html">Kinematics and URDF Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="add-a-robot.html">Add a new robot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Deploy on Kubernetes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-container.html">Run in a container</a></li>
 </ul>
 </div>
 </nav></div>
@@ -450,9 +443,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
+    <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Architectural Decision Records</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Deploy on Kubernetes</span></li>
   </ul>
 </nav>
 </div>
@@ -469,16 +462,189 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="architectural-decision-records">
-<h1>Architectural Decision Records<a class="headerlink" href="#architectural-decision-records" title="Link to this heading">#</a></h1>
-<p>Architectural decisions are made throughout a project’s lifetime. As a way of keeping track of these decisions, we record these decisions in Architecture Decision Records (ADRs) listed below.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+  <section id="deploy-on-kubernetes">
+<h1>Deploy on Kubernetes<a class="headerlink" href="#deploy-on-kubernetes" title="Link to this heading">#</a></h1>
+<p>This guide covers deploying robot-arm-sim on Kubernetes using the included
+Helm chart for multi-user access.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>A Kubernetes cluster (any provider — local k3s, EKS, GKE, etc.)</p></li>
+<li><p><a class="reference external" href="https://helm.sh/docs/intro/install/">Helm</a> 3.x</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kubectl</span></code> configured for your cluster</p></li>
 </ul>
+</section>
+<section id="install-with-helm">
+<h2>Install with Helm<a class="headerlink" href="#install-with-helm" title="Link to this heading">#</a></h2>
+<p>The Helm chart is in the <code class="docutils literal notranslate"><span class="pre">helm/robot-arm-sim/</span></code> directory of the repository.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/gilesknap/robot-arm-sim.git
+$<span class="w"> </span>helm<span class="w"> </span>install<span class="w"> </span>robot-sim<span class="w"> </span>./robot-arm-sim/helm/robot-arm-sim
+</pre></div>
 </div>
-<p>For more information on ADRs see this <a class="reference external" href="http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions">blog by Michael Nygard</a>.</p>
+<p>This creates a Deployment, a Service, an optional Ingress, and configures
+health checks.</p>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<p>Override defaults by passing <code class="docutils literal notranslate"><span class="pre">--set</span></code> flags or a custom values file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>helm<span class="w"> </span>install<span class="w"> </span>robot-sim<span class="w"> </span>./helm/robot-arm-sim<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--set<span class="w"> </span>image.tag<span class="o">=</span><span class="m">0</span>.1.0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--set<span class="w"> </span><span class="nv">replicaCount</span><span class="o">=</span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--set<span class="w"> </span>service.type<span class="o">=</span>LoadBalancer
+</pre></div>
+</div>
+<p>Or with a values file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>helm<span class="w"> </span>install<span class="w"> </span>robot-sim<span class="w"> </span>./helm/robot-arm-sim<span class="w"> </span>-f<span class="w"> </span>my-values.yaml
+</pre></div>
+</div>
+<section id="values-yaml-reference">
+<h3>values.yaml reference<a class="headerlink" href="#values-yaml-reference" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">replicaCount</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Number of pod replicas</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">image.repository</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ghcr.io/gilesknap/robot-arm-sim</span></code></p></td>
+<td><p>Container image</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">image.tag</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">latest</span></code></p></td>
+<td><p>Image tag</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">image.pullPolicy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Always</span></code></p></td>
+<td><p>Kubernetes pull policy</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">service.type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ClusterIP</span></code></p></td>
+<td><p>Service type (<code class="docutils literal notranslate"><span class="pre">ClusterIP</span></code>, <code class="docutils literal notranslate"><span class="pre">LoadBalancer</span></code>, <code class="docutils literal notranslate"><span class="pre">NodePort</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">service.port</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">80</span></code></p></td>
+<td><p>External service port</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ingress.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable Ingress resource</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ingress.className</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nginx</span></code></p></td>
+<td><p>Ingress class name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ingress.host</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">claude-robots.diamond.ac.uk</span></code></p></td>
+<td><p>Ingress hostname</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ingress.tls</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable TLS on Ingress</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">containerPort</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8080</span></code></p></td>
+<td><p>Port the simulator listens on inside the container</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">resources.requests.cpu</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">250m</span></code></p></td>
+<td><p>CPU request</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">resources.requests.memory</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">256Mi</span></code></p></td>
+<td><p>Memory request</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">resources.limits.cpu</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></td>
+<td><p>CPU limit</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">resources.limits.memory</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1Gi</span></code></p></td>
+<td><p>Memory limit</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="cluster-mode">
+<h2>Cluster mode<a class="headerlink" href="#cluster-mode" title="Link to this heading">#</a></h2>
+<p>The Helm chart automatically sets the <code class="docutils literal notranslate"><span class="pre">CLUSTER_MODE=1</span></code> environment variable.
+In cluster mode:</p>
+<ul class="simple">
+<li><p>The <strong>Stop Simulator</strong> button is hidden to prevent accidental shutdown of a
+shared instance.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">/healthz</span></code> endpoint is available for liveness and readiness probes.</p></li>
+</ul>
+<p>Cluster mode is also activated automatically when the <code class="docutils literal notranslate"><span class="pre">KUBERNETES_SERVICE_HOST</span></code>
+environment variable is present (set by Kubernetes in every pod).</p>
+</section>
+<section id="health-checks">
+<h2>Health checks<a class="headerlink" href="#health-checks" title="Link to this heading">#</a></h2>
+<p>The deployment includes both probes against the <code class="docutils literal notranslate"><span class="pre">/healthz</span></code> endpoint:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Probe</p></th>
+<th class="head"><p>Path</p></th>
+<th class="head"><p>Initial delay</p></th>
+<th class="head"><p>Period</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Liveness</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/healthz</span></code></p></td>
+<td><p>10 s</p></td>
+<td><p>30 s</p></td>
+</tr>
+<tr class="row-odd"><td><p>Readiness</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/healthz</span></code></p></td>
+<td><p>5 s</p></td>
+<td><p>10 s</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="resource-tuning">
+<h2>Resource tuning<a class="headerlink" href="#resource-tuning" title="Link to this heading">#</a></h2>
+<p>The default resource limits work well for a single robot with moderate
+mesh complexity. For robots with high-polygon STL files or many concurrent
+users, increase the memory limit:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">requests</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">500m</span>
+<span class="w">    </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">512Mi</span>
+<span class="w">  </span><span class="nt">limits</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;4&quot;</span>
+<span class="w">    </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2Gi</span>
+</pre></div>
+</div>
+</section>
+<section id="accessing-the-simulator">
+<h2>Accessing the simulator<a class="headerlink" href="#accessing-the-simulator" title="Link to this heading">#</a></h2>
+<p>Once deployed, get the external URL:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>robot-sim
+</pre></div>
+</div>
+<p>For <code class="docutils literal notranslate"><span class="pre">ClusterIP</span></code> services, use <code class="docutils literal notranslate"><span class="pre">kubectl</span> <span class="pre">port-forward</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>kubectl<span class="w"> </span>port-forward<span class="w"> </span>svc/robot-sim<span class="w"> </span><span class="m">8080</span>:80
+</pre></div>
+</div>
+<p>Then open <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code>.</p>
+<p>If Ingress is enabled, access the simulator at the configured hostname
+(e.g. <code class="docutils literal notranslate"><span class="pre">https://claude-robots.diamond.ac.uk</span></code>).</p>
+</section>
+<section id="uninstalling">
+<h2>Uninstalling<a class="headerlink" href="#uninstalling" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>helm<span class="w"> </span>uninstall<span class="w"> </span>robot-sim
+</pre></div>
+</div>
+</section>
 </section>
 
 
@@ -492,20 +658,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="inverse-kinematics.html"
+       href="contribute.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Inverse kinematics solver</p>
+        <p class="prev-next-title">Contribute to the project</p>
       </div>
     </a>
     <a class="right-next"
-       href="decisions/0001-record-architecture-decisions.html"
+       href="edit-connection-points.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">1. Record architecture decisions</p>
+        <p class="prev-next-title">Edit connection points</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -521,10 +687,32 @@
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-with-helm">Install with Helm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#values-yaml-reference">values.yaml reference</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cluster-mode">Cluster mode</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#health-checks">Health checks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resource-tuning">Resource tuning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accessing-the-simulator">Accessing the simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#uninstalling">Uninstalling</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/explanations/decisions.md">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/how-to/deploy-kubernetes.md">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -540,7 +728,7 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/explanations/decisions.md.txt"
+      <li><a href="../_sources/how-to/deploy-kubernetes.md.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

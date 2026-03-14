@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Run in a container &#8212; robot-arm-sim 1.6.dev18+gf06d1ddaa documentation</title>
+    <title>Run in a container &#8212; robot-arm-sim 1.7.dev3+g525a5b9df documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d65a969c"></script>
+    <script src="../_static/documentation_options.js?v=4dbbe363"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -399,6 +399,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="add-a-robot.html">Add a new robot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy-kubernetes.html">Deploy on Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Run in a container</a></li>
 </ul>
@@ -465,13 +466,61 @@
 <h1>Run in a container<a class="headerlink" href="#run-in-a-container" title="Link to this heading">#</a></h1>
 <p>Pre-built containers with robot-arm-sim and its dependencies already
 installed are available on <a class="reference external" href="https://ghcr.io/gilesknap/robot-arm-sim">Github Container Registry</a>.</p>
-<section id="starting-the-container">
-<h2>Starting the container<a class="headerlink" href="#starting-the-container" title="Link to this heading">#</a></h2>
-<p>To pull the container from github container registry and run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker run ghcr.io/gilesknap/robot-arm-sim:latest --version
+<section id="starting-the-simulator">
+<h2>Starting the simulator<a class="headerlink" href="#starting-the-simulator" title="Link to this heading">#</a></h2>
+<p>To pull the container and launch the simulator with the built-in robots:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8080</span>:8080<span class="w"> </span>ghcr.io/gilesknap/robot-arm-sim:latest
 </pre></div>
 </div>
-<p>To get a released version, use a numbered release instead of <code class="docutils literal notranslate"><span class="pre">latest</span></code>.</p>
+<p>Open <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code> in your browser to access the simulator.</p>
+<p>To get a released version, use a numbered tag instead of <code class="docutils literal notranslate"><span class="pre">latest</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8080</span>:8080<span class="w"> </span>ghcr.io/gilesknap/robot-arm-sim:0.1.0
+</pre></div>
+</div>
+</section>
+<section id="checking-the-version">
+<h2>Checking the version<a class="headerlink" href="#checking-the-version" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>ghcr.io/gilesknap/robot-arm-sim:latest<span class="w"> </span>--version
+</pre></div>
+</div>
+</section>
+<section id="environment-variables">
+<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ROBOT_DIR</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/app/robots</span></code></p></td>
+<td><p>Path to the directory containing robot folders inside the container</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CLUSTER_MODE</span></code></p></td>
+<td><p><em>(unset)</em></p></td>
+<td><p>Set to <code class="docutils literal notranslate"><span class="pre">1</span></code> to enable cluster mode (disables the Stop button, enables health checks)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="using-your-own-robot-data">
+<h2>Using your own robot data<a class="headerlink" href="#using-your-own-robot-data" title="Link to this heading">#</a></h2>
+<p>Mount a local directory of robot folders into the container and override
+<code class="docutils literal notranslate"><span class="pre">ROBOT_DIR</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8080</span>:8080<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-v<span class="w"> </span>/path/to/my/robots:/data/robots<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-e<span class="w"> </span><span class="nv">ROBOT_DIR</span><span class="o">=</span>/data/robots<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>ghcr.io/gilesknap/robot-arm-sim:latest
+</pre></div>
+</div>
+</section>
+<section id="kubernetes-deployment">
+<h2>Kubernetes deployment<a class="headerlink" href="#kubernetes-deployment" title="Link to this heading">#</a></h2>
+<p>For multi-user deployment on Kubernetes with Helm, see
+<a class="reference internal" href="deploy-kubernetes.html"><span class="doc">Deploy on Kubernetes</span></a>.</p>
 </section>
 </section>
 
@@ -522,7 +571,11 @@ installed are available on <a class="reference external" href="https://ghcr.io/g
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#starting-the-container">Starting the container</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#starting-the-simulator">Starting the simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-the-version">Checking the version</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-variables">Environment variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-your-own-robot-data">Using your own robot data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kubernetes-deployment">Kubernetes deployment</a></li>
 </ul>
   </nav></div>
 
