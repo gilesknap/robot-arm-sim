@@ -3,7 +3,7 @@ part_name: wrist3
 source_file: stl_files/wrist3.stl
 format: binary_stl
 connection_points:
-- end: distal
+- end: proximal
   position:
   - -1.144
   - 47.325

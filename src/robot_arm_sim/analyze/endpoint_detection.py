@@ -46,9 +46,13 @@ def detect_base_connection(
         c = best_face.centroid
         assert c is not None  # guaranteed by all_flat filter
         r = float(np.sqrt((best_face.area_mm2 or 0) / np.pi))
+        # Determine proximal vs distal: face at min end of its axis
+        # is proximal (toward base), at max end is distal (toward tip).
+        mid = (mesh.bounds[0][axis_idx] + mesh.bounds[1][axis_idx]) / 2.0
+        end_label = "proximal" if c[axis_idx] < mid else "distal"
         return [
             ConnectionPoint(
-                end="distal",
+                end=end_label,  # type: ignore[arg-type]
                 position=[round(c[0], 3), round(c[1], 3), round(c[2], 3)],
                 axis=[round(v, 4) for v in axis_vec],
                 radius_mm=round(r, 1),
