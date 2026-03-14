@@ -172,8 +172,15 @@ def build_edit_connections(state: SimulatorState) -> None:
                         chain_modified = True
 
                 if chain_modified:
+                    from robot_arm_sim.models.models import _FixedFloatDumper
+
                     with open(chain_file, "w") as f:
-                        yaml.dump(chain_data, f, default_flow_style=False)
+                        yaml.dump(
+                            chain_data,
+                            f,
+                            Dumper=_FixedFloatDumper,
+                            default_flow_style=False,
+                        )
 
             # Regenerate URDF
             from robot_arm_sim.analyze.urdf_generator import generate_urdf
