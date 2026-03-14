@@ -84,9 +84,8 @@ def compute_visual_origin(
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
 
     if proximal is None:
-        viz_xyz = link_spec.get("visual_xyz", [0, 0, 0])
         messages.append(f"  {link_name}: no proximal connection point")
-        return viz_xyz, viz_rpy
+        return [0, 0, 0], viz_rpy
 
     pos = np.array(proximal["position"], dtype=float)  # mm, mesh coords
 
@@ -111,9 +110,6 @@ def compute_visual_origin(
     else:
         viz_xyz = (-rpy_to_rotation(viz_rpy) @ (pos / 1000)).tolist()
 
-    extra = link_spec.get("visual_xyz")
-    if extra is not None:
-        viz_xyz = [v + e for v, e in zip(viz_xyz, extra, strict=True)]
     return [round(v, 6) for v in viz_xyz], viz_rpy
 
 

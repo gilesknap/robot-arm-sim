@@ -4,8 +4,8 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 0.494
-  - -0.065
+  - 0.0
+  - 0.0
   - 9.53
   axis:
   - 0.0

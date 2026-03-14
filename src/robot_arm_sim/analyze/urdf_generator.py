@@ -88,6 +88,17 @@ def generate_urdf(
         chain, analyses, visual_origins, joint_origins, joint_rpys, messages
     )
 
+    # --- Pass 3: apply per-link visual_xyz nudge (local-only, never propagated) ---
+    for link_spec in chain["links"]:
+        link_name = link_spec["name"]
+        nudge = link_spec.get("visual_xyz")
+        if nudge and link_name in visual_origins:
+            base_xyz, base_rpy = visual_origins[link_name]
+            visual_origins[link_name] = (
+                [round(b + n, 6) for b, n in zip(base_xyz, nudge, strict=True)],
+                base_rpy,
+            )
+
     # --- Emit XML ---
     for link_spec in chain["links"]:
         link_name = link_spec["name"]
@@ -184,4 +195,6 @@ def generate_urdf(
 
 def _fmt_xyz(values: list[float]) -> str:
     """Format a list of 3 floats as space-separated string."""
-    return " ".join(f"{v:.6f}" if isinstance(v, float) else str(v) for v in values)
+    return " ".join(
+        f"{v + 0.0:.6f}" if isinstance(v, float) else str(v) for v in values
+    )

@@ -5,8 +5,8 @@ connection_points:
 - end: proximal
   position:
   - 0.155
-  - -0.826
-  - 1.166
+  - 0.0
+  - 0.0
   axis:
   - -1.0
   - 0.0
