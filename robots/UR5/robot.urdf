@@ -50,7 +50,7 @@
   </link>
   <link name="link_6">
     <visual>
-      <origin xyz="0.001144 -0.047325 -0.003450" rpy="0 0 0"/>
+      <origin xyz="0.000000 -0.047325 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist3.stl" scale="0.001 0.001 0.001"/>
       </geometry>

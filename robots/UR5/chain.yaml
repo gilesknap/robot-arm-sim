@@ -24,6 +24,7 @@ links:
     mesh: wrist2
   - name: link_6
     mesh: wrist3
+    visual_xyz: [-0.001144, 0, 0.00345]
 
 joints:
   - name: joint_1
