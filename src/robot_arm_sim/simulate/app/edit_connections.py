@@ -289,9 +289,6 @@ def build_edit_connections(state: SimulatorState) -> None:
                                 round(cur[i] + offset[i], 6) for i in range(3)
                             ]
                             chain_modified = True
-                        elif "visual_xyz" in spec:
-                            del spec["visual_xyz"]
-                            chain_modified = True
 
                         # Apply accumulated visual rotation
                         extra_rpy = state.part_visual_rpys.get(link_name)

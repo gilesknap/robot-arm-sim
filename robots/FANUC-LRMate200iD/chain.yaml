@@ -120,23 +120,23 @@ links:
   visual_xyz:
   - -0.001252
   - 0.002956
-  - 0.015182
+  - 0.001182
 - mesh: link_4
   name: link_4
   visual_xyz:
-  - -0.053602
+  - -0.015602
   - 0.0
   - 0.0
 - mesh: link_5
   name: link_5
   visual_xyz:
-  - 0.0
+  - 0.002
   - 0.005703
-  - 0.0
+  - -0.0
 - mesh: link_6
   name: link_6
   visual_xyz:
-  - -0.025998
+  - 0.000002
   - 0.0
-  - 0.0
+  - -0.0
 robot_name: FANUC-LRMate200iD
