@@ -13,7 +13,7 @@ Use this skill when you need to show/hide specific robot links in the simulator,
 
 ## How the Widgets Work
 
-The Visible Parts section is a collapsible panel in the right sidebar containing NiceGUI `ui.chip` widgets (`q-chip` in Quasar). Each chip is `selectable=True`:
+The Visible Parts section is always visible in the right sidebar (no expansion panel) containing NiceGUI `ui.chip` widgets (`q-chip` in Quasar). Each chip is `selectable=True`:
 
 - **Selected** (checked): chip has a checkmark icon, part is visible
 - **Deselected** (unchecked): no checkmark, part is hidden
@@ -22,11 +22,7 @@ There is an "All" chip that toggles every part on/off at once.
 
 ## How to Interact
 
-### Step 1: Expand the panel (if collapsed)
-
-Click on the "Visible Parts" expansion header if it's not already open.
-
-### Step 2: Find the chip refs
+### Step 1: Find the chip refs
 
 Use `mcp__claude-in-chrome__find` to get element references:
 ```
@@ -41,7 +37,7 @@ This returns refs like:
 
 **Important**: ref IDs change between page loads. Always use `find` to get fresh refs.
 
-### Step 3: Click chips using refs
+### Step 2: Click chips using refs
 
 Use `mcp__claude-in-chrome__computer` with `left_click` and `ref` parameter:
 ```
