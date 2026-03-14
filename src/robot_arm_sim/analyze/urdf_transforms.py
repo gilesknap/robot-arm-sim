@@ -250,6 +250,58 @@ def close_surface_gaps_along_axis(
         visual_origins[child_name] = (adjusted, child_viz_rpy)
 
 
+def update_derived_joint_origins(
+    chain: dict,
+    analyses: dict,
+    visual_origins: dict[str, tuple[list[float], list[float]]],
+    joint_origins: dict[str, list[float]],
+    messages: list[str],
+) -> None:
+    """Recompute connection-point-derived joint origins after visual shifts.
+
+    When surface gap closing shifts a parent's visual origin, the parent's
+    distal connection point moves in the parent frame.  Joint origins that
+    were computed from connection points (no explicit ``origin`` in the
+    chain spec) must be recomputed to reflect the updated visual placement.
+    """
+    link_specs = {lk["name"]: lk for lk in chain["links"]}
+
+    for joint_spec in chain["joints"]:
+        if "origin" in joint_spec:
+            continue  # DH-derived origin — never modify
+
+        parent_name = joint_spec["parent"]
+        parent_spec = link_specs.get(parent_name, {})
+        parent_mesh = parent_spec.get("mesh")
+        if not parent_mesh or parent_mesh not in analyses:
+            continue
+
+        analysis = analyses[parent_mesh]
+        conn_points = analysis.get("connection_points", [])
+        distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
+        if distal is None:
+            continue
+
+        if parent_name not in visual_origins:
+            continue
+
+        parent_viz_xyz, parent_viz_rpy = visual_origins[parent_name]
+        dp = np.array(distal["position"]) * 0.001
+        if parent_viz_rpy != [0, 0, 0]:
+            dp = rpy_to_rotation(parent_viz_rpy) @ dp
+        new_origin = (np.array(parent_viz_xyz) + dp).tolist()
+
+        old_origin = joint_origins[joint_spec["name"]]
+        delta_mm = [(n - o) * 1000 for n, o in zip(new_origin, old_origin, strict=True)]
+        if any(abs(d) > 0.1 for d in delta_mm):
+            messages.append(
+                f"  {joint_spec['name']}: origin updated for parent visual shift,"
+                f" delta=({delta_mm[0]:.1f}, {delta_mm[1]:.1f}, {delta_mm[2]:.1f})mm"
+            )
+
+        joint_origins[joint_spec["name"]] = [round(v, 6) for v in new_origin]
+
+
 def rotation_matrix_to_rpy(rot: np.ndarray) -> list[float]:
     """Convert a 3x3 rotation matrix to roll-pitch-yaw angles."""
     sy = -rot[2, 0]

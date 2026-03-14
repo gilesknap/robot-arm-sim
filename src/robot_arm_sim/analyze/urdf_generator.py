@@ -18,6 +18,7 @@ from .urdf_transforms import (
     close_surface_gaps_along_axis,
     compute_joint_origin,
     compute_visual_origin,
+    update_derived_joint_origins,
     validate_fk,
 )
 
@@ -86,6 +87,13 @@ def generate_urdf(
     # --- Pass 2: close surface gaps along axis only ---
     close_surface_gaps_along_axis(
         chain, analyses, visual_origins, joint_origins, joint_rpys, messages
+    )
+
+    # --- Pass 2b: recompute connection-point-derived joint origins ---
+    # Surface gap closing may have shifted parent visuals, moving distal
+    # connection points in the parent frame.  Update derived origins.
+    update_derived_joint_origins(
+        chain, analyses, visual_origins, joint_origins, messages
     )
 
     # --- Pass 3: apply per-link visual_xyz nudge (local-only, never propagated) ---
