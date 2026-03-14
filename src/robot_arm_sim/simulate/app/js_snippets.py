@@ -687,10 +687,23 @@ FACE_MARKER_INIT_JS = """
         };
     });
 
+    // Track mouse movement to distinguish clicks from drags/rotates
+    let _mdX = 0, _mdY = 0, _wasDrag = false;
+    sc.renderer.domElement.addEventListener(
+        'mousedown', function(e) {
+        _mdX = e.clientX; _mdY = e.clientY; _wasDrag = false;
+    });
+    sc.renderer.domElement.addEventListener(
+        'mouseup', function(e) {
+        const dx = e.clientX - _mdX, dy = e.clientY - _mdY;
+        if (dx*dx + dy*dy > 9) _wasDrag = true;
+    });
+
     // Click: raycast markers first, then STL meshes
     sc.renderer.domElement.addEventListener(
         'click', function(e) {
         if (!window.__faceEditMode) return;
+        if (_wasDrag) return;
         const rect = sc.renderer.domElement
             .getBoundingClientRect();
         const mouse = new THREE.Vector2(
