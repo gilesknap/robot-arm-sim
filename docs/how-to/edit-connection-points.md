@@ -15,15 +15,23 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    ```
 
 2. Click **Edit Connections** in the toolbar — meshes go semi-transparent and
-   coloured sphere markers appear at every flat face centroid.
+   existing connection markers appear (green = proximal surface,
+   blue = proximal centred, red = distal).
 
-3. Use the **Proximal / Distal** toggle to choose which end to assign.
+3. Select a mode from the toolbar:
 
-4. Select a **centering mode** from the dropdown (`surface` or `center`).
-   See {ref}`when-to-use-each-mode` below for guidance.
+   - **Proximal Centred** (blue) — places a `center`-mode proximal marker.
+   - **Proximal Surface** (green) — places a `surface`-mode proximal marker.
+   - **Distal** (red) — places a distal marker (tells gap-closing which parent
+     surface the child should meet).
+   - **Move Parts** (amber) — drag a part or use arrow keys (0.1 mm per press).
 
-5. Click a yellow marker to assign it. Markers turn **green** (proximal) or
-   **red** (distal).
+   See {ref}`when-to-use-each-mode` below for guidance on `surface` vs `center`.
+
+4. Click directly on any mesh surface to place the marker at the click point.
+   The face normal at that point becomes the marker's axis.
+
+5. Use the **Show All** checkbox to see markers for all parts at once.
 
 6. Click **Save & Rebuild** — this writes changes to three places:
 
@@ -49,9 +57,10 @@ This regenerates the URDF from the updated analysis data.
 When auto-detection picks the wrong connection points, parts end up in the
 wrong position *and* orientation. Fix this in two steps:
 
-1. **Place the markers correctly** — use Edit Connections to assign proximal
-   and distal markers to the right faces. This tells the pipeline where the
-   joint axes are, and gives it the axis directions from the face normals.
+1. **Place the markers correctly** — use Edit Connections and click directly on
+   the correct mesh surfaces to assign proximal and distal markers. This tells
+   the pipeline where the joint axes are, and gives it the axis directions from
+   the face normals.
 
 2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
    face is not perpendicular to the joint axis (i.e. the STL mesh
@@ -78,6 +87,11 @@ to verify child links visually.
 
 **Rule of thumb:** if the joint rotation axis passes *through* a bore, use
 `center`. If the joint is at a flat face where two parts mate, use `surface`.
+
+**When to place a distal marker:** the distal marker tells the gap-closing pass
+which parent surface the child link should be shifted to meet. Auto-detected
+distals are usually correct; you only need to place one manually when
+auto-detection picked the wrong face.
 
 ## Fine-tuning with `visual_xyz`
 

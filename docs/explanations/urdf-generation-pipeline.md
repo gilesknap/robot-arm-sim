@@ -84,7 +84,8 @@ joint axis only** so its proximal surface meets the parent's distal surface:
 ```
 
 This is the right choice when the connection is a flat face mating against
-another flat face (the most common case).
+another flat face (the most common case). The parent's distal marker indicates
+which surface face the child should be shifted to meet.
 
 ### `center` mode
 
@@ -135,9 +136,10 @@ position is rotated first, then negated:
 When auto-detection picks the wrong connection points, parts end up in the
 wrong position *and* orientation. Fixing this requires both steps:
 
-1. **Place the markers correctly** — use Edit Connections to assign proximal
-   and distal markers to the right faces. This tells the pipeline where the
-   joint axes are, and gives it the axis directions from the face normals.
+1. **Place the markers correctly** — use Edit Connections and click directly on
+   the correct mesh surfaces to assign proximal and distal markers. This tells
+   the pipeline where the joint axes are, and gives it the axis directions from
+   the face normals.
 
 2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
    face is not perpendicular to the joint axis (i.e. the STL mesh
