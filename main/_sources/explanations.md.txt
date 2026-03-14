@@ -14,4 +14,5 @@ explanations/inverse-kinematics
 explanations/decisions
 explanations/kinematics_and_urdf_generation
 explanations/urdf-generation-pipeline
+explanations/visual-centering-tradeoffs
 ```
