@@ -41,12 +41,14 @@ def build_edit_connections(state: SimulatorState) -> None:
 
         def _apply_mode_styles() -> None:
             cur = state.connection_edit_mode["value"]
-            for key, _label, color in _mode_defs:
+            for key, _, color in _mode_defs:
                 btn = mode_buttons[key]
                 if key == cur:
                     btn.props(f"dense no-caps color={color}")
+                    btn.classes(add="bg-blue-1")
                 else:
-                    btn.props("flat dense no-caps")
+                    btn.props(f"flat dense no-caps color={color}")
+                    btn.classes(remove="bg-blue-1")
                 btn.update()
 
         def _make_mode_handler(mode_key: str):
@@ -71,11 +73,11 @@ def build_edit_connections(state: SimulatorState) -> None:
 
             return handler
 
-        for i, (key, label, _color) in enumerate(_mode_defs):
+        for i, (key, lbl, color) in enumerate(_mode_defs):
             if i > 0:
                 ui.separator().props("vertical")
-            btn = ui.button(label, on_click=_make_mode_handler(key)).props(
-                "dense no-caps"
+            btn = ui.button(lbl, on_click=_make_mode_handler(key)).props(
+                f"dense no-caps color={color}"
             )
             mode_buttons[key] = btn
 
