@@ -138,6 +138,7 @@ def build_toolbar(state: SimulatorState) -> None:
             _apply_toggle_style(frames_btn, show)
 
         frames_btn = ui.button("Frames", on_click=toggle_frames).props("flat dense")
+        state.frames_btn = frames_btn
 
         def toggle_transparent():
             state.transparent_mode["value"] = not state.transparent_mode["value"]

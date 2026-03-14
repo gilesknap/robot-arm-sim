@@ -19,6 +19,7 @@ from robot_arm_sim.models import (
 )
 
 from .loaders import quantize_axis
+from .toolbar import _apply_toggle_style
 
 if TYPE_CHECKING:
     from .state import SimulatorState
@@ -412,6 +413,12 @@ def build_edit_connections(state: SimulatorState) -> None:
         )
         if active:
             ui.run_javascript("window.__setMeshTransparency(0.25)")
+            # Turn on coordinate frames automatically
+            if not state.frames_visible["value"]:
+                state.frames_visible["value"] = True
+                ui.run_javascript("window.__setAxesVisible(true)")
+                if hasattr(state, "frames_btn"):
+                    _apply_toggle_style(state.frames_btn, True)
             state.connection_status_label.text = (
                 "Click mesh to assign connection or move part"
             )

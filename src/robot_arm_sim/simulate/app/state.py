@@ -96,6 +96,7 @@ class SimulatorState:
         self.link_checkboxes: dict[str, Any] = {}
         self.ee_readout_ref: list[ui.label | None] = [None, None]
         self.connection_status_label: Any = None
+        self.frames_btn: Any = None
         self.connections_btn: Any = None
         self.edit_connections_btn: Any = None
         self.edit_connections_row: Any = None
