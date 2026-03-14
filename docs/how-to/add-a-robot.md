@@ -3,15 +3,13 @@
 This guide walks through the complete process of taking a set of STL mesh
 files for a robot arm and producing a working interactive simulation. It
 covers using Claude Code with the project's built-in skills to automate much
-of the work, and using the claude-in-chrome MCP server for visual refinement.
+of the work.
 
 ## Prerequisites
 
 - A working devcontainer (see {doc}`/how-to/run-container`)
 - Claude Code installed and authenticated
 - STL mesh files for your robot (one per link, in millimetres)
-- Optionally: the [claude-in-chrome](https://github.com/anthropics/claude-in-chrome)
-  MCP server for visual tuning (see Setting up claude-in-chrome below)
 
 ## Step 1: Prepare STL files
 
@@ -73,11 +71,15 @@ Meca500-R3 example at `robots/Meca500-R3/chain.yaml` for reference.
 ## Step 3: Launch the simulator
 
 ```bash
-uv run robot-arm-sim simulate robots/MyRobot/
+uv run robot-arm-sim simulate robots
 ```
 
 Open `http://localhost:8080` in a browser. You should see the 3D model with
-joint sliders on the right. Check that:
+joint sliders on the right.
+
+Select your robot from the dropdown if not already selected.
+
+Check that:
 
 - All meshes are visible and roughly in the right place
 - Sliders rotate the correct parts
@@ -103,7 +105,7 @@ The simulator includes several controls for inspecting the model:
 If the robot looks correct, you are done. If parts are misaligned, continue
 to the visual tuning step below.
 
-### Fixing connection points with Edit Connections
+## Step 4: Fix connection points
 
 Auto-detection of connection points works well for most parts, but can
 fail on ambiguous geometries (e.g. wrist links with multiple cylindrical
@@ -127,92 +129,8 @@ This is particularly useful for robots like the UR5, where wrist parts have
 lateral motor bores that confuse the auto-detector. Manual assignment lets
 you pick the correct kinematic connection faces directly.
 
-## Step 4: Visual tuning with reference images
-
-This is where the project's visual skills and claude-in-chrome come together
-to iteratively refine the URDF until the simulation matches reality.
-
-### Setting up claude-in-chrome
-
-The `claude-in-chrome` MCP server lets Claude Code control a Chrome browser —
-navigating pages, clicking, taking screenshots, and running JavaScript. This
-project uses it to interact with the NiceGUI simulator.
-
-1. Install the claude-in-chrome extension in Chrome following the
-   instructions at its repository
-2. The project's `.claude/settings.json` already includes the permission
-   `mcp__claude-in-chrome__*`, so Claude Code can use it without prompting
-
-Once configured, Claude can:
-
-- Open the simulator in a Chrome tab
-- Set camera angles via JavaScript (using the `zoom-rotate-camera` skill)
-- Set joint poses via slider automation
-- Take screenshots for comparison against reference photos
-- Snap to orthographic named views via the ViewCube for precise comparison
-- Click the Fit button to auto-zoom the robot into the viewport
-
-### Using the manufacturer-comparison skill
-
-The `manufacturer-comparison` skill is the most systematic approach to visual
-tuning. It automates finding dimensioned technical drawings from the
-manufacturer, setting up orthographic comparison views, and iterating with
-measurable convergence criteria.
-
-```
-/manufacturer-comparison
-```
-
-This skill follows a six-phase workflow:
-
-1. **Find reference images** — searches for dimensioned technical drawings,
-   CAD renders, and product photos. Saves them to `robots/<name>/images/` for
-   reuse across sessions.
-2. **Map manufacturer views** — determines how the manufacturer's labelled
-   views (front, side, top) correspond to the simulator's ViewCube faces, since
-   conventions often differ.
-3. **Set up orthographic comparison** — snaps the camera to the matching
-   ViewCube face in orthographic projection, ensuring no parallax errors when
-   comparing against technical drawings.
-4. **Part-by-part comparison** — works base-to-tip, checking link lengths,
-   silhouettes, joint positions, and gaps against the manufacturer's dimensions.
-5. **Adjust and iterate** — edits `chain.yaml`, regenerates the URDF, and
-   re-compares until each link is within **2mm** of manufacturer specs.
-6. **Multi-view validation** — verifies accuracy across multiple orthographic
-   views and at non-zero joint angles to confirm rotation centres are correct.
-
-This is the recommended skill when manufacturer datasheets or technical drawings
-are available, since it uses actual dimensions as ground truth rather than
-relying solely on visual appearance.
-
-### Common adjustments
-
-| Symptom | Fix in chain.yaml |
-|---|---|
-| Part too high or low | Adjust Z in `visual_xyz` on the link |
-| Part shifted sideways | Adjust X or Y in `visual_xyz` |
-| Part rotated wrong | Adjust `visual_rpy` on the link |
-| Gap between parts | Reduce origin distance or adjust `visual_xyz` |
-| Parts overlapping | Increase origin distance or adjust `visual_xyz` |
-| Joint rotates wrong point | Adjust `visual_xyz` to centre connection on joint |
-
-### Important rules
-
-- **Never edit `robot.urdf` directly** — always edit `chain.yaml` and
-  regenerate with `robot-arm-sim generate`
-- **Restart the simulator process** after regenerating the URDF — refreshing
-  the browser is not enough:
-
-  ```bash
-  pkill -9 -f "robot-arm-sim simulate"
-  sleep 3
-  uv run robot-arm-sim simulate robots/MyRobot/
-  ```
-
-- **Work from base to tip** — fix the base link first, then link 1, then
-  link 2, and so on. Errors compound along the kinematic chain.
-- **One change at a time** — adjust one parameter, regenerate, and compare
-  before making the next change.
+For a detailed explanation of connection points, centering modes, and how
+they interact with `visual_rpy`, see {doc}`/how-to/edit-connection-points`.
 
 ## Step 5: Verify and commit
 
@@ -238,7 +156,6 @@ Once the simulation looks correct:
 | Skill | Purpose | Invocation |
 |---|---|---|
 | `make-robot` | Full pipeline: analyze, infer chain, generate, verify | `/make-robot` |
-| `manufacturer-comparison` | Compare against manufacturer technical drawings | `/manufacturer-comparison` |
 | `zoom-rotate-camera` | Position the 3D camera programmatically | `/zoom-rotate-camera` |
 
 All skills edit `chain.yaml` and regenerate — they never touch `robot.urdf`

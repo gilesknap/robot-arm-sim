@@ -55,7 +55,7 @@ Launch two sub-agents **in parallel**:
 
 ### 4. Visual Refinement (HUMAN STEP)
 
-Steps 05-07 are deprecated — visual connection point refinement requires human judgment and is better done manually using the simulator's Edit Connections UI.
+Steps visual connection point refinement requires human judgement and is better done manually using the simulator's Edit Connections UI. review.md provides a structured process for this discussion and refinement.
 
 Launch the simulator and hand off to the human:
 ```bash
