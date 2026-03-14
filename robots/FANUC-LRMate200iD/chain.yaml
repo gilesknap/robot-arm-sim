@@ -1,73 +1,142 @@
-robot_name: FANUC-LRMate200iD
-dh_params:  # from manufacturer specs (mm)
-  d1: 330.0         # base height
-  a1: 50.0          # shoulder offset (X)
-  a2: 330.0         # upper arm length
-  a3: 35.0          # elbow offset
-  d4: 335.0         # forearm length (wrist run)
-  d6: 80.0          # tool flange
-
-links:
-  - name: base_link
-    mesh: base_link
-  - name: link_1
-    mesh: link_1
-  - name: link_2
-    mesh: link_2
-  - name: link_3
-    mesh: link_3
-  - name: link_4
-    mesh: link_4
-  - name: link_5
-    mesh: link_5
-  - name: link_6
-    mesh: link_6
-
+dh_params:
+  a1: 50.0
+  a2: 330.0
+  a3: 35.0
+  d1: 330.0
+  d4: 335.0
+  d6: 80.0
 joints:
-  - name: joint_1
-    type: revolute
-    parent: base_link
-    child: link_1
-    axis: [0, 0, 1]
-    limits: [-2.9671, 2.9671]
-    origin: [0, 0, 0.330]   # d1: base height
-
-  - name: joint_2
-    type: revolute
-    parent: link_1
-    child: link_2
-    axis: [0, 1, 0]
-    limits: [-1.7453, 2.5307]
-    origin: [0.050, 0, 0]   # a1: shoulder offset (X)
-
-  - name: joint_3
-    type: revolute
-    parent: link_2
-    child: link_3
-    axis: [0, -1, 0]
-    limits: [-1.2217, 3.5779]
-    origin: [0, 0, 0.330]   # a2: upper arm length (Z)
-
-  - name: joint_4
-    type: revolute
-    parent: link_3
-    child: link_4
-    axis: [-1, 0, 0]
-    limits: [-3.3161, 3.3161]
-    origin: [0, 0, 0.035]   # a3: elbow offset (Z)
-
-  - name: joint_5
-    type: revolute
-    parent: link_4
-    child: link_5
-    axis: [0, -1, 0]
-    limits: [-2.1817, 2.1817]
-    origin: [0.335, 0, 0]   # d4: forearm length (X)
-
-  - name: joint_6
-    type: revolute
-    parent: link_5
-    child: link_6
-    axis: [-1, 0, 0]
-    limits: [-6.2832, 6.2832]
-    origin: [0.080, 0, 0]   # d6: tool flange (X)
+- axis:
+  - 0
+  - 0
+  - 1
+  child: link_1
+  limits:
+  - -2.9671
+  - 2.9671
+  name: joint_1
+  origin:
+  - 0
+  - 0
+  - 0.33
+  parent: base_link
+  type: revolute
+- axis:
+  - 0
+  - 1
+  - 0
+  child: link_2
+  limits:
+  - -1.7453
+  - 2.5307
+  name: joint_2
+  origin:
+  - 0.05
+  - 0
+  - 0
+  parent: link_1
+  type: revolute
+- axis:
+  - 0
+  - -1
+  - 0
+  child: link_3
+  limits:
+  - -1.2217
+  - 3.5779
+  name: joint_3
+  origin:
+  - 0
+  - 0
+  - 0.33
+  parent: link_2
+  type: revolute
+- axis:
+  - -1
+  - 0
+  - 0
+  child: link_4
+  limits:
+  - -3.3161
+  - 3.3161
+  name: joint_4
+  origin:
+  - 0
+  - 0
+  - 0.035
+  parent: link_3
+  type: revolute
+- axis:
+  - 0
+  - -1
+  - 0
+  child: link_5
+  limits:
+  - -2.1817
+  - 2.1817
+  name: joint_5
+  origin:
+  - 0.335
+  - 0
+  - 0
+  parent: link_4
+  type: revolute
+- axis:
+  - -1
+  - 0
+  - 0
+  child: link_6
+  limits:
+  - -6.2832
+  - 6.2832
+  name: joint_6
+  origin:
+  - 0.08
+  - 0
+  - 0
+  parent: link_5
+  type: revolute
+links:
+- mesh: base_link
+  name: base_link
+  visual_xyz:
+  - 0.0
+  - -0.002
+  - 0.0
+- mesh: link_1
+  name: link_1
+  visual_xyz:
+  - 0.002378
+  - -0.003582
+  - -0.001535
+- mesh: link_2
+  name: link_2
+  visual_xyz:
+  - -0.001745
+  - -0.000268
+  - 0.022418
+- mesh: link_3
+  name: link_3
+  visual_xyz:
+  - -0.001252
+  - 0.002956
+  - 0.015182
+- mesh: link_4
+  name: link_4
+  visual_xyz:
+  - -0.053602
+  - 0.0
+  - 0.0
+- mesh: link_5
+  name: link_5
+  visual_xyz:
+  - 0.0
+  - 0.005703
+  - 0.0
+- mesh: link_6
+  name: link_6
+  visual_xyz:
+  - -0.025998
+  - 0.0
+  - 0.0
+robot_name: FANUC-LRMate200iD

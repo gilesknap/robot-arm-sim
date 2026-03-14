@@ -2,29 +2,7 @@
 part_name: link_4
 source_file: stl_files/link_4.stl
 format: binary_stl
-connection_points:
-- end: proximal
-  position:
-  - 158.564
-  - -2.0
-  - -50.0
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 55.8
-  method: barrel_bore_face
-- end: distal
-  position:
-  - 276.919
-  - 0.417
-  - -46.599
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 50.4
-  method: barrel_bore_face
+connection_points: []
 geometry:
   vertex_count: 1798
   face_count: 3592
