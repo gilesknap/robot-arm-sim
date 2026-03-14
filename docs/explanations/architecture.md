@@ -56,6 +56,12 @@ The simulation stage launches a web-based 3D viewer:
   transforms for every link using axis-angle rotation (Rodrigues' formula)
   and RPY conventions. The chain is traversed from root to tip on each
   joint-angle update.
+- **Inverse kinematics** (`ik_solver.py`) — a custom damped least-squares
+  solver that computes the 6×N geometric Jacobian analytically from the URDF
+  joint chain and iteratively drives both position and orientation error to
+  zero. Used by the simulator's IK mode to let users control the
+  end-effector pose directly. See
+  {doc}`/explanations/inverse-kinematics` for a detailed explanation.
 - **Web application** (`app/`) — a NiceGUI application split across several
   modules (scene, controls, toolbar, state, edit-connections) that builds the
   interactive 3D scene, joint-angle sliders, and toolbar controls. STL
@@ -95,11 +101,10 @@ The browser-based simulator uses several layers:
 | Dependency | Purpose |
 |---|---|
 | trimesh | Mesh I/O, geometry queries, inertia |
-| numpy | Matrix maths and transforms |
+| numpy | Matrix maths, transforms, and the damped least-squares IK solver |
 | nicegui | Web UI framework (Vue.js + Quasar frontend) |
 | typer | CLI argument parsing |
 | pyyaml | YAML configuration parsing |
-| numpy | Also used for the custom damped least-squares IK solver |
 
 ## Robot directory layout
 
