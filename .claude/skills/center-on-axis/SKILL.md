@@ -73,6 +73,22 @@ The user may request:
 
 Always confirm which links to include if ambiguous.
 
+## Accuracy Warning
+
+This skill trades geometric accuracy for visual consistency. It does **not** know where the true bore hole is in the mesh — it simply places the mesh's own coordinate origin (0,0) on the joint axis in the cross-axis plane.
+
+This works well when:
+- The STL was modeled with the bore center at (0,0) in the cross-axis plane (e.g., Meca500 meshes — offsets are <0.2mm)
+- All parts in the robot share a consistent origin convention, so errors cancel between parent and child
+
+This can be misleading when:
+- The STL origin is offset from the bore (e.g., UR5 meshes have cross-axis offsets up to 6mm from the detected bore center)
+- In such cases the skill eliminates wobble during rotation but shifts the bore off-axis by the same amount
+
+**Why it still looks good even with inaccurate meshes:** Connection point detection finds slightly different bore centers at each end of each part (because cross-sections vary). This creates *inconsistent* small errors between parent and child — visible as wobble. Center-on-axis replaces these with a *consistent* error (the mesh origin convention), which looks smooth because adjacent parts share the same bias. Consistent error looks clean; inconsistent error looks wobbly.
+
+**Bottom line:** The result looks visually smooth but is not geometrically precise. For robots where the STL origins are not on the bore axis, the connection-point-based positioning is actually more accurate — it just wobbles slightly because each end's bore center is detected independently.
+
 ## Key Principles
 
 - **Never modify joint origins** — kinematics is sacred (per CLAUDE.md)
