@@ -2,18 +2,7 @@
 part_name: link_3
 source_file: stl_files/link_3.stl
 format: binary_stl
-connection_points:
-- end: distal
-  position:
-  - -217.0
-  - -13.526
-  - 125.406
-  axis:
-  - -1.0
-  - 0.0
-  - 0.0
-  radius_mm: 106.4
-  method: largest_face_fallback
+connection_points: []
 geometry:
   vertex_count: 935
   face_count: 1874

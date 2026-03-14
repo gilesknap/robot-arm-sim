@@ -2,18 +2,7 @@
 part_name: link_5
 source_file: stl_files/link_5.stl
 format: binary_stl
-connection_points:
-- end: distal
-  position:
-  - -2.717
-  - -21.0
-  - -0.167
-  axis:
-  - 0.0
-  - -1.0
-  - 0.0
-  radius_mm: 60.2
-  method: largest_face_fallback
+connection_points: []
 geometry:
   vertex_count: 244
   face_count: 484
@@ -34,7 +23,7 @@ geometry:
   surface_area_mm2: 47835.02737319691
   center_of_mass:
   - -0.2267095446868215
-  - -0.000000
+  - -0.0
   - 0.9569217711203384
   is_watertight: true
 inertia:
@@ -47,9 +36,9 @@ inertia:
     - -0.000003
     - 0.9936853607394043
   - - 0.9936853607453614
-    - -0.000000
+    - -0.0
     - 0.11220251262855328
-  - - -0.000000
+  - - -0.0
     - -0.9999999999939782
     - -0.000003
 features:
