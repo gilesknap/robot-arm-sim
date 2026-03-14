@@ -10,7 +10,7 @@
   </link>
   <link name="link_1">
     <visual>
-      <origin xyz="0.001796 -0.006351 0.000043" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 0.000043" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/shoulder.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -18,7 +18,7 @@
   </link>
   <link name="link_2">
     <visual>
-      <origin xyz="-0.005310 -0.006500 -0.000565" rpy="0 0 0"/>
+      <origin xyz="0.000000 -0.006500 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/upperarm.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -26,7 +26,7 @@
   </link>
   <link name="link_3">
     <visual>
-      <origin xyz="0.001998 -0.006499 0.002403" rpy="0 0 0"/>
+      <origin xyz="0.000000 -0.006499 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/forearm.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -34,7 +34,7 @@
   </link>
   <link name="link_4">
     <visual>
-      <origin xyz="-0.000891 -0.006498 -0.000528" rpy="0 0 0"/>
+      <origin xyz="0.000000 -0.006498 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -42,7 +42,7 @@
   </link>
   <link name="link_5">
     <visual>
-      <origin xyz="-0.000206 0.000789 -0.049150" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 -0.049150" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/wrist2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
