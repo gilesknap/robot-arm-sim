@@ -162,15 +162,15 @@ editing connection points or chain.yaml values.
 ```{mermaid}
 flowchart TB
     subgraph inputs ["Input files"]
-        analysis["analysis/*.yaml\nproximal position\ndistal position\ncentering mode"]
-        chain["chain.yaml\nDH params / origins\nvisual_rpy\nvisual_xyz"]
+        analysis["analysis/*.yaml<br/>proximal position<br/>distal position<br/>centering mode"]
+        chain["chain.yaml<br/>DH params / origins<br/>visual_rpy<br/>visual_xyz"]
     end
 
     subgraph pipeline ["URDF generation pipeline"]
         direction TB
-        pass1["Pass 1: per-mesh snap\nproximal + visual_rpy → visual origin"]
-        pass2["Pass 2: gap-closing\nparent distal → child shift along axis"]
-        pass3["Pass 3: visual_xyz nudge\nlocal-only, never propagated"]
+        pass1["Pass 1: per-mesh snap<br/>proximal + visual_rpy → visual origin"]
+        pass2["Pass 2: gap-closing<br/>parent distal → child shift along axis"]
+        pass3["Pass 3: visual_xyz nudge<br/>local-only, never propagated"]
         joints["Joint origins ← DH params only"]
         pass1 --> pass2 --> pass3
     end
