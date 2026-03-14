@@ -122,6 +122,6 @@ links:
   - 0.0198
   visual_xyz:
   - 0.065795
-  - 2.7e-05
-  - -5.1e-05
+  - 0
+  - 0
 robot_name: Meca500-R3
