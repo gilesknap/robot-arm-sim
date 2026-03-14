@@ -49,7 +49,7 @@
   </link>
   <link name="link_6">
     <visual>
-      <origin xyz="0.065795 0.000027 -0.000051" rpy="0.000000 1.329500 0.019800"/>
+      <origin xyz="0.065795 0.000000 0.000000" rpy="0.000000 1.329500 0.019800"/>
       <geometry>
         <mesh filename="stl_files/EndEffector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
