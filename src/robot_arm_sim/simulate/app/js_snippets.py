@@ -683,10 +683,19 @@ FACE_MARKER_INIT_JS = """
         if (key === 'ArrowUp')    selectedMesh.position[axes.v] += step * axes.vSign;
         if (key === 'ArrowDown')  selectedMesh.position[axes.v] -= step * axes.vSign;
         const delta = selectedMesh.position.clone().sub(startPos);
-        window.__lastPartMove = {
-            linkName: selectedLinkName,
-            delta: [delta.x, delta.y, delta.z]
-        };
+        // Accumulate into pending move so rapid keypresses don't
+        // overwrite each other before the 200ms Python poll reads them.
+        const prev = window.__lastPartMove;
+        if (prev && prev.linkName === selectedLinkName) {
+            prev.delta[0] += delta.x;
+            prev.delta[1] += delta.y;
+            prev.delta[2] += delta.z;
+        } else {
+            window.__lastPartMove = {
+                linkName: selectedLinkName,
+                delta: [delta.x, delta.y, delta.z]
+            };
+        }
     });
 
     // Track mouse movement to distinguish clicks from drags/rotates
