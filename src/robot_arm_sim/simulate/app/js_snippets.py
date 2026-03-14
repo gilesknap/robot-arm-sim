@@ -340,11 +340,41 @@ AXES_INIT_JS = """
     if (!sc) return;
     const helpers = {};
     const joints = JOINT_NAMES;
+    const L = 0.15;
+    const colors = [0xff0000, 0x00ff00, 0x0000ff];
+    const dirs = [
+        [1,0,0], [0,1,0], [0,0,1]];
     joints.forEach(name => {
-        const ax = new THREE.AxesHelper(0.05);
-        ax.visible = false;
-        sc.scene.add(ax);
-        helpers[name] = ax;
+        const grp = new THREE.Group();
+        grp.visible = false;
+        for (let i = 0; i < 3; i++) {
+            const d = dirs[i];
+            const solidPts = [
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(
+                    d[0]*L, d[1]*L, d[2]*L)];
+            const sg = new THREE.BufferGeometry()
+                .setFromPoints(solidPts);
+            const sl = new THREE.Line(sg,
+                new THREE.LineBasicMaterial({
+                    color: colors[i]}));
+            grp.add(sl);
+            const dashPts = [
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(
+                    -d[0]*L, -d[1]*L, -d[2]*L)];
+            const dg = new THREE.BufferGeometry()
+                .setFromPoints(dashPts);
+            const dl = new THREE.Line(dg,
+                new THREE.LineDashedMaterial({
+                    color: colors[i],
+                    dashSize: 0.008,
+                    gapSize: 0.006}));
+            dl.computeLineDistances();
+            grp.add(dl);
+        }
+        sc.scene.add(grp);
+        helpers[name] = grp;
     });
     window.__axesHelpers = helpers;
     window.__setAxesVisible = function(show) {
@@ -393,7 +423,6 @@ CONNECTION_INIT_JS = """
     walk(appEl.__vue_app__._container._vnode, 0);
     if (!sc) return;
     const spheres = {};
-    const lines = {};
     const connections = CONNECTION_DATA;
     for (const b of connections) {
         const r = 0.005;
@@ -410,45 +439,20 @@ CONNECTION_INIT_JS = """
         mesh.visible = false;
         sc.scene.add(mesh);
         spheres[b.id] = mesh;
-        const L = r * 4;
-        const pts = [
-            new THREE.Vector3(0, -L, 0),
-            new THREE.Vector3(0, L, 0)];
-        const lg = new THREE.BufferGeometry()
-            .setFromPoints(pts);
-        const lm = new THREE.LineBasicMaterial({
-            color: color, linewidth: 2});
-        const ln = new THREE.Line(lg, lm);
-        ln.visible = false;
-        sc.scene.add(ln);
-        lines[b.id] = ln;
     }
     window.__connSpheres = spheres;
-    window.__connLines = lines;
+    window.__connLines = {};
     window.__setConnectionsVisible = function(show) {
         Object.values(spheres).forEach(
             s => { s.visible = show; });
-        Object.values(lines).forEach(
-            l => { l.visible = show; });
     };
     window.__updateConnectionPoses = function(data) {
         for (const [id, pos] of Object.entries(data)) {
             const s = spheres[id];
-            const ln = lines[id];
             if (!s) continue;
             const vis = pos[3] > 0;
             s.position.set(pos[0], pos[1], pos[2]);
             s.visible = vis;
-            if (ln) {
-                ln.position.set(
-                    pos[0], pos[1], pos[2]);
-                if (pos.length >= 8) {
-                    ln.quaternion.set(
-                        pos[4], pos[5],
-                        pos[6], pos[7]);
-                }
-                ln.visible = vis;
-            }
         }
     };
     window.__moveConnectionSphere = function(
@@ -460,14 +464,6 @@ CONNECTION_INIT_JS = """
         s.visible = true;
         if (colorHex !== undefined) {
             s.material.color.setHex(colorHex);
-        }
-        const ln = lines[id];
-        if (ln) {
-            ln.position.set(x, y, z);
-            ln.visible = true;
-            if (colorHex !== undefined) {
-                ln.material.color.setHex(colorHex);
-            }
         }
         return true;
     };
