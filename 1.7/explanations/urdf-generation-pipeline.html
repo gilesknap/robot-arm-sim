@@ -1,0 +1,1373 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>URDF generation pipeline &#8212; robot-arm-sim 1.7 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=392da36c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}`;
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/urdf-generation-pipeline';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.7';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reference" href="../reference.html" />
+    <link rel="prev" title="Kinematics and URDF Generation" href="kinematics_and_urdf_generation.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.7" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">robot-arm-sim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0003-keep-connection-point-auto-detection.html">3. Keep connection point auto-detection despite low success rate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="kinematics_and_urdf_generation.html">Kinematics and URDF Generation</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">URDF generation pipeline</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">URDF generation pipeline</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="urdf-generation-pipeline">
+<h1>URDF generation pipeline<a class="headerlink" href="#urdf-generation-pipeline" title="Link to this heading">#</a></h1>
+<p>How connection points, centering modes, and chain.yaml settings combine
+to produce visual origins in the generated URDF.</p>
+<p>For step-by-step editing instructions, see
+<a class="reference internal" href="../how-to/edit-connection-points.html"><span class="doc">Edit connection points</span></a>.</p>
+<section id="what-connection-points-are">
+<h2>What connection points are<a class="headerlink" href="#what-connection-points-are" title="Link to this heading">#</a></h2>
+<p>Every robot part has one or two <strong>connection points</strong> — the positions where it
+attaches to its neighbours in the kinematic chain:</p>
+<ul class="simple">
+<li><p><strong>proximal</strong> — where this part connects to its parent (closer to the base)</p></li>
+<li><p><strong>distal</strong> — where this part connects to its child (closer to the
+end-effector)</p></li>
+</ul>
+<p>The base link has only a distal connection; the end-effector has only a
+proximal connection; all other links have both.</p>
+<p>Each connection point has these fields:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">ConnectionPoint model</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConnectionPoint</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">end</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;proximal&quot;</span><span class="p">,</span> <span class="s2">&quot;distal&quot;</span><span class="p">]</span>
+    <span class="n">position</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="n">radius_mm</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># &quot;cross_section&quot;, &quot;cylinder_fit&quot;, &quot;manual&quot;, etc.</span>
+    <span class="n">centering</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="s2">&quot;surface&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">end</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;proximal&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;distal&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">position</span></code></p></td>
+<td><p>XYZ coordinates of the marker in STL mesh space (mm)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">axis</span></code></p></td>
+<td><p>Unit vector defining the joint rotation axis direction</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">radius_mm</span></code></p></td>
+<td><p>Estimated bore/shaft radius</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">method</span></code></p></td>
+<td><p>How the point was detected: <code class="docutils literal notranslate"><span class="pre">&quot;cross_section&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cylinder_fit&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;manual&quot;</span></code>, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">centering</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;surface&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;center&quot;</span></code> — controls how the visual origin is computed</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Connection points are stored in each part’s analysis YAML file (e.g.
+<code class="docutils literal notranslate"><span class="pre">robots/MyRobot/analysis/A1.yaml</span></code>). Here is a typical example:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">Connection points from A1.yaml</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary_stl</span>
+<span class="nt">connection_points</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">proximal</span>
+<span class="w">  </span><span class="nt">position</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9.53</span>
+<span class="w">  </span><span class="nt">axis</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">  </span><span class="nt">radius_mm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<span class="w">  </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">manual</span>
+<span class="w">  </span><span class="nt">centering</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">surface</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">distal</span>
+<span class="w">  </span><span class="nt">position</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.075</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-49.886</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">45.721</span>
+<span class="w">  </span><span class="nt">axis</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1.0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="nt">radius_mm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<span class="w">  </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">manual</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="the-two-centering-modes">
+<h2>The two centering modes<a class="headerlink" href="#the-two-centering-modes" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">centering</span></code> field controls how <code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code> positions the mesh
+within its link frame. The goal is always the same: place the proximal
+connection point at the link frame origin so the joint rotates around the
+correct axis.</p>
+<section id="axis-snapping-both-modes">
+<h3>Axis snapping (both modes)<a class="headerlink" href="#axis-snapping-both-modes" title="Link to this heading">#</a></h3>
+<p>Regardless of centering mode, <code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code> always <strong>snaps the
+proximal bore center onto the joint axis line</strong>. It decomposes the proximal
+position into along-axis and cross-axis components relative to the joint
+axis, then zeros the cross-axis error:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">Axis snapping and centering logic in compute_visual_origin</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="c1"># For center mode, average proximal with opposite face along bore axis</span>
+    <span class="n">bore_axis</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;axis&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="n">centering</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;centering&quot;</span><span class="p">,</span> <span class="s2">&quot;surface&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">centering</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="n">opp</span> <span class="o">=</span> <span class="n">_find_opposite_face</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">bore_axis</span><span class="p">,</span> <span class="n">axis_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">opp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">opp</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="c1"># Visual origin = -proximal/1000: places proximal at frame origin (on axis)</span>
+    <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">link_name</span><span class="si">}</span><span class="s2">: proximal @ origin,&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot; proximal=(</span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">)mm&quot;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">viz_xyz</span><span class="p">],</span> <span class="n">viz_rpy</span>
+</pre></div>
+</div>
+</div>
+<p>This means each mesh independently positions itself — no cross-link
+dependencies, no error accumulation up the chain.</p>
+</section>
+<section id="surface-mode-default">
+<h3><code class="docutils literal notranslate"><span class="pre">surface</span></code> mode (default)<a class="headerlink" href="#surface-mode-default" title="Link to this heading">#</a></h3>
+<p>The marker sits on the <strong>bore surface</strong> — a flat mating face. The along-axis
+component of the proximal position is used as-is (only cross-axis is zeroed).</p>
+<p>After all visual origins are computed, a second pass
+(<code class="docutils literal notranslate"><span class="pre">close_surface_gaps_along_axis</span></code>) shifts each surface-mode child <strong>along the
+joint axis only</strong> so its proximal surface meets the parent’s distal surface:</p>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">close_surface_gaps_along_axis docstring</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">close_surface_gaps_along_axis</span><span class="p">(</span>
+    <span class="n">chain</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">analyses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">visual_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span>
+    <span class="n">joint_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="n">joint_rpys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="s2">&quot;&quot;&quot;Shift surface-mode children along the joint axis to meet parent distal.</span>
+
+<span class="s2">    Only adjusts along the joint axis — cross-axis is already handled by</span>
+<span class="s2">    the per-mesh snap in compute_visual_origin.</span>
+</pre></div>
+</div>
+</div>
+<p>This is the right choice when the connection is a flat face mating against
+another flat face (the most common case). The parent’s distal marker indicates
+which surface face the child should be shifted to meet.</p>
+</section>
+<section id="center-mode">
+<h3><code class="docutils literal notranslate"><span class="pre">center</span></code> mode<a class="headerlink" href="#center-mode" title="Link to this heading">#</a></h3>
+<p>The marker sits on a <strong>surface face that represents where the rotation axis
+should pass through</strong> — typically the end of a through-bore or shaft hole.
+The pipeline finds the opposite flat face along the bore axis and averages
+the two positions to compute the bore midpoint. The result is then projected
+onto the joint axis.</p>
+<p>This is the right choice when the connection is a through-bore where the
+rotation axis must pass through the geometric center of the bore, not a
+surface face. Center-mode connections are <strong>not</strong> adjusted by the gap-closing
+pass — their bore centering already defines the rotation axis precisely.</p>
+</section>
+</section>
+<section id="the-three-pass-pipeline">
+<h2>The three-pass pipeline<a class="headerlink" href="#the-three-pass-pipeline" title="Link to this heading">#</a></h2>
+<p>Connection points tell the pipeline <strong>where</strong> each joint is. But when a
+part’s proximal and distal faces are on different planes — for example, an
+L-shaped link where the proximal bore faces along Z but the distal bore
+faces along Y — the mesh also needs to be <strong>rotated</strong> so the proximal axis
+aligns with the joint frame. This is what <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> does.</p>
+<p>The URDF generation pipeline works in three passes:</p>
+<ol class="arabic simple">
+<li><p><strong>Pass 1 — per-mesh snap</strong> (<code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code>) — for each link,
+rotate the mesh (<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>) and snap its proximal bore center onto the
+joint axis line, zeroing cross-axis error. Along-axis placement depends
+on centering mode.</p></li>
+<li><p><strong>Pass 2 — surface gap closure</strong> (<code class="docutils literal notranslate"><span class="pre">close_surface_gaps_along_axis</span></code>) — for
+surface-mode connections only, shift the child mesh along the joint axis
+so its proximal face meets the parent’s distal face.</p></li>
+<li><p><strong>Pass 3 — visual_xyz nudge</strong> — apply any <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> offset from
+<code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> as a local-only adjustment. This is added <em>after</em>
+gap-closing, so nudging one part never affects any other part.</p></li>
+</ol>
+<p>When <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> is <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> (the default), the translation is a simple
+negation of the proximal position. When a rotation is applied, the proximal
+position is rotated first, then negated:</p>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">visual_rpy applied before translation in compute_visual_origin</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">viz_xyz</span><span class="p">],</span> <span class="n">viz_rpy</span>
+</pre></div>
+</div>
+</div>
+<section id="why-this-matters-for-fixing-jumbled-parts">
+<h3>Why this matters for fixing jumbled parts<a class="headerlink" href="#why-this-matters-for-fixing-jumbled-parts" title="Link to this heading">#</a></h3>
+<p>When auto-detection picks the wrong connection points, parts end up in the
+wrong position <em>and</em> orientation. Fixing this requires both steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Place the markers correctly</strong> — use Edit Connections and click directly on
+the correct mesh surfaces to assign proximal and distal markers. This tells
+the pipeline where the joint axes are, and gives it the axis directions from
+the face normals.</p></li>
+<li><p><strong>Set <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> if the axes aren’t aligned</strong> — if a part’s proximal
+face is not perpendicular to the joint axis (i.e. the STL mesh
+coordinates don’t naturally align with the link frame), you need a
+<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> rotation in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> to bring them into alignment.</p></li>
+</ol>
+<p>For a typical straight part where proximal and distal are on parallel faces
+along the same axis, <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> can stay at <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code>. For L-shaped or
+angled parts where the two connections face different directions, you need a
+rotation to align the proximal axis with the joint frame.</p>
+<p><strong>Work from base to tip.</strong> Each link’s visual origin is computed
+independently (snapped to its own joint axis), so errors no longer compound
+along the chain. However, surface gap closure still references the parent’s
+distal position, so fixing a parent link’s connections first makes it easier
+to verify child links visually.</p>
+</section>
+</section>
+<section id="what-affects-what">
+<h2>What affects what<a class="headerlink" href="#what-affects-what" title="Link to this heading">#</a></h2>
+<p>Understanding which inputs affect which outputs prevents surprises when
+editing connection points or chain.yaml values.</p>
+<section id="data-flow-summary">
+<h3>Data flow summary<a class="headerlink" href="#data-flow-summary" title="Link to this heading">#</a></h3>
+<pre  class="mermaid">
+        flowchart TB
+    subgraph inputs [&quot;Input files&quot;]
+        analysis[&quot;analysis/*.yaml&lt;br/&gt;proximal position&lt;br/&gt;distal position&lt;br/&gt;centering mode&quot;]
+        chain[&quot;chain.yaml&lt;br/&gt;DH params / origins&lt;br/&gt;visual_rpy&lt;br/&gt;visual_xyz&quot;]
+    end
+
+    subgraph pipeline [&quot;URDF generation pipeline&quot;]
+        direction TB
+        pass1[&quot;Pass 1: per-mesh snap&lt;br/&gt;proximal + visual_rpy → visual origin&quot;]
+        pass2[&quot;Pass 2: gap-closing&lt;br/&gt;parent distal → child shift along axis&quot;]
+        pass3[&quot;Pass 3: visual_xyz nudge&lt;br/&gt;local-only, never propagated&quot;]
+        joints[&quot;Joint origins ← DH params only&quot;]
+        pass1 --&gt; pass2 --&gt; pass3
+    end
+
+    subgraph output [&quot;Output&quot;]
+        urdf[&quot;robot.urdf&quot;]
+    end
+
+    analysis --&gt; pass1
+    analysis --&gt; pass2
+    chain --&gt; pass1
+    chain --&gt; joints
+    chain --&gt; pass3
+    pass3 --&gt; urdf
+    joints --&gt; urdf
+    </pre></section>
+<section id="what-each-input-controls">
+<h3>What each input controls<a class="headerlink" href="#what-each-input-controls" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Input</p></th>
+<th class="head"><p>Stored in</p></th>
+<th class="head"><p>Affects</p></th>
+<th class="head"><p>Propagates?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>DH params / joint origins</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code></p></td>
+<td><p>Joint frame positions (the kinematic chain)</p></td>
+<td><p>N/A — defines the chain</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Proximal position</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">analysis/*.yaml</span></code></p></td>
+<td><p>That link’s visual origin (mesh placement)</p></td>
+<td><p>No — local to the link</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Distal position</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">analysis/*.yaml</span></code></p></td>
+<td><p>Gap-closing shift on the <strong>child</strong> link (surface mode only)</p></td>
+<td><p>One level down only</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Centering mode</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">analysis/*.yaml</span></code></p></td>
+<td><p>Whether proximal is averaged with opposite face</p></td>
+<td><p>No — local to the link</p></td>
+</tr>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code></strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code></p></td>
+<td><p>Mesh rotation before proximal snap</p></td>
+<td><p>No — local to the link</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong><code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code></p></td>
+<td><p>Final nudge after all other computation</p></td>
+<td><p>No — local to the link</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="key-rules">
+<span id="id1"></span><h3>Key rules<a class="headerlink" href="#key-rules" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Nothing propagates upstream.</strong> Changing a child never affects its parent.</p></li>
+<li><p><strong>Proximal markers are local.</strong> Moving a proximal only shifts that link’s
+mesh — no other link is affected.</p></li>
+<li><p><strong>Distal markers affect one level down.</strong> A parent’s distal position feeds
+into gap-closing for its immediate child (surface mode only). It does not
+affect the kinematic chain.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> is always local.</strong> It is applied after gap-closing and
+never feeds into any other calculation. Use it to nudge a single part
+without side effects.</p></li>
+<li><p><strong>Joint origins are fixed.</strong> They come from DH parameters in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>
+and are never derived from connection point markers (when DH params are
+present). The kinematic chain does not change when you edit markers.</p></li>
+<li><p><strong>Re-analysis can change visual origins.</strong> Running <code class="docutils literal notranslate"><span class="pre">analyze</span></code> regenerates
+<code class="docutils literal notranslate"><span class="pre">analysis/*.yaml</span></code> which may shift proximal positions. Running <code class="docutils literal notranslate"><span class="pre">generate</span></code>
+afterwards will produce different visual origins even though <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>
+hasn’t changed.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="kinematics_and_urdf_generation.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Kinematics and URDF Generation</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../reference.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-connection-points-are">What connection points are</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-centering-modes">The two centering modes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#axis-snapping-both-modes">Axis snapping (both modes)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#surface-mode-default"><code class="docutils literal notranslate"><span class="pre">surface</span></code> mode (default)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#center-mode"><code class="docutils literal notranslate"><span class="pre">center</span></code> mode</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-three-pass-pipeline">The three-pass pipeline</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-this-matters-for-fixing-jumbled-parts">Why this matters for fixing jumbled parts</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-affects-what">What affects what</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-flow-summary">Data flow summary</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-each-input-controls">What each input controls</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-rules">Key rules</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/1.7/docs/explanations/urdf-generation-pipeline.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/explanations/urdf-generation-pipeline.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
