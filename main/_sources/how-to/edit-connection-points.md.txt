@@ -1,157 +1,12 @@
 # Edit connection points
 
-This guide explains what connection points are, how the two centering modes
-work, and how to edit them to fix mesh placement in the URDF.
+How to assign and adjust connection point markers to fix mesh placement
+in the URDF.
 
-## What connection points are
+For background on how connection points, centering modes, and the pipeline
+work, see {doc}`/explanations/urdf-generation-pipeline`.
 
-Every robot part has one or two **connection points** — the positions where it
-attaches to its neighbours in the kinematic chain:
-
-- **proximal** — where this part connects to its parent (closer to the base)
-- **distal** — where this part connects to its child (closer to the
-  end-effector)
-
-The base link has only a distal connection; the end-effector has only a
-proximal connection; all other links have both.
-
-Each connection point has these fields:
-
-```{literalinclude} ../../src/robot_arm_sim/models/models.py
-:language: python
-:start-at: class ConnectionPoint
-:end-at: centering
-:caption: ConnectionPoint model
-```
-
-| Field | Meaning |
-|---|---|
-| `end` | `"proximal"` or `"distal"` |
-| `position` | XYZ coordinates of the marker in STL mesh space (mm) |
-| `axis` | Unit vector defining the joint rotation axis direction |
-| `radius_mm` | Estimated bore/shaft radius |
-| `method` | How the point was detected: `"cross_section"`, `"cylinder_fit"`, `"manual"`, etc. |
-| `centering` | `"surface"` or `"center"` — controls how the visual origin is computed |
-
-Connection points are stored in each part's analysis YAML file (e.g.
-`robots/MyRobot/analysis/A1.yaml`). Here is a typical example:
-
-```{literalinclude} ../../robots/Meca500-R3/analysis/A1.yaml
-:language: yaml
-:lines: 4-28
-:caption: Connection points from A1.yaml
-```
-
-## The two centering modes
-
-The `centering` field controls how `compute_visual_origin` positions the mesh
-within its link frame. The goal is always the same: place the proximal
-connection point at the link frame origin so the joint rotates around the
-correct axis.
-
-### Axis snapping (both modes)
-
-Regardless of centering mode, `compute_visual_origin` always **snaps the
-proximal bore center onto the joint axis line**. It decomposes the proximal
-position into along-axis and cross-axis components relative to the joint
-axis, then zeros the cross-axis error:
-
-```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
-:language: python
-:lines: 93-122
-:caption: Axis snapping and centering logic in compute_visual_origin
-```
-
-This means each mesh independently positions itself — no cross-link
-dependencies, no error accumulation up the chain.
-
-### `surface` mode (default)
-
-The marker sits on the **bore surface** — a flat mating face. The along-axis
-component of the proximal position is used as-is (only cross-axis is zeroed).
-
-After all visual origins are computed, a second pass
-(`close_surface_gaps_along_axis`) shifts each surface-mode child **along the
-joint axis only** so its proximal surface meets the parent's distal surface:
-
-```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
-:language: python
-:lines: 210-221
-:caption: close_surface_gaps_along_axis docstring
-```
-
-This is the right choice when the connection is a flat face mating against
-another flat face (the most common case).
-
-### `center` mode
-
-The marker sits on a **surface face that represents where the rotation axis
-should pass through** — typically the end of a through-bore or shaft hole.
-The pipeline finds the opposite flat face along the bore axis and averages
-the two positions to compute the bore midpoint. The result is then projected
-onto the joint axis.
-
-This is the right choice when the connection is a through-bore where the
-rotation axis must pass through the geometric center of the bore, not a
-surface face. Center-mode connections are **not** adjusted by the gap-closing
-pass — their bore centering already defines the rotation axis precisely.
-
-## How connection points and `visual_rpy` work together
-
-Connection points tell the pipeline **where** each joint is. But when a
-part's proximal and distal faces are on different planes — for example, an
-L-shaped link where the proximal bore faces along Z but the distal bore
-faces along Y — the mesh also needs to be **rotated** so the proximal axis
-aligns with the joint frame. This is what `visual_rpy` in `chain.yaml` does.
-
-The URDF generation pipeline works in two passes:
-
-1. **Pass 1 — per-mesh snap** (`compute_visual_origin`) — for each link,
-   rotate the mesh (`visual_rpy`) and snap its proximal bore center onto the
-   joint axis line, zeroing cross-axis error. Along-axis placement depends
-   on centering mode.
-2. **Pass 2 — surface gap closure** (`close_surface_gaps_along_axis`) — for
-   surface-mode connections only, shift the child mesh along the joint axis
-   so its proximal face meets the parent's distal face.
-
-When `visual_rpy` is `[0, 0, 0]` (the default), the translation is a simple
-negation of the proximal position. When a rotation is applied, the proximal
-position is rotated first, then negated:
-
-```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
-:language: python
-:lines: 129-137
-:caption: visual_rpy applied before translation in compute_visual_origin
-```
-
-### Why this matters for fixing jumbled parts
-
-When auto-detection picks the wrong connection points, parts end up in the
-wrong position *and* orientation. Fixing this requires both steps:
-
-1. **Place the markers correctly** — use Edit Connections to assign proximal
-   and distal markers to the right faces. This tells the pipeline where the
-   joint axes are, and gives it the axis directions from the face normals.
-
-2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
-   face is not perpendicular to the joint axis (i.e. the STL mesh
-   coordinates don't naturally align with the link frame), you need a
-   `visual_rpy` rotation in `chain.yaml` to bring them into alignment.
-
-For a typical straight part where proximal and distal are on parallel faces
-along the same axis, `visual_rpy` can stay at `[0, 0, 0]`. For L-shaped or
-angled parts where the two connections face different directions, you need a
-rotation to align the proximal axis with the joint frame.
-
-**Work from base to tip.** Each link's visual origin is computed
-independently (snapped to its own joint axis), so errors no longer compound
-along the chain. However, surface gap closure still references the parent's
-distal position, so fixing a parent link's connections first makes it easier
-to verify child links visually.
-
-## How to edit connection points
-
-### Using the simulator UI
+## Using the simulator UI
 
 1. Launch the simulator:
 
@@ -160,19 +15,51 @@ to verify child links visually.
    ```
 
 2. Click **Edit Connections** in the toolbar — meshes go semi-transparent and
-   coloured sphere markers appear at every flat face centroid.
+   existing connection markers appear (green = proximal surface,
+   blue = proximal centred, red = distal).
 
-3. Use the **Proximal / Distal** toggle to choose which end to assign.
+   The editor toolbar is split across two rows:
 
-4. Select a **centering mode** from the dropdown (`surface` or `center`).
+   - **Row 1:** Mode buttons, **Show All** checkbox, and the currently
+     selected part name.
+   - **Row 2:** **Undo**/**Redo**, **Rot X**/**Rot Y**/**Rot Z**,
+     **Remove Part Conns**, status label, **Save & Rebuild**, and
+     **Remove Connections**.
 
-5. Click a yellow marker to assign it. Markers turn **green** (proximal) or
-   **red** (distal).
+3. Select a mode from row 1:
 
-6. Click **Save & Rebuild** — updated connection points are written to the
-   analysis YAML (with `method: manual`) and the URDF is regenerated.
+   - **Proximal Centred** (blue) — places a `center`-mode proximal marker.
+   - **Proximal Surface** (green) — places a `surface`-mode proximal marker.
+   - **Distal** (red) — places a distal marker (tells gap-closing which parent
+     surface the child should meet).
+   - **Move Parts** (amber) — drag a part or use arrow keys (0.1 mm per press).
 
-### Editing analysis YAML directly
+   See {ref}`when-to-use-each-mode` below for guidance on `surface` vs `center`.
+
+4. Click directly on any mesh surface to place the marker at the click point.
+   The face normal at that point becomes the marker's axis. Clicking a mesh
+   also selects it — the selected part name appears in row 1.
+
+5. Use the **Show All** checkbox to see markers for all parts at once.
+
+6. Use **Undo** / **Redo** (row 2) to step back and forward through edits
+   (connection assignments, part moves, and rotations).
+
+7. Use **Rot X** / **Rot Y** / **Rot Z** (row 2) to rotate the selected part
+   90° around that axis. Useful for aligning a part whose STL orientation
+   doesn't match the link frame. On save, the rotation is composed with any
+   existing `visual_rpy` in `chain.yaml`.
+
+8. Click **Save & Rebuild** — this writes changes to three places:
+
+   - **`analysis/*.yaml`** — updated connection points (with `method: manual`)
+   - **`chain.yaml`** — if you used Move Parts, the accumulated offset is
+     saved as `visual_xyz`; if you rotated a part, the rotation is composed
+     with existing `visual_rpy`; if you only edited connections without
+     moving or rotating, any stale `visual_xyz` is cleared
+   - **`robot.urdf`** — regenerated from the updated analysis and chain data
+
+## Editing analysis YAML directly
 
 You can also edit the `connection_points` section of any analysis YAML file
 directly. After editing:
@@ -183,6 +70,30 @@ uv run robot-arm-sim generate robots/MyRobot/
 
 This regenerates the URDF from the updated analysis data.
 
+## Fixing jumbled parts
+
+When auto-detection picks the wrong connection points, parts end up in the
+wrong position *and* orientation. Fix this in two steps:
+
+1. **Place the markers correctly** — use Edit Connections and click directly on
+   the correct mesh surfaces to assign proximal and distal markers. This tells
+   the pipeline where the joint axes are, and gives it the axis directions from
+   the face normals.
+
+2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
+   face is not perpendicular to the joint axis (i.e. the STL mesh
+   coordinates don't naturally align with the link frame), you need a
+   `visual_rpy` rotation in `chain.yaml` to bring them into alignment.
+
+For a typical straight part where proximal and distal are on parallel faces
+along the same axis, `visual_rpy` can stay at `[0, 0, 0]`. For L-shaped or
+angled parts, you need a rotation.
+
+**Work from base to tip.** Surface gap closure references the parent's
+distal position, so fixing a parent link's connections first makes it easier
+to verify child links visually.
+
+(when-to-use-each-mode)=
 ## When to use each mode
 
 | Geometry | Mode | Why |
@@ -194,3 +105,58 @@ This regenerates the URDF from the updated analysis data.
 
 **Rule of thumb:** if the joint rotation axis passes *through* a bore, use
 `center`. If the joint is at a flat face where two parts mate, use `surface`.
+
+**When to place a distal marker:** the distal marker tells the gap-closing pass
+which parent surface the child link should be shifted to meet. Auto-detected
+distals are usually correct; you only need to place one manually when
+auto-detection picked the wrong face.
+
+## Fine-tuning with `visual_xyz`
+
+After connection points place the mesh approximately, you can apply a
+small local nudge via `visual_xyz` in `chain.yaml`. This offset is applied
+after all other pipeline computation and never affects other links.
+
+You can set it by:
+
+- Using **Move Parts** mode in the simulator, then clicking **Save & Rebuild**
+- Editing `chain.yaml` directly and running `generate`
+
+See {ref}`the pipeline explanation <key-rules>` for details on what
+propagates and what doesn't.
+
+## Removing connection points
+
+If auto-detected connections are consistently wrong and you prefer full manual
+control over mesh placement, you can remove all connection points and work
+entirely with `visual_xyz` offsets.
+
+**When to use it:** auto-detection places parts incorrectly for most joints, and
+fixing each one individually is slower than positioning parts manually.
+
+**How:** in the simulator, enter **Edit Connections** mode and click
+**Remove Connections** (red button, row 2). This:
+
+1. **Bakes current placement into `visual_xyz`** — each link's current URDF
+   visual origin is saved as `visual_xyz` in `chain.yaml`, preserving exact
+   part positions.
+2. **Clears all `connection_points`** from every `analysis/*.yaml` file.
+3. **Regenerates the URDF** — with no connection points the pipeline returns
+   `[0,0,0]` for the visual origin, so the `visual_xyz` values produce
+   identical output.
+
+Parts do not move — the visual result is the same before and after.
+
+To remove connections for a **single part** instead, select it first (click on
+the mesh) then click **Remove Part Conns** (row 2). This bakes placement and
+clears connection points for that link only.
+
+After removal, fine-tune placement with **Move Parts** mode, **Rot X/Y/Z**
+buttons, or by editing `visual_xyz` / `visual_rpy` values directly in
+`chain.yaml`.
+
+## Exiting without saving
+
+Clicking **Exit Edit** discards all unsaved changes — connection assignments,
+part moves, and rotations are all restored to their state when you entered
+edit mode. Dragged meshes snap back to their original positions.
