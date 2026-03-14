@@ -55,13 +55,21 @@ def build_edit_connections(state: SimulatorState) -> None:
         ui.column().classes("q-pa-sm").style("width: 100%; gap: 4px; display: none;")
     )
     with state.edit_connections_row:
-        # === Row 1: Mode buttons | Show All | Selected part name ===
+        # === Status line (centered above toolbars) ===
+        state.connection_status_label = ui.label(
+            "Click mesh to assign connection or move part"
+        ).style("font-size: 0.85rem; color: #666; width: 100%; text-align: center;")
+
+        # === Row 1: Mode buttons | part name ===
         with ui.row().classes("items-center").style("width: 100%; gap: 8px;"):
+            ui.label("Edit Mode:").style(
+                "font-size: 0.85rem; font-weight: bold; color: #333;"
+            )
             _mode_defs = [
+                ("move_parts", "Move Part", "amber-9"),
                 ("proximal_centred", "Proximal Centred", "blue-7"),
                 ("proximal_surface", "Proximal Surface", "green-7"),
                 ("distal", "Distal", "red-7"),
-                ("move_parts", "Move Parts", "amber-9"),
             ]
             mode_buttons: dict[str, Any] = {}
 
@@ -97,9 +105,7 @@ def build_edit_connections(state: SimulatorState) -> None:
 
                 return handler
 
-            for i, (key, lbl, color) in enumerate(_mode_defs):
-                if i > 0:
-                    ui.separator().props("vertical")
+            for key, lbl, color in _mode_defs:
                 btn = ui.button(lbl, on_click=_make_mode_handler(key)).props(
                     f"dense no-caps color={color}"
                 )
@@ -107,29 +113,27 @@ def build_edit_connections(state: SimulatorState) -> None:
 
             _apply_mode_styles()
 
+            # Enable part drag on init since move_parts is the default mode
+            ui.run_javascript(
+                "if(window.__enablePartDrag) window.__enablePartDrag(true)"
+            )
+
             # Dummy centering select for compatibility
             state.connection_centering_select = type(
                 "_Dummy", (), {"value": "surface"}
             )()
 
-            ui.separator().props("vertical")
-
-            def _on_show_all(e: Any) -> None:
-                state.show_all_connections["value"] = e.value
-                _sync_connection_visibility(state)
-
-            ui.checkbox("Show All", value=False).props("dense").on_value_change(
-                _on_show_all
-            )
-
-            ui.separator().props("vertical")
+            ui.space()
 
             state.selected_part_label = ui.label("(no part)").style(
                 "font-size: 0.85rem; color: #333; font-weight: bold;"
             )
 
-        # === Row 2: Undo/Redo | Rot | Remove Part | status | Save ===
+        # === Row 2: Actions — Undo/Redo Rot Remove | Save/Remove ===
         with ui.row().classes("items-center").style("width: 100%; gap: 8px;"):
+            ui.label("Actions:").style(
+                "font-size: 0.85rem; font-weight: bold; color: #333;"
+            )
 
             def _undo() -> None:
                 if not state.undo_stack:
@@ -147,8 +151,6 @@ def build_edit_connections(state: SimulatorState) -> None:
 
             ui.button("Undo", on_click=_undo).props("flat dense no-caps")
             ui.button("Redo", on_click=_redo).props("flat dense no-caps")
-
-            ui.separator().props("vertical")
 
             def _make_rotate_handler(axis_idx: int):
                 axis_names = ["X", "Y", "Z"]
@@ -208,12 +210,6 @@ def build_edit_connections(state: SimulatorState) -> None:
             ui.button("Remove Part Conns", on_click=_remove_part_connections).props(
                 "color=red-7 flat dense no-caps"
             )
-
-            ui.separator().props("vertical")
-
-            state.connection_status_label = ui.label(
-                "Click mesh or marker to assign"
-            ).style("font-size: 0.85rem; color: #666;")
 
             ui.space()
 
@@ -314,10 +310,6 @@ def build_edit_connections(state: SimulatorState) -> None:
                 state.connection_status_label.text = "Saved! Reloading..."
                 await state.reload_urdf()
 
-            ui.button("Save & Rebuild", on_click=_save_and_rebuild).props(
-                "color=orange-7 flat dense"
-            )
-
             async def _remove_connections() -> None:
                 """Bake current visual placement into visual_xyz, clear connections."""
                 from robot_arm_sim.analyze.urdf_generator import generate_urdf
@@ -385,6 +377,9 @@ def build_edit_connections(state: SimulatorState) -> None:
             ui.button("Remove Connections", on_click=_remove_connections).props(
                 "color=red-7 flat dense"
             )
+            ui.button("Save & Rebuild", on_click=_save_and_rebuild).props(
+                "color=orange-7 flat dense"
+            )
 
     def _toggle_edit_connections() -> None:
         state.edit_connections_active["value"] = not state.edit_connections_active[
@@ -404,7 +399,9 @@ def build_edit_connections(state: SimulatorState) -> None:
         )
         if active:
             ui.run_javascript("window.__setMeshTransparency(0.25)")
-            state.connection_status_label.text = "Click mesh to assign"
+            state.connection_status_label.text = (
+                "Click mesh to assign connection or move part"
+            )
             _seed_connection_assignments(state)
             state.conn_snapshot = copy.deepcopy(state.connection_assignments)
             state.connections_visible["value"] = True

@@ -37,7 +37,7 @@ class SimulatorState:
         self.connection_assignments: dict[str, dict[str, Any]] = {}
         self.connection_end_toggle = {"value": "Proximal"}
         self.connection_centering = {"value": "surface"}
-        self.connection_edit_mode = {"value": "proximal_centred"}
+        self.connection_edit_mode = {"value": "move_parts"}
         self.connection_centering_select: Any = None  # set by edit_connections UI
         self.connection_center_target: tuple[str, str] | None = None
         self.connection_dirty_links: set[str] = set()
