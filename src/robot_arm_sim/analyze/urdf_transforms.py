@@ -72,14 +72,12 @@ def compute_visual_origin(
     link_spec: dict,
     link_name: str,
     *,
-    joint_axis: list[float],
     messages: list[str],
 ) -> tuple[list[float], list[float]]:
-    """Compute visual origin xyz/rpy: snap proximal bore center onto joint axis.
+    """Compute visual origin xyz/rpy: place proximal connection at frame origin.
 
-    Each mesh independently positions itself so its proximal bore center
-    lies on the joint axis line.  Cross-axis error is always zeroed out;
-    along-axis placement depends on centering mode (surface vs center).
+    Translates the mesh so the proximal bore sits on the joint axis.
+    For center mode, averages with the opposite face along the bore axis.
     """
     conn_points = analysis.get("connection_points", [])
     proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
@@ -92,19 +90,7 @@ def compute_visual_origin(
 
     pos = np.array(proximal["position"], dtype=float)  # mm, mesh coords
 
-    # Joint axis direction in mesh coordinates
-    ja = np.array(joint_axis, dtype=float)
-    if viz_rpy != [0, 0, 0]:
-        # viz_rpy rotates mesh→URDF, so mesh_axis = R^T @ urdf_axis
-        ja = rpy_to_rotation(viz_rpy).T @ ja
-    ja = ja / (np.linalg.norm(ja) + 1e-12)  # normalise
-
-    # Decompose proximal position into along-axis and cross-axis
-    along_scalar = float(np.dot(pos, ja))
-    along_vec = along_scalar * ja
-    cross_vec = pos - along_vec
-
-    # Bore axis for center-mode opposite-face lookup
+    # For center mode, average proximal with opposite face along bore axis
     bore_axis = proximal.get("axis", [0, 0, 0])
     axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
     centering = proximal.get("centering", "surface")
@@ -112,24 +98,18 @@ def compute_visual_origin(
     if centering == "center" and abs(bore_axis[axis_idx]) > 0.5:
         opp = _find_opposite_face(analysis, pos.tolist(), bore_axis, axis_idx)
         if opp is not None:
-            # Average proximal with opposite face along bore axis
-            centered = pos.copy()
-            centered[axis_idx] = (pos[axis_idx] + opp) / 2
-            along_scalar = float(np.dot(centered, ja))
-            along_vec = along_scalar * ja
+            pos = pos.copy()
+            pos[axis_idx] = (pos[axis_idx] + opp) / 2
 
-    # Snapped position: along-axis preserved, cross-axis zeroed
-    snapped = along_vec
-
+    # Visual origin = -proximal/1000: places proximal at frame origin (on axis)
     messages.append(
         f"  {link_name}: proximal @ origin,"
-        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm,"
-        f" cross=({cross_vec[0]:.1f}, {cross_vec[1]:.1f}, {cross_vec[2]:.1f})mm"
+        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
     )
     if viz_rpy == [0, 0, 0]:
-        viz_xyz = (-snapped / 1000).tolist()
+        viz_xyz = (-pos / 1000).tolist()
     else:
-        viz_xyz = (-rpy_to_rotation(viz_rpy) @ (snapped / 1000)).tolist()
+        viz_xyz = (-rpy_to_rotation(viz_rpy) @ (pos / 1000)).tolist()
 
     extra = link_spec.get("visual_xyz")
     if extra is not None:
