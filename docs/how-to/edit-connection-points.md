@@ -106,3 +106,29 @@ You can set it by:
 
 See {ref}`the pipeline explanation <key-rules>` for details on what
 propagates and what doesn't.
+
+## Removing connection points
+
+If auto-detected connections are consistently wrong and you prefer full manual
+control over mesh placement, you can remove all connection points and work
+entirely with `visual_xyz` offsets.
+
+**When to use it:** auto-detection places parts incorrectly for most joints, and
+fixing each one individually is slower than positioning parts manually.
+
+**How:** in the simulator, enter **Edit Connections** mode and click
+**Remove Connections** (red button). This:
+
+1. **Bakes current placement into `visual_xyz`** — each link's current URDF
+   visual origin is saved as `visual_xyz` in `chain.yaml`, preserving exact
+   part positions.
+2. **Clears all `connection_points`** from every `analysis/*.yaml` file.
+3. **Regenerates the URDF** — with no connection points the pipeline returns
+   `[0,0,0]` for the visual origin, so the `visual_xyz` values produce
+   identical output.
+
+Parts do not move — the visual result is the same before and after.
+
+After removal, fine-tune placement with **Move Parts** mode or by editing
+`visual_xyz` values directly in `chain.yaml`. Rotation editing
+(`visual_rpy`) is planned for a future release.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import math
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -198,6 +199,79 @@ def build_edit_connections(state: SimulatorState) -> None:
 
         ui.button("Save & Rebuild", on_click=_save_and_rebuild).props(
             "color=orange-7 flat dense"
+        )
+
+        async def _remove_connections() -> None:
+            """Bake current visual placement into visual_xyz, clear connections."""
+            from robot_arm_sim.analyze.urdf_generator import generate_urdf
+            from robot_arm_sim.models.models import _FixedFloatDumper
+
+            urdf_path = state.robot_dir / "robot.urdf"
+            chain_file = state.robot_dir / "chain.yaml"
+            analysis_dir = state.robot_dir / "analysis"
+
+            if not urdf_path.exists() or not chain_file.exists():
+                state.connection_status_label.text = "Missing URDF or chain.yaml"
+                return
+
+            # 1. Parse current URDF — extract visual origin xyz per link name
+            tree = ET.parse(urdf_path)  # noqa: S314
+            urdf_origins: dict[str, list[float]] = {}
+            for link_el in tree.findall("link"):
+                name = link_el.get("name", "")
+                vis = link_el.find("visual")
+                if vis is None:
+                    continue
+                origin = vis.find("origin")
+                if origin is not None and origin.get("xyz"):
+                    xyz = [float(v) for v in origin.get("xyz", "0 0 0").split()]
+                else:
+                    xyz = [0.0, 0.0, 0.0]
+                urdf_origins[name] = xyz
+
+            # 2. Update chain.yaml — set visual_xyz from URDF origins
+            with open(chain_file) as f:
+                chain_data = yaml.safe_load(f)
+
+            for link_spec in chain_data.get("links", []):
+                link_name = link_spec["name"]
+                xyz = urdf_origins.get(link_name, [0.0, 0.0, 0.0])
+                if any(abs(v) > 1e-9 for v in xyz):
+                    link_spec["visual_xyz"] = [round(v, 6) for v in xyz]
+                elif "visual_xyz" in link_spec:
+                    del link_spec["visual_xyz"]
+
+            with open(chain_file, "w") as f:
+                yaml.dump(
+                    chain_data,
+                    f,
+                    Dumper=_FixedFloatDumper,
+                    default_flow_style=False,
+                )
+
+            # 3. Clear connection_points from all analysis YAMLs
+            for yaml_file in sorted(analysis_dir.glob("*.yaml")):
+                if yaml_file.name == "summary.yaml":
+                    continue
+                model = load_part_yaml(yaml_file)
+                if model.connection_points:
+                    model.connection_points = []
+                    save_part_yaml(model, yaml_file)
+
+            # 4. Regenerate URDF (should produce identical placement)
+            generate_urdf(
+                chain_file,
+                analysis_dir,
+                state.robot_dir / "stl_files",
+                urdf_path,
+            )
+
+            # 5. Reload scene
+            state.connection_status_label.text = "Connections removed. Reloading..."
+            await state.reload_urdf()
+
+        ui.button("Remove Connections", on_click=_remove_connections).props(
+            "color=red-7 flat dense"
         )
 
     def _toggle_edit_connections() -> None:
