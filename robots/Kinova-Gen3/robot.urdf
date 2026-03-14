@@ -2,7 +2,7 @@
 <robot name="Kinova-Gen3">
   <link name="base_link">
     <visual>
-      <origin xyz="-0.007212 0.001053 0.000000" rpy="0 0 0"/>
+      <origin xyz="0.001262 0.001053 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/base_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -10,7 +10,7 @@
   </link>
   <link name="shoulder_link">
     <visual>
-      <origin xyz="-0.000036 -0.000419 -0.014420" rpy="0 0 0"/>
+      <origin xyz="-0.000036 -0.000419 -0.001427" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/shoulder_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -18,7 +18,7 @@
   </link>
   <link name="bicep_link">
     <visual>
-      <origin xyz="0.000000 -0.046000 0.020425" rpy="0 0 0"/>
+      <origin xyz="0.000000 -0.000714 0.008425" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/bicep_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -26,7 +26,7 @@
   </link>
   <link name="forearm_link">
     <visual>
-      <origin xyz="0.001281 -0.012313 0.050569" rpy="0 0 0"/>
+      <origin xyz="0.000981 0.000686 0.000969" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/forearm_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -48,7 +48,7 @@
   </link>
   <link name="bracelet_link">
     <visual>
-      <origin xyz="0.000396 0.037500 0.032617" rpy="0 0 0"/>
+      <origin xyz="0.000000 0.000000 0.011624" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/bracelet_no_vision_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
