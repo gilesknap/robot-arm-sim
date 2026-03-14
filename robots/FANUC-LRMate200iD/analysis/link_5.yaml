@@ -2,29 +2,7 @@
 part_name: link_5
 source_file: stl_files/link_5.stl
 format: binary_stl
-connection_points:
-- end: proximal
-  position:
-  - 74.0
-  - -3.286
-  - 0.181
-  axis:
-  - 1.0
-  - 0.0
-  - 0.0
-  radius_mm: 39.0
-  method: cross_section
-- end: distal
-  position:
-  - 34.002
-  - 36.974
-  - 4.214
-  axis:
-  - 0.0
-  - 1.0
-  - 0.0
-  radius_mm: 55.3
-  method: cross_section
+connection_points: []
 geometry:
   vertex_count: 1616
   face_count: 3246
@@ -56,8 +34,8 @@ inertia:
   principal_axes:
   - - 0.9976548356295092
     - -0.06844577059418364
-    - 7.370770351695139e-05
-  - - 1.8600893059388883e-05
+    - 0.000074
+  - - 0.000019
     - -0.0008057533459082482
     - -0.9999996752077233
   - - 0.0684458077537547

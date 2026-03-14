@@ -2,18 +2,7 @@
 part_name: spherical_wrist_2_link
 source_file: stl_files/spherical_wrist_2_link.stl
 format: binary_stl
-connection_points:
-- end: distal
-  position:
-  - -0.0
-  - 89.925
-  - 34.825
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 30.7
-  method: cross_section
+connection_points: []
 geometry:
   vertex_count: 5173
   face_count: 10338
@@ -43,11 +32,11 @@ inertia:
   - 605708150.4923145
   - 625297546.5337862
   principal_axes:
-  - - 1.6923026030192176e-05
+  - - 0.000017
     - 0.9801196542713076
     - 0.1984073159555938
   - - -0.9999999945006799
-    - -3.948568121311902e-06
+    - -0.000004
     - 0.00010480004257355159
   - - 0.00010350000629762466
     - -0.19840731663802227

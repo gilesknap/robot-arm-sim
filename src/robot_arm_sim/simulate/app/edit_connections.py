@@ -19,6 +19,7 @@ from robot_arm_sim.models import (
 )
 
 from .loaders import quantize_axis
+from .toolbar import _apply_toggle_style
 
 if TYPE_CHECKING:
     from .state import SimulatorState
@@ -253,6 +254,12 @@ def build_edit_connections(state: SimulatorState) -> None:
                         chain_data = yaml.safe_load(f)
                     chain_modified = False
 
+                    # FK transforms to convert world-space drag deltas
+                    # into link-local frame for visual_xyz storage
+                    from ..kinematics import forward_kinematics
+
+                    fk_transforms = forward_kinematics(state.robot, state.joint_angles)
+
                     link_specs = {
                         lk.get("mesh"): lk
                         for lk in chain_data.get("links", [])
@@ -270,13 +277,17 @@ def build_edit_connections(state: SimulatorState) -> None:
                         # Apply accumulated visual offset from Move Parts
                         offset = state.part_visual_offsets.get(link_name)
                         if offset and any(abs(d) > 1e-6 for d in offset):
+                            # Drag delta is in world space; visual_xyz is in
+                            # the link's local frame.  Rotate by inverse of
+                            # the link's world orientation.
+                            tf = fk_transforms.get(link_name)
+                            if tf is not None:
+                                r_world = tf[:3, :3]
+                                offset = (r_world.T @ np.array(offset)).tolist()
                             cur = spec.get("visual_xyz", [0, 0, 0])
                             spec["visual_xyz"] = [
                                 round(cur[i] + offset[i], 6) for i in range(3)
                             ]
-                            chain_modified = True
-                        elif "visual_xyz" in spec:
-                            del spec["visual_xyz"]
                             chain_modified = True
 
                         # Apply accumulated visual rotation
@@ -399,6 +410,12 @@ def build_edit_connections(state: SimulatorState) -> None:
         )
         if active:
             ui.run_javascript("window.__setMeshTransparency(0.25)")
+            # Turn on coordinate frames automatically
+            if not state.frames_visible["value"]:
+                state.frames_visible["value"] = True
+                ui.run_javascript("window.__setAxesVisible(true)")
+                if hasattr(state, "frames_btn"):
+                    _apply_toggle_style(state.frames_btn, True)
             state.connection_status_label.text = (
                 "Click mesh to assign connection or move part"
             )

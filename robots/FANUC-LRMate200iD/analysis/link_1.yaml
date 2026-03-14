@@ -2,29 +2,7 @@
 part_name: link_1
 source_file: stl_files/link_1.stl
 format: binary_stl
-connection_points:
-- end: proximal
-  position:
-  - -0.22
-  - -2.364
-  - -159.927
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 115.3
-  method: cross_section
-- end: distal
-  position:
-  - 36.317
-  - -117.5
-  - -24.787
-  axis:
-  - 0.0
-  - 1.0
-  - 0.0
-  radius_mm: 115.7
-  method: cross_section
+connection_points: []
 geometry:
   vertex_count: 2290
   face_count: 4576

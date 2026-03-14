@@ -2,7 +2,7 @@
 <robot name="ABB-IRB2400">
   <link name="base_link">
     <visual>
-      <origin xyz="0.014336 0.003980 -0.000000" rpy="0 0 0"/>
+      <origin xyz="0.014336 0.003980 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/base_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -18,7 +18,7 @@
   </link>
   <link name="link_2">
     <visual>
-      <origin xyz="0.115063 0.034362 -0.096711" rpy="0 0 0"/>
+      <origin xyz="0.001064 0.000362 -0.000710" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_2.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -33,6 +33,7 @@
   </link>
   <link name="link_4">
     <visual>
+      <origin xyz="0.007000 0.000000 0.001020" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_4.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -47,7 +48,7 @@
   </link>
   <link name="link_6">
     <visual>
-      <origin xyz="0.131000 0.000000 0.000000" rpy="0 0 0"/>
+      <origin xyz="0.043283 0.000000 0.000000" rpy="0 0 0"/>
       <geometry>
         <mesh filename="stl_files/link_6.stl" scale="0.001 0.001 0.001"/>
       </geometry>

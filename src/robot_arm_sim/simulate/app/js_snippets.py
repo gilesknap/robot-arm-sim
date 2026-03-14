@@ -554,7 +554,7 @@ FACE_MARKER_INIT_JS = """
     };
 
     // --- Move Parts drag mode ---
-    let dragEnabled = false;
+    let dragEnabled = true;
     let dragging = false;
     let dragMesh = null;
     let dragLinkName = null;
@@ -576,19 +576,21 @@ FACE_MARKER_INIT_JS = """
 
     function getViewPlaneAxes() {
         // Determine which two axes are in the view plane
-        // based on the camera direction (ortho lock ensures
-        // camera faces along one cardinal axis)
+        // and their signs relative to screen right/up.
         const cam = sc.camera;
-        const dir = new THREE.Vector3();
-        cam.getWorldDirection(dir);
-        const ax = Math.abs(dir.x);
-        const ay = Math.abs(dir.y);
-        const az = Math.abs(dir.z);
-        // The dominant axis is the view axis; the other two
-        // are the drag plane axes
-        if (ax > ay && ax > az) return {u: 'y', v: 'z'};
-        if (ay > az) return {u: 'x', v: 'z'};
-        return {u: 'x', v: 'y'};
+        const right = new THREE.Vector3();
+        right.setFromMatrixColumn(cam.matrixWorld, 0);
+        const up = new THREE.Vector3();
+        up.setFromMatrixColumn(cam.matrixWorld, 1);
+        const axes = ['x', 'y', 'z'];
+        const ar = [Math.abs(right.x), Math.abs(right.y), Math.abs(right.z)];
+        const au = [Math.abs(up.x), Math.abs(up.y), Math.abs(up.z)];
+        const ui = ar.indexOf(Math.max(...ar));
+        const vi = au.indexOf(Math.max(...au));
+        return {
+            u: axes[ui], uSign: Math.sign(right[axes[ui]]),
+            v: axes[vi], vSign: Math.sign(up[axes[vi]])
+        };
     }
 
     function screenToWorld(e, refPos) {
@@ -664,7 +666,7 @@ FACE_MARKER_INIT_JS = """
         dragMesh = null;
     });
 
-    // Arrow-key nudge: move selected part 0.1 mm per keypress
+    // Arrow-key nudge: Shift for 2mm, default 0.1mm
     document.addEventListener('keydown', function(e) {
         if (!dragEnabled || !window.__faceEditMode) return;
         if (!selectedMesh || !selectedLinkName) return;
@@ -673,18 +675,27 @@ FACE_MARKER_INIT_JS = """
             return;
         e.preventDefault();
         e.stopPropagation();
-        const step = 0.0001;  // 0.1 mm in metres
+        const step = e.shiftKey ? 0.002 : 0.0001;
         const axes = getViewPlaneAxes();
         const startPos = selectedMesh.position.clone();
-        if (key === 'ArrowRight') selectedMesh.position[axes.u] += step;
-        if (key === 'ArrowLeft')  selectedMesh.position[axes.u] -= step;
-        if (key === 'ArrowUp')    selectedMesh.position[axes.v] += step;
-        if (key === 'ArrowDown')  selectedMesh.position[axes.v] -= step;
+        if (key === 'ArrowRight') selectedMesh.position[axes.u] += step * axes.uSign;
+        if (key === 'ArrowLeft')  selectedMesh.position[axes.u] -= step * axes.uSign;
+        if (key === 'ArrowUp')    selectedMesh.position[axes.v] += step * axes.vSign;
+        if (key === 'ArrowDown')  selectedMesh.position[axes.v] -= step * axes.vSign;
         const delta = selectedMesh.position.clone().sub(startPos);
-        window.__lastPartMove = {
-            linkName: selectedLinkName,
-            delta: [delta.x, delta.y, delta.z]
-        };
+        // Accumulate into pending move so rapid keypresses don't
+        // overwrite each other before the 200ms Python poll reads them.
+        const prev = window.__lastPartMove;
+        if (prev && prev.linkName === selectedLinkName) {
+            prev.delta[0] += delta.x;
+            prev.delta[1] += delta.y;
+            prev.delta[2] += delta.z;
+        } else {
+            window.__lastPartMove = {
+                linkName: selectedLinkName,
+                delta: [delta.x, delta.y, delta.z]
+            };
+        }
     });
 
     // Track mouse movement to distinguish clicks from drags/rotates

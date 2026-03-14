@@ -156,7 +156,7 @@ Once the simulation looks correct:
 | Skill | Purpose | Invocation |
 |---|---|---|
 | `make-robot` | Full pipeline: analyze, infer chain, generate, verify | `/make-robot` |
-| `zoom-rotate-camera` | Position the 3D camera programmatically | `/zoom-rotate-camera` |
+| `control-simulator` | Camera control, part visibility, connection editing | `/control-simulator` |
 
 All skills edit `chain.yaml` and regenerate — they never touch `robot.urdf`
 directly.

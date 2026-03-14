@@ -331,7 +331,7 @@ capture screenshots. Key discoveries:
 - **Hot reload doesn't work for URDF changes** — the simulator process must be
   fully restarted. This was captured in the skill for future sessions.
 - **Camera control via JavaScript** is safer than mouse dragging, which can
-  accidentally move joint sliders. This led to the `zoom-rotate-camera` skill.
+  accidentally move joint sliders. This led to the `control-simulator` skill.
 - **Working base-to-tip is essential** — fixing a misalignment at joint 2
   automatically fixed apparent issues at joints 3, 4, and 5.
 

@@ -2,29 +2,7 @@
 part_name: link_6
 source_file: stl_files/link_6.stl
 format: binary_stl
-connection_points:
-- end: proximal
-  position:
-  - -6.0
-  - -0.272
-  - -0.019
-  axis:
-  - 1.0
-  - 0.0
-  - 0.0
-  radius_mm: 20.0
-  method: cross_section
-- end: distal
-  position:
-  - -0.0
-  - -0.0
-  - -0.0
-  axis:
-  - 1.0
-  - 0.0
-  - 0.0
-  radius_mm: 20.0
-  method: cross_section
+connection_points: []
 geometry:
   vertex_count: 197
   face_count: 390
@@ -34,7 +12,7 @@ geometry:
     - -20.0
     - -20.0
     max:
-    - -1.7881393432617188e-06
+    - -0.000002
     - 19.97433090209961
     - 20.0
     extents:
@@ -46,7 +24,7 @@ geometry:
   center_of_mass:
   - -3.005877234104355
   - -0.0002536197806390928
-  - -1.8250116370479275e-12
+  - -0.0
   is_watertight: true
 inertia:
   principal_moments:
@@ -54,15 +32,15 @@ inertia:
   - 770844.94824731
   - 1496740.3861024668
   principal_axes:
-  - - 2.445193071586592e-06
+  - - 0.000002
     - 0.9999999999970105
-    - 8.427862488297175e-10
-  - - 2.5459839519612e-15
-    - -8.427862488384626e-10
+    - 0.0
+  - - 0.0
+    - -0.0
     - 1.0
   - - -0.9999999999970105
-    - 2.445193071586592e-06
-    - 4.6067590484418515e-15
+    - 0.000002
+    - 0.0
 features:
   flat_faces:
   - description: "Large flat face on left, area 1254.5 mm\xB2, likely mating surface"

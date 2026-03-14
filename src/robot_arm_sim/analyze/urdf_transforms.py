@@ -67,6 +67,79 @@ def _find_opposite_face(
     return best
 
 
+def auto_detect_visual_flips(
+    chain: dict,
+    analyses: dict,
+    messages: list[str],
+) -> None:
+    """Set visual_rpy on links whose meshes render backwards due to frame flips.
+
+    When a joint's ``origin_rpy`` flips the child frame (e.g. pi around X),
+    the mesh may extend in the wrong direction — toward the base instead of
+    the tip.  Detect this by comparing the mesh's proximal→distal direction
+    against the next joint's origin direction on the dominant axis.  When
+    they oppose, set ``visual_rpy`` equal to the creating joint's
+    ``origin_rpy`` to counter-rotate the mesh within the flipped frame.
+    """
+    # Build link → joint mappings
+    child_to_joint: dict[str, dict] = {}
+    parent_to_joint: dict[str, dict] = {}
+    for j in chain["joints"]:
+        child_to_joint[j["child"]] = j
+        parent_to_joint[j["parent"]] = j
+
+    for link_spec in chain["links"]:
+        link_name = link_spec["name"]
+        if "visual_rpy" in link_spec:
+            continue  # explicitly set in chain.yaml, don't override
+
+        creating_joint = child_to_joint.get(link_name)
+        if not creating_joint:
+            continue  # base link
+
+        origin_rpy = creating_joint.get("origin_rpy", [0, 0, 0])
+        if all(abs(v) < 1e-6 for v in origin_rpy):
+            continue  # no rotation, no flip possible
+
+        outgoing_joint = parent_to_joint.get(link_name)
+        if not outgoing_joint:
+            continue  # tip link, no next joint to compare against
+
+        mesh_name = link_spec.get("mesh")
+        if not mesh_name or mesh_name not in analyses:
+            continue
+
+        analysis = analyses[mesh_name]
+        conn_pts = analysis.get("connection_points", [])
+        proximal = next((cp for cp in conn_pts if cp["end"] == "proximal"), None)
+        distal = next((cp for cp in conn_pts if cp["end"] == "distal"), None)
+        if not proximal or not distal:
+            continue
+
+        # Proximal-to-distal direction in mesh coords
+        d = np.array(distal["position"]) - np.array(proximal["position"])
+        dom_axis = int(np.argmax(np.abs(d)))
+        if abs(d[dom_axis]) < 10.0:  # less than 10mm, too small to judge
+            continue
+
+        # Next joint's origin direction on the same axis
+        next_origin = outgoing_joint.get("origin", [0, 0, 0])
+        if abs(next_origin[dom_axis]) < 1e-6:
+            continue  # no clear direction on this axis
+
+        if np.sign(d[dom_axis]) != np.sign(next_origin[dom_axis]):
+            # The mesh extends opposite to the chain direction in this
+            # frame.  Rather than rotating the mesh (which inverts its
+            # visual appearance), anchor on the distal connection point
+            # instead of the proximal.  The mesh then extends naturally
+            # in the correct world direction without any rotation.
+            link_spec["_visual_anchor"] = "distal"
+            messages.append(
+                f"  {link_name}: frame-flip detected,"
+                f" anchoring visual on distal connection point"
+            )
+
+
 def compute_visual_origin(
     analysis: dict,
     link_spec: dict,
@@ -80,19 +153,23 @@ def compute_visual_origin(
     For center mode, averages with the opposite face along the bore axis.
     """
     conn_points = analysis.get("connection_points", [])
-    proximal = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
+    anchor_end = link_spec.get("_visual_anchor", "proximal")
+    anchor = next((cp for cp in conn_points if cp["end"] == anchor_end), None)
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
 
-    if proximal is None:
+    if anchor is None:
+        # Fall back to proximal if requested anchor not found
+        anchor = next((cp for cp in conn_points if cp["end"] == "proximal"), None)
+    if anchor is None:
         messages.append(f"  {link_name}: no proximal connection point")
         return [0, 0, 0], viz_rpy
 
-    pos = np.array(proximal["position"], dtype=float)  # mm, mesh coords
+    pos = np.array(anchor["position"], dtype=float)  # mm, mesh coords
 
-    # For center mode, average proximal with opposite face along bore axis
-    bore_axis = proximal.get("axis", [0, 0, 0])
+    # For center mode, average anchor with opposite face along bore axis
+    bore_axis = anchor.get("axis", [0, 0, 0])
     axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
-    centering = proximal.get("centering", "surface")
+    centering = anchor.get("centering", "surface")
 
     if centering == "center" and abs(bore_axis[axis_idx]) > 0.5:
         opp = _find_opposite_face(analysis, pos.tolist(), bore_axis, axis_idx)
@@ -100,10 +177,10 @@ def compute_visual_origin(
             pos = pos.copy()
             pos[axis_idx] = (pos[axis_idx] + opp) / 2
 
-    # Visual origin = -proximal/1000: places proximal at frame origin (on axis)
+    # Visual origin: places anchor connection point at frame origin (on axis)
     messages.append(
-        f"  {link_name}: proximal @ origin,"
-        f" proximal=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
+        f"  {link_name}: {anchor_end} @ origin,"
+        f" {anchor_end}=({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f})mm"
     )
     if viz_rpy == [0, 0, 0]:
         viz_xyz = (-pos / 1000).tolist()
@@ -248,6 +325,58 @@ def close_surface_gaps_along_axis(
             f"  {child_name}: surface gap closed along axis, shift={along * 1000:.1f}mm"
         )
         visual_origins[child_name] = (adjusted, child_viz_rpy)
+
+
+def update_derived_joint_origins(
+    chain: dict,
+    analyses: dict,
+    visual_origins: dict[str, tuple[list[float], list[float]]],
+    joint_origins: dict[str, list[float]],
+    messages: list[str],
+) -> None:
+    """Recompute connection-point-derived joint origins after visual shifts.
+
+    When surface gap closing shifts a parent's visual origin, the parent's
+    distal connection point moves in the parent frame.  Joint origins that
+    were computed from connection points (no explicit ``origin`` in the
+    chain spec) must be recomputed to reflect the updated visual placement.
+    """
+    link_specs = {lk["name"]: lk for lk in chain["links"]}
+
+    for joint_spec in chain["joints"]:
+        if "origin" in joint_spec:
+            continue  # DH-derived origin — never modify
+
+        parent_name = joint_spec["parent"]
+        parent_spec = link_specs.get(parent_name, {})
+        parent_mesh = parent_spec.get("mesh")
+        if not parent_mesh or parent_mesh not in analyses:
+            continue
+
+        analysis = analyses[parent_mesh]
+        conn_points = analysis.get("connection_points", [])
+        distal = next((cp for cp in conn_points if cp["end"] == "distal"), None)
+        if distal is None:
+            continue
+
+        if parent_name not in visual_origins:
+            continue
+
+        parent_viz_xyz, parent_viz_rpy = visual_origins[parent_name]
+        dp = np.array(distal["position"]) * 0.001
+        if parent_viz_rpy != [0, 0, 0]:
+            dp = rpy_to_rotation(parent_viz_rpy) @ dp
+        new_origin = (np.array(parent_viz_xyz) + dp).tolist()
+
+        old_origin = joint_origins[joint_spec["name"]]
+        delta_mm = [(n - o) * 1000 for n, o in zip(new_origin, old_origin, strict=True)]
+        if any(abs(d) > 0.1 for d in delta_mm):
+            messages.append(
+                f"  {joint_spec['name']}: origin updated for parent visual shift,"
+                f" delta=({delta_mm[0]:.1f}, {delta_mm[1]:.1f}, {delta_mm[2]:.1f})mm"
+            )
+
+        joint_origins[joint_spec["name"]] = [round(v, 6) for v in new_origin]
 
 
 def rotation_matrix_to_rpy(rot: np.ndarray) -> list[float]:

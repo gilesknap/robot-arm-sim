@@ -2,29 +2,7 @@
 part_name: bracelet_no_vision_link
 source_file: stl_files/bracelet_no_vision_link.stl
 format: binary_stl
-connection_points:
-- end: proximal
-  position:
-  - -0.396
-  - -37.5
-  - -16.612
-  axis:
-  - 0.0
-  - 1.0
-  - 0.0
-  radius_mm: 34.1
-  method: cross_section
-- end: distal
-  position:
-  - -0.0
-  - -0.0
-  - 0.0
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 33.9
-  method: cross_section
+connection_points: []
 geometry:
   vertex_count: 13299
   face_count: 26686
@@ -36,7 +14,7 @@ geometry:
     max:
     - 38.23139953613281
     - 37.5
-    - 1.5199186691461364e-06
+    - 0.000002
     extents:
     - 76.55350875854492
     - 75.0

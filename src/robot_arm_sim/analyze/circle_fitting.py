@@ -31,12 +31,17 @@ def find_circle_center_at_slice(
     if extent < 1.0:
         return None
 
-    # Try slicing at 5%, 10%, 15% from the end
+    # Try slicing at 5%, 10%, 15% from the end.
+    # For very elongated parts (>200mm), cap offsets as if extent were 200mm
+    # so slices stay near end faces where bore openings are.
+    max_virtual_extent = 200.0
     for frac in [0.05, 0.10, 0.15]:
+        effective = min(extent, max_virtual_extent)
+        inset = frac * effective
         if direction == "above":
-            offset = proj_min + frac * extent
+            offset = proj_min + inset
         else:
-            offset = proj_max - frac * extent
+            offset = proj_max - inset
 
         plane_origin = axis * offset
         try:
@@ -133,10 +138,12 @@ def estimate_radius_at_slice(
     extent = proj_max - proj_min
 
     frac = 0.10
+    effective = min(extent, 200.0)
+    inset = frac * effective
     if direction == "above":
-        offset = proj_min + frac * extent
+        offset = proj_min + inset
     else:
-        offset = proj_max - frac * extent
+        offset = proj_max - inset
 
     plane_origin = axis * offset
     try:

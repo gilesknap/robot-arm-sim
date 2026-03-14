@@ -2,29 +2,7 @@
 part_name: bicep_link
 source_file: stl_files/bicep_link.stl
 format: binary_stl
-connection_points:
-- end: proximal
-  position:
-  - -46.0
-  - -410.123
-  - -14.849
-  axis:
-  - 1.0
-  - 0.0
-  - 0.0
-  radius_mm: 196.2
-  method: cross_section
-- end: distal
-  position:
-  - -0.618
-  - -410.101
-  - -52.835
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 202.9
-  method: cross_section
+connection_points: []
 geometry:
   vertex_count: 7813
   face_count: 15666

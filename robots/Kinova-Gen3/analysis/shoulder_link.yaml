@@ -2,29 +2,7 @@
 part_name: shoulder_link
 source_file: stl_files/shoulder_link.stl
 format: binary_stl
-connection_points:
-- end: proximal
-  position:
-  - 0.0
-  - -9.675
-  - -174.375
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 20.0
-  method: cross_section
-- end: distal
-  position:
-  - 0.036
-  - 0.419
-  - -0.0
-  axis:
-  - 0.0
-  - 0.0
-  - 1.0
-  radius_mm: 46.0
-  method: cross_section
+connection_points: []
 geometry:
   vertex_count: 4773
   face_count: 9538
@@ -36,7 +14,7 @@ geometry:
     max:
     - 46.35825729370117
     - 46.05689239501953
-    - -8.404255140703754e-07
+    - -0.000001
     extents:
     - 92.71651458740234
     - 94.70826721191406
@@ -54,7 +32,7 @@ inertia:
   - 1720391152.3735852
   - 1835849085.673725
   principal_axes:
-  - - 6.650678883835665e-05
+  - - 0.000067
     - 0.11633066793004954
     - 0.993210537235583
   - - -0.9999997830141657
