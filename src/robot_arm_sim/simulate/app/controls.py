@@ -89,6 +89,67 @@ def build_controls_panel(state: SimulatorState) -> None:
                 )
                 state.sliders[joint.name] = slider
 
+    # --- Reset buttons ---
+    with ui.row().classes("w-full q-mt-sm").style("gap: 8px"):
+
+        async def _reset_view() -> None:
+            for lname in state.visible_links:
+                state.visible_links[lname] = True
+                if lname in state.link_checkboxes:
+                    state.link_checkboxes[lname].selected = True
+            state.update_scene_now()
+            await ui.run_javascript(
+                "(() => {"
+                "  const appEl = document.getElementById('app');"
+                "  if (!appEl || !appEl.__vue_app__) return;"
+                "  let sc = null;"
+                "  function walk(n, d) {"
+                "    if (d > 30 || sc) return;"
+                "    if (n.component) {"
+                "      const p = n.component.proxy;"
+                "      if (p && p.renderer && p.scene && p.camera)"
+                "        { sc = p; return; }"
+                "      if (n.component.subTree)"
+                "        walk(n.component.subTree, d+1);"
+                "    }"
+                "    if (Array.isArray(n.children))"
+                "      n.children.forEach("
+                "        c => c && typeof c === 'object'"
+                "          && walk(c, d+1));"
+                "  }"
+                "  walk(appEl.__vue_app__._container._vnode, 0);"
+                "  if (!sc) return;"
+                "  const tb = document.getElementById("
+                "    'viewcube-proj-toggle');"
+                "  if (sc.camera.isPerspectiveCamera && tb)"
+                "    tb.click();"
+                "  setTimeout(() => {"
+                "    const cam = sc.camera;"
+                "    const ctrl = sc.controls;"
+                "    const tx=ctrl.target.x,"
+                "      ty=ctrl.target.y, tz=ctrl.target.z;"
+                "    const d = cam.position.distanceTo(ctrl.target);"
+                "    cam.position.set(tx, ty - d, tz);"
+                "    cam.up.set(0, 0, 1);"
+                "    ctrl.update();"
+                "    const fb = document.getElementById("
+                "      'viewcube-fit-btn');"
+                "    if (fb) fb.click();"
+                "  }, 50);"
+                "})();",
+                timeout=2.0,
+            )
+
+        ui.button(
+            "Reset Joints",
+            on_click=lambda: state.reset_all(),
+        ).props("flat dense color=orange-7")
+
+        ui.button(
+            "Reset View",
+            on_click=_reset_view,
+        ).props("flat dense color=orange-7")
+
     # --- IK control panel ---
     state.ik_panel = ui.column().classes("w-full")
     state.ik_panel.set_visibility(False)

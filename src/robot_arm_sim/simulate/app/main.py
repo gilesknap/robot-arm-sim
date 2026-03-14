@@ -42,7 +42,7 @@ def create_app(robots_dir: Path, port: int = 8080) -> None:
         if stl_dir.exists():
             app.add_static_files(f"/stl/{name}", str(stl_dir))
 
-    default_robot = next(iter(robots))
+    default_robot = "Meca500-R3" if "Meca500-R3" in robots else next(iter(robots))
 
     @app.get("/healthz")
     async def healthz():

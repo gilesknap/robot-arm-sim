@@ -56,29 +56,16 @@ def generate_urdf(
 
     link_specs = {lk["name"]: lk for lk in chain["links"]}
 
-    # Build a map: link_name → joint axis for the joint where it's the child
-    # (for the base link, use the first joint where it's the parent)
-    link_joint_axis: dict[str, list[float]] = {}
-    for joint_spec in chain["joints"]:
-        child = joint_spec["child"]
-        parent = joint_spec["parent"]
-        axis = joint_spec["axis"]
-        link_joint_axis[child] = axis
-        if parent not in link_joint_axis:
-            link_joint_axis[parent] = axis
-
     # --- Pass 1: compute all visual origins and joint origins ---
     visual_origins: dict[str, tuple[list[float], list[float]]] = {}
     for link_spec in chain["links"]:
         link_name = link_spec["name"]
         mesh_name = link_spec.get("mesh")
         if mesh_name and mesh_name in analyses:
-            ja = link_joint_axis.get(link_name, [0, 0, 1])
             viz_xyz, viz_rpy = compute_visual_origin(
                 analyses[mesh_name],
                 link_spec,
                 link_name,
-                joint_axis=ja,
                 messages=messages,
             )
             visual_origins[link_name] = (viz_xyz, viz_rpy)

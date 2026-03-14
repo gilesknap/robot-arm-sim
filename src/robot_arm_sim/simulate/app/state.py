@@ -37,9 +37,12 @@ class SimulatorState:
         self.connection_assignments: dict[str, dict[str, Any]] = {}
         self.connection_end_toggle = {"value": "Proximal"}
         self.connection_centering = {"value": "surface"}
+        self.connection_edit_mode = {"value": "proximal_centred"}
         self.connection_centering_select: Any = None  # set by edit_connections UI
         self.connection_center_target: tuple[str, str] | None = None
         self.connection_dirty_links: set[str] = set()
+        self.part_visual_offsets: dict[str, list[float]] = {}
+        self.conn_snapshot: dict[str, dict[str, Any]] = {}
 
         # Loaded analysis data
         self.mesh_centers = load_mesh_centers(robot, robot_dir)
@@ -88,6 +91,7 @@ class SimulatorState:
         self.link_checkboxes: dict[str, Any] = {}
         self.ee_readout_ref: list[ui.label | None] = [None, None]
         self.connection_status_label: Any = None
+        self.connections_btn: Any = None
         self.edit_connections_btn: Any = None
         self.edit_connections_row: Any = None
         self.joint_panel: Any = None
