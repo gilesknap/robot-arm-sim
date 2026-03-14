@@ -59,6 +59,25 @@ def detect_connection_points(
             axis_groups = kept
 
     if len(axis_groups) >= 2:
+        # If all remaining groups are barrel-sized (radii > shortest bbox dim),
+        # they're all barrel body — fall back to endpoint detection along longest axis
+        short_dim = float(np.min(mesh.bounds[1] - mesh.bounds[0]))
+        all_barrel = all(
+            max((c.radius_mm or 0) for c in g) > short_dim for g in axis_groups
+        )
+        if all_barrel:
+            extents = mesh.bounds[1] - mesh.bounds[0]
+            long_axis_idx = int(np.argmax(extents))
+            long_axis = np.zeros(3)
+            long_axis[long_axis_idx] = 1.0
+            logger.debug(
+                "All cylinder groups are barrel-sized on %s, "
+                "falling back to endpoint detection along axis %d",
+                part_name,
+                long_axis_idx,
+            )
+            return detect_endpoints_along_axis(mesh, long_axis, part_name)
+
         return detect_multi_axis_connections(mesh, features, cylinders, axis_groups)
 
     group_cyls = axis_groups[0] if axis_groups else cylinders

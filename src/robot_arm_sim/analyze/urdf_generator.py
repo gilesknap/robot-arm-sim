@@ -15,6 +15,7 @@ from pathlib import Path
 from robot_arm_sim.models import load_chain_yaml, load_part_yaml
 
 from .urdf_transforms import (
+    auto_detect_visual_flips,
     close_surface_gaps_along_axis,
     compute_joint_origin,
     compute_visual_origin,
@@ -56,6 +57,9 @@ def generate_urdf(
     robot = ET.Element("robot", name=robot_name)
 
     link_specs = {lk["name"]: lk for lk in chain["links"]}
+
+    # --- Pass 0: auto-detect visual flips for frame-flipped links ---
+    auto_detect_visual_flips(chain, analyses, messages)
 
     # --- Pass 1: compute all visual origins and joint origins ---
     visual_origins: dict[str, tuple[list[float], list[float]]] = {}

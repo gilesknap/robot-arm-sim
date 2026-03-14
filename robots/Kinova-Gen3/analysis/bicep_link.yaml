@@ -5,25 +5,25 @@ format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - -0.618
-  - -410.101
-  - -52.835
+  - 0.016
+  - -456.02
+  - -15.035
   axis:
   - 0.0
-  - 0.0
   - 1.0
-  radius_mm: 202.9
+  - 0.0
+  radius_mm: 20.0
   method: cross_section
 - end: distal
   position:
-  - -46.0
-  - -410.123
-  - -14.849
+  - 0.0
+  - 46.0
+  - -15.05
   axis:
+  - 0.0
   - 1.0
   - 0.0
-  - 0.0
-  radius_mm: 196.2
+  radius_mm: 20.0
   method: cross_section
 geometry:
   vertex_count: 7813

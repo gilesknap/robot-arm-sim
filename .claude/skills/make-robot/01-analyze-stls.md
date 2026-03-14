@@ -5,6 +5,7 @@ Run the STL analysis pipeline to extract geometry, connection points, and assemb
 ## Input
 
 - `robots/<name>/stl_files/` containing STL mesh files (mm, Z-up)
+- override. If the user specifies override then use --override-manual on the `robot-arm-sim analyze` command. (removes manual mesh translations)
 
 ## Steps
 
