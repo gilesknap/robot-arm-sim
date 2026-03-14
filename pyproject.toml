@@ -41,6 +41,7 @@ dev = [
     "sphinx-design",
     "tox-uv",
     "types-mock",
+    "sphinxcontrib-mermaid>=2.0.1",
 ]
 
 [project.scripts]

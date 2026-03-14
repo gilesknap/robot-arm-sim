@@ -66,6 +66,15 @@ def update_scene(state: SimulatorState) -> None:
         else:
             tf_visual = tf
 
+        # Apply extra rotation from edit mode
+        if (
+            state.edit_connections_active["value"]
+            and link_name in state.part_visual_rpys
+        ):
+            extra_rpy = state.part_visual_rpys[link_name]
+            if any(abs(v) > 1e-6 for v in extra_rpy):
+                tf_visual = tf_visual @ rpy_to_matrix(extra_rpy)
+
         visual_transforms[link_name] = tf_visual
         pos, euler = matrix_to_position_euler(tf_visual)
         obj.move(pos[0], pos[1], pos[2])

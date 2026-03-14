@@ -1,11 +1,12 @@
+# yaml-language-server: $schema=../../../schemas/part_analysis.json
 part_name: A1
 source_file: stl_files/A1.stl
 format: binary_stl
 connection_points:
 - end: proximal
   position:
-  - 0.494
-  - -0.065
+  - 0.0
+  - 0.0
   - 9.53
   axis:
   - 0.0
@@ -129,9 +130,9 @@ features:
   cylindrical_surfaces:
   - description: Cylindrical surface along Z axis, radius 47.4 mm, length 76.3 mm
     axis:
-    - 0
-    - 0
-    - 1
+    - 0.0
+    - 0.0
+    - 1.0
     radius_mm: 47.37
     length_mm: 76.34
     center:
@@ -140,7 +141,6 @@ features:
     - 32.2808
     concave: false
   holes: []
-text_description: "Part 'A1' from stl_files/A1.stl.\nBounding box: 85.0 x 101.4 x\
-  \ 76.5 mm.\nNon-watertight mesh (volume not computed).\nSurface area: 38641.6 mm\xB2\
-  .\nMesh complexity: 10043 vertices, 19941 faces.\nHas 6 significant flat face(s).\n\
+text_description: "Part 'A1' from stl_files/A1.stl.\nBounding box: 85.0 x 101.4 x 76.5 mm.\nNon-watertight mesh (volume not\
+  \ computed).\nSurface area: 38641.6 mm\xB2.\nMesh complexity: 10043 vertices, 19941 faces.\nHas 6 significant flat face(s).\n\
   Has 1 cylindrical surface(s)."

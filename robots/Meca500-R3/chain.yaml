@@ -101,6 +101,10 @@ links:
   name: base_link
 - mesh: A1
   name: link_1
+  visual_xyz:
+  - 0
+  - 0
+  - 0.0014
 - mesh: A2
   name: link_2
 - mesh: A3_4
@@ -112,12 +116,12 @@ links:
 - mesh: EndEffector
   name: link_6
   user_added: true
-  visual_xyz:
-  - 0.065795
-  - 0.000027
-  - -0.000051
   visual_rpy:
   - 0
   - 1.3295
   - 0.0198
+  visual_xyz:
+  - 0.065795
+  - 2.7e-05
+  - -5.1e-05
 robot_name: Meca500-R3

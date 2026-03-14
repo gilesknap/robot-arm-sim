@@ -213,35 +213,35 @@ def build_visibility_section(state: SimulatorState) -> None:
         state.update_scene_now()
         state.on_visibility_changed()
 
-    with ui.expansion("Visible Parts", value=False).props("dense").classes("w-full"):
-        with ui.row().classes("q-pa-xs").style("gap: 8px; flex-wrap: wrap"):
-            all_chip = ui.chip(  # noqa: F841
-                "All",
+    ui.label("Visible Parts").classes("text-subtitle2 q-mt-md")
+    with ui.row().classes("q-pa-xs").style("gap: 8px; flex-wrap: wrap"):
+        all_chip = ui.chip(  # noqa: F841
+            "All",
+            selectable=True,
+            selected=True,
+            on_selection_change=toggle_all,
+        ).props("dense")
+
+        for lname in state.chain_link_names:
+            lnk = state.robot.get_link(lname)
+            if lnk and lnk.mesh_path:
+                display = Path(lnk.mesh_path).stem
+            else:
+                # Skip links with no mesh (e.g. link_5 intermediate frame)
+                continue
+
+            def make_vis_handler(ln):
+                def on_change(e):
+                    state.visible_links[ln] = e.value
+                    state.update_scene_now()
+                    state.on_visibility_changed()
+
+                return on_change
+
+            chip = ui.chip(
+                display,
                 selectable=True,
                 selected=True,
-                on_selection_change=toggle_all,
+                on_selection_change=make_vis_handler(lname),
             ).props("dense")
-
-            for lname in state.chain_link_names:
-                lnk = state.robot.get_link(lname)
-                if lnk and lnk.mesh_path:
-                    display = Path(lnk.mesh_path).stem
-                else:
-                    # Skip links with no mesh (e.g. link_5 intermediate frame)
-                    continue
-
-                def make_vis_handler(ln):
-                    def on_change(e):
-                        state.visible_links[ln] = e.value
-                        state.update_scene_now()
-                        state.on_visibility_changed()
-
-                    return on_change
-
-                chip = ui.chip(
-                    display,
-                    selectable=True,
-                    selected=True,
-                    on_selection_change=make_vis_handler(lname),
-                ).props("dense")
-                state.link_checkboxes[lname] = chip
+            state.link_checkboxes[lname] = chip

@@ -21,7 +21,8 @@ def main() -> None:
     @app.command()
     def simulate(
         robots_dir: Path = typer.Argument(
-            ..., help="Path to directory containing robot folders"
+            ...,
+            help="Path to a robot folder or a directory of robot folders",
         ),
         port: int = typer.Option(8080, help="Port for the web UI"),
     ) -> None:

@@ -16,7 +16,15 @@ from .toolbar import build_toolbar, build_visibility_section
 
 
 def _discover_robots(robots_dir: Path) -> dict[str, Path]:
-    """Return {name: path} for every sub-dir containing robot.urdf."""
+    """Return {name: path} for every sub-dir containing robot.urdf.
+
+    If *robots_dir* itself contains ``robot.urdf``, treat it as a single
+    robot folder.
+    """
+    # Single robot folder passed directly
+    if (robots_dir / "robot.urdf").exists():
+        return {robots_dir.name: robots_dir}
+
     found: dict[str, Path] = {}
     for child in sorted(robots_dir.iterdir()):
         if child.is_dir() and (child / "robot.urdf").exists():

@@ -8,6 +8,21 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict
 
+
+class _FixedFloatDumper(yaml.SafeDumper):
+    """YAML dumper that avoids scientific notation for small floats."""
+
+
+def _represent_float(dumper: _FixedFloatDumper, value: float) -> yaml.ScalarNode:
+    # Default repr — switch to fixed-point only if it would use scientific notation
+    text = repr(value)
+    if "e" in text or "E" in text:
+        text = f"{value:.6f}"
+    return dumper.represent_scalar("tag:yaml.org,2002:float", text)
+
+
+_FixedFloatDumper.add_representer(float, _represent_float)
+
 # ---------------------------------------------------------------------------
 # Part Analysis models
 # ---------------------------------------------------------------------------
@@ -263,7 +278,13 @@ def _dump_yaml_with_tag(data: dict[str, Any], path: Path, schema_name: str) -> N
     path.parent.mkdir(parents=True, exist_ok=True)
     rel = _schema_relative_path(path, schema_name)
     tag_line = f"{_SCHEMA_TAG}{rel}\n"
-    body = yaml.dump(data, default_flow_style=False, sort_keys=False, width=120)
+    body = yaml.dump(
+        data,
+        Dumper=_FixedFloatDumper,
+        default_flow_style=False,
+        sort_keys=False,
+        width=120,
+    )
     path.write_text(tag_line + body)
 
 

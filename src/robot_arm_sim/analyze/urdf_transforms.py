@@ -84,9 +84,8 @@ def compute_visual_origin(
     viz_rpy = link_spec.get("visual_rpy", [0, 0, 0])
 
     if proximal is None:
-        viz_xyz = link_spec.get("visual_xyz", [0, 0, 0])
         messages.append(f"  {link_name}: no proximal connection point")
-        return viz_xyz, viz_rpy
+        return [0, 0, 0], viz_rpy
 
     pos = np.array(proximal["position"], dtype=float)  # mm, mesh coords
 
@@ -111,9 +110,6 @@ def compute_visual_origin(
     else:
         viz_xyz = (-rpy_to_rotation(viz_rpy) @ (pos / 1000)).tolist()
 
-    extra = link_spec.get("visual_xyz")
-    if extra is not None:
-        viz_xyz = [v + e for v, e in zip(viz_xyz, extra, strict=True)]
     return [round(v, 6) for v in viz_xyz], viz_rpy
 
 
@@ -252,6 +248,22 @@ def close_surface_gaps_along_axis(
             f"  {child_name}: surface gap closed along axis, shift={along * 1000:.1f}mm"
         )
         visual_origins[child_name] = (adjusted, child_viz_rpy)
+
+
+def rotation_matrix_to_rpy(rot: np.ndarray) -> list[float]:
+    """Convert a 3x3 rotation matrix to roll-pitch-yaw angles."""
+    sy = -rot[2, 0]
+    # Clamp to handle numerical noise at gimbal lock
+    sy = float(np.clip(sy, -1.0, 1.0))
+    pitch = float(np.arcsin(sy))
+    if abs(sy) < 1.0 - 1e-6:
+        roll = float(np.arctan2(rot[2, 1], rot[2, 2]))
+        yaw = float(np.arctan2(rot[1, 0], rot[0, 0]))
+    else:
+        # Gimbal lock
+        roll = float(np.arctan2(-rot[1, 2], rot[1, 1]))
+        yaw = 0.0
+    return [roll, pitch, yaw]
 
 
 def rpy_to_rotation(rpy: list[float]) -> np.ndarray:
