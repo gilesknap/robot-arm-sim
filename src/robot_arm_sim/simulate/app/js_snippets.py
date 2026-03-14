@@ -554,7 +554,7 @@ FACE_MARKER_INIT_JS = """
     };
 
     // --- Move Parts drag mode ---
-    let dragEnabled = false;
+    let dragEnabled = true;
     let dragging = false;
     let dragMesh = null;
     let dragLinkName = null;
