@@ -88,6 +88,11 @@ The simulator auto-discovers all robots under `ROBOTS_DIR` that contain a
 `robot.urdf` file. If multiple robots are found, a dropdown selector appears
 in the UI.
 
+To choose which robot is selected by default, create a `.default` file in
+`ROBOTS_DIR` containing the robot folder name (e.g. `Meca500-R3`). If the
+file is absent or names an unknown robot, the first robot alphabetically is
+used.
+
 **Example:**
 
 ```bash
