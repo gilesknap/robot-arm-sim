@@ -10,6 +10,7 @@ explanations/chrome-connector-workflow
 explanations/implementation-plan
 explanations/connection-point-plan
 explanations/architecture
+explanations/inverse-kinematics
 explanations/decisions
 explanations/kinematics_and_urdf_generation
 ```

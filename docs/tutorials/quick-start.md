@@ -35,8 +35,14 @@ Meca500-R3 collaborative robot.
 - **ViewCube** — a 3D orientation widget in the corner of the viewport. Click
   a face (Front, Right, Top, etc.) to snap to that view.
 - **Fit** — auto-zoom so the robot fills the viewport.
-- **Camera** — left-click drag to orbit, scroll to zoom, middle-click drag
+- **Camera** — right-click drag to orbit, scroll to zoom, middle-click drag
   to pan.
+
+There are more controls not covered here — **IK mode** for controlling the
+end-effector pose directly, **Edit Connections** for adjusting connection
+points, **Frames**, **Transparent**, and **Screenshot** buttons. If multiple
+robots are available, a dropdown selector appears at the top of the page. See
+{doc}`/reference/simulator-controls` for the full reference.
 
 ## Try some poses
 
