@@ -68,9 +68,9 @@ def generate(
         file_okay=False,
         dir_okay=True,
     ),
-    chain_file: Path = typer.Argument(
-        ...,
-        help="Path to chain.yaml kinematic chain specification.",
+    chain_file: Path | None = typer.Argument(
+        None,
+        help="Path to chain.yaml (default: <robot_dir>/chain.yaml).",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -82,6 +82,12 @@ def generate(
 ) -> None:
     """Generate URDF from kinematic chain spec + analysis data."""
     from .analyze.urdf_generator import generate_urdf
+
+    if chain_file is None:
+        chain_file = robot_dir / "chain.yaml"
+        if not chain_file.exists():
+            typer.echo(f"Error: no chain file found at {chain_file}", err=True)
+            raise typer.Exit(code=1)
 
     analysis_dir = robot_dir / "analysis"
     stl_dir = robot_dir / "stl_files"
@@ -98,7 +104,7 @@ def generate(
 def simulate(
     robots_dir: Path = typer.Argument(
         ...,
-        help="Path to directory containing robot folders.",
+        help="Path to a single robot folder or a directory containing robot folders.",
         exists=True,
         file_okay=False,
         dir_okay=True,
