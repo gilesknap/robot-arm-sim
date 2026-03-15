@@ -10,8 +10,10 @@ import numpy.testing as npt
 
 from robot_arm_sim.models.robot import URDFJoint, URDFLink, URDFRobot
 from robot_arm_sim.simulate.kinematics import (
+    axis_to_quaternion,
     forward_kinematics,
     matrix_to_position_euler,
+    matrix_to_quaternion,
     rotation_matrix,
     rpy_to_matrix,
     translation_matrix,
@@ -128,3 +130,200 @@ def test_forward_kinematics_simple_robot():
 
     # link2 should be at z = 0.1 + 0.2 = 0.3
     npt.assert_array_almost_equal(transforms["link2"][:3, 3], [0, 0, 0.3], decimal=5)
+
+
+# ---------------------------------------------------------------------------
+# matrix_to_quaternion tests
+# ---------------------------------------------------------------------------
+
+
+def _assert_unit_quaternion(q: list[float]) -> None:
+    """Assert quaternion has unit norm."""
+    norm = math.sqrt(sum(c * c for c in q))
+    assert abs(norm - 1.0) < 1e-6, f"Quaternion norm {norm} != 1"
+
+
+def test_matrix_to_quaternion_identity():
+    """Identity matrix -> quaternion [0,0,0,1]."""
+    q = matrix_to_quaternion(np.eye(4))
+    _assert_unit_quaternion(q)
+    npt.assert_array_almost_equal(q, [0, 0, 0, 1], decimal=5)
+
+
+def test_matrix_to_quaternion_90_z():
+    """90-degree rotation around Z axis (trace > 0 branch)."""
+    m = rotation_matrix([0, 0, 1], math.pi / 2)
+    q = matrix_to_quaternion(m)
+    _assert_unit_quaternion(q)
+    # Expected: [0, 0, sin(45), cos(45)]
+    s = math.sin(math.pi / 4)
+    c = math.cos(math.pi / 4)
+    npt.assert_array_almost_equal(q, [0, 0, s, c], decimal=5)
+
+
+def test_matrix_to_quaternion_180_x():
+    """180-degree rotation around X -> m[0,0] dominant branch."""
+    m = rotation_matrix([1, 0, 0], math.pi)
+    q = matrix_to_quaternion(m)
+    _assert_unit_quaternion(q)
+    # Should represent 180 deg around X: [1, 0, 0, 0] or [-1, 0, 0, 0]
+    assert abs(abs(q[0]) - 1.0) < 1e-5
+    assert abs(q[3]) < 1e-5
+
+
+def test_matrix_to_quaternion_180_y():
+    """180-degree rotation around Y -> m[1,1] dominant branch."""
+    m = rotation_matrix([0, 1, 0], math.pi)
+    q = matrix_to_quaternion(m)
+    _assert_unit_quaternion(q)
+    assert abs(abs(q[1]) - 1.0) < 1e-5
+    assert abs(q[3]) < 1e-5
+
+
+def test_matrix_to_quaternion_180_z():
+    """180-degree rotation around Z -> m[2,2] dominant branch."""
+    m = rotation_matrix([0, 0, 1], math.pi)
+    q = matrix_to_quaternion(m)
+    _assert_unit_quaternion(q)
+    assert abs(abs(q[2]) - 1.0) < 1e-5
+    assert abs(q[3]) < 1e-5
+
+
+def test_matrix_to_quaternion_90_x():
+    """90-degree rotation around X."""
+    m = rotation_matrix([1, 0, 0], math.pi / 2)
+    q = matrix_to_quaternion(m)
+    _assert_unit_quaternion(q)
+    s = math.sin(math.pi / 4)
+    c = math.cos(math.pi / 4)
+    npt.assert_array_almost_equal(q, [s, 0, 0, c], decimal=5)
+
+
+def test_matrix_to_quaternion_90_y():
+    """90-degree rotation around Y."""
+    m = rotation_matrix([0, 1, 0], math.pi / 2)
+    q = matrix_to_quaternion(m)
+    _assert_unit_quaternion(q)
+    s = math.sin(math.pi / 4)
+    c = math.cos(math.pi / 4)
+    npt.assert_array_almost_equal(q, [0, s, 0, c], decimal=5)
+
+
+# ---------------------------------------------------------------------------
+# axis_to_quaternion tests
+# ---------------------------------------------------------------------------
+
+
+def test_axis_to_quaternion_zero_vector():
+    """Zero vector -> identity quaternion."""
+    q = axis_to_quaternion([0, 0, 0])
+    npt.assert_array_almost_equal(q, [0, 0, 0, 1], decimal=5)
+
+
+def test_axis_to_quaternion_y_aligned():
+    """Y-axis aligned -> identity quaternion (already along local Y)."""
+    q = axis_to_quaternion([0, 1, 0])
+    npt.assert_array_almost_equal(q, [0, 0, 0, 1], decimal=5)
+
+
+def test_axis_to_quaternion_negative_y():
+    """Opposite to Y -> 180 deg around Z."""
+    q = axis_to_quaternion([0, -1, 0])
+    npt.assert_array_almost_equal(q, [0, 0, 1, 0], decimal=5)
+
+
+def test_axis_to_quaternion_x_direction():
+    """X direction -> general case."""
+    q = axis_to_quaternion([1, 0, 0])
+    _assert_unit_quaternion(q)
+    # Rotating Y onto X is a -90 deg rotation around Z
+    # q should rotate [0,1,0] to [1,0,0]
+
+
+def test_axis_to_quaternion_z_direction():
+    """Z direction -> general case."""
+    q = axis_to_quaternion([0, 0, 1])
+    _assert_unit_quaternion(q)
+
+
+def test_axis_to_quaternion_arbitrary():
+    """Arbitrary direction vector."""
+    q = axis_to_quaternion([0.5, 0.5, 0.5])
+    _assert_unit_quaternion(q)
+
+
+# ---------------------------------------------------------------------------
+# rpy_to_matrix additional tests
+# ---------------------------------------------------------------------------
+
+
+def test_rpy_to_matrix_roll_only():
+    """Pure roll rotation (around X)."""
+    angle = math.pi / 4
+    m = rpy_to_matrix([angle, 0, 0])
+    # Should rotate Y toward Z
+    c = math.cos(angle)
+    s = math.sin(angle)
+    # First column unchanged (X axis)
+    npt.assert_array_almost_equal(m[:3, 0], [1, 0, 0], decimal=5)
+    # Check rotation in YZ plane
+    npt.assert_array_almost_equal(m[:3, 1], [0, c, s], decimal=5)
+
+
+def test_rpy_to_matrix_pitch_only():
+    """Pure pitch rotation (around Y)."""
+    angle = math.pi / 6
+    m = rpy_to_matrix([0, angle, 0])
+    c = math.cos(angle)
+    s = math.sin(angle)
+    # Y column unchanged
+    npt.assert_array_almost_equal(m[:3, 1], [0, 1, 0], decimal=5)
+    # Z axis rotates toward X
+    npt.assert_array_almost_equal(m[:3, 2], [s, 0, c], decimal=5)
+
+
+def test_rpy_to_matrix_yaw_only():
+    """Pure yaw rotation (around Z)."""
+    angle = math.pi / 3
+    m = rpy_to_matrix([0, 0, angle])
+    c = math.cos(angle)
+    s = math.sin(angle)
+    # Z column unchanged
+    npt.assert_array_almost_equal(m[:3, 2], [0, 0, 1], decimal=5)
+    # X axis rotates toward Y
+    npt.assert_array_almost_equal(m[:3, 0], [c, s, 0], decimal=5)
+
+
+def test_rpy_to_matrix_combined():
+    """Combined roll-pitch-yaw, verify orthogonality."""
+    m = rpy_to_matrix([0.3, 0.5, 0.7])
+    # Rotation part should be orthogonal: R^T R = I
+    r = m[:3, :3]
+    npt.assert_array_almost_equal(r.T @ r, np.eye(3), decimal=5)
+    # Determinant should be 1
+    assert abs(np.linalg.det(r) - 1.0) < 1e-6
+
+
+# ---------------------------------------------------------------------------
+# matrix_to_position_euler edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_matrix_to_position_euler_gimbal_lock():
+    """Gimbal lock (pitch = +90 degrees) triggers singular branch."""
+    m = rpy_to_matrix([0, math.pi / 2, 0])
+    t = translation_matrix([5.0, 6.0, 7.0]) @ m
+    pos, euler = matrix_to_position_euler(t)
+    npt.assert_array_almost_equal(pos, [5.0, 6.0, 7.0], decimal=5)
+    # Reconstruct and verify the rotation matrices match
+    m_reconstructed = rpy_to_matrix(euler)
+    npt.assert_array_almost_equal(m[:3, :3], m_reconstructed[:3, :3], decimal=4)
+
+
+def test_matrix_to_position_euler_negative_pitch():
+    """Negative pitch = -90 degrees (singular)."""
+    m = rpy_to_matrix([0, -math.pi / 2, 0])
+    t = translation_matrix([0, 0, 0]) @ m
+    pos, euler = matrix_to_position_euler(t)
+    m_reconstructed = rpy_to_matrix(euler)
+    npt.assert_array_almost_equal(m[:3, :3], m_reconstructed[:3, :3], decimal=4)
