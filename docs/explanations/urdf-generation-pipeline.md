@@ -146,31 +146,11 @@ position is rotated first, then negated:
 :caption: visual_rpy applied before translation in compute_visual_origin
 ```
 
-### Why this matters for fixing jumbled parts
+### Fixing jumbled parts
 
-When auto-detection picks the wrong connection points, parts end up in the
-wrong position *and* orientation. Fixing this requires both steps:
-
-1. **Place the markers correctly** — use Edit Connections and click directly on
-   the correct mesh surfaces to assign proximal and distal markers. This tells
-   the pipeline where the joint axes are, and gives it the axis directions from
-   the face normals.
-
-2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
-   face is not perpendicular to the joint axis (i.e. the STL mesh
-   coordinates don't naturally align with the link frame), you need a
-   `visual_rpy` rotation in `chain.yaml` to bring them into alignment.
-
-For a typical straight part where proximal and distal are on parallel faces
-along the same axis, `visual_rpy` can stay at `[0, 0, 0]`. For L-shaped or
-angled parts where the two connections face different directions, you need a
-rotation to align the proximal axis with the joint frame.
-
-**Work from base to tip.** Each link's visual origin is computed
-independently (snapped to its own joint axis), so errors no longer compound
-along the chain. However, surface gap closure still references the parent's
-distal position, so fixing a parent link's connections first makes it easier
-to verify child links visually.
+When auto-detection picks the wrong connection points, see
+{doc}`/how-to/edit-connection-points` for step-by-step instructions on
+placing markers and setting `visual_rpy`.
 
 ## What affects what
 
@@ -188,23 +168,28 @@ flowchart TB
 
     subgraph pipeline ["URDF generation pipeline"]
         direction TB
+        pass0["Pass 0: auto-detect visual flips<br/>flip anchor for frame-flipped links"]
         pass1["Pass 1: per-mesh snap<br/>proximal + visual_rpy → visual origin"]
         pass2["Pass 2: gap-closing<br/>parent distal → child shift along axis"]
+        pass2b["Pass 2b: derived joint update<br/>recompute connection-point-derived joint origins"]
         pass3["Pass 3: visual_xyz nudge<br/>local-only, never propagated"]
         joints["Joint origins ← DH params only"]
-        pass1 --> pass2 --> pass3
+        fk["FK validation<br/>verify joint + visual origins"]
+        pass0 --> pass1 --> pass2 --> pass2b --> pass3
+        pass3 --> fk
     end
 
     subgraph output ["Output"]
         urdf["robot.urdf"]
     end
 
+    analysis --> pass0
     analysis --> pass1
     analysis --> pass2
     chain --> pass1
     chain --> joints
     chain --> pass3
-    pass3 --> urdf
+    fk --> urdf
     joints --> urdf
 ```
 

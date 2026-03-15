@@ -95,6 +95,7 @@ Below the ViewCube:
 | Orbit | Left-click drag (or two-finger drag) |
 | Zoom | Scroll wheel |
 | Pan | Right-click drag (or middle-click drag) |
+| Swipe (edit mode) | Drag on empty space to snap to the adjacent orthographic view (left/right/up/down). Only active in Edit Connections mode |
 
 ## Edit Connections mode
 
@@ -142,3 +143,9 @@ reloads and page refreshes (via `beforeunload`):
 
 State is restored approximately 3 seconds after page load to allow the
 Three.js scene to initialise.
+
+### Rendering
+
+The simulator upgrades mesh materials to PBR metallic finish with a
+procedural studio HDRI environment map for realistic lighting. The 3D
+viewport auto-resizes when the browser window changes.

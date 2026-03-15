@@ -25,13 +25,77 @@ needed to build a kinematic model:
 - **Feature detection** (`features.py`) — identifies flat faces (potential
   mating surfaces) via facet clustering and cylindrical surfaces via normal
   ring patterns. Reports area, centroid, and normal vectors.
-- **Connection point detection** (`connections.py`) — locates bore and shaft
-  centres by analysing cylindrical surface axes, slicing cross-sections near
-  mesh ends, and fitting circles to the profiles. Each connection point is
-  classified as *proximal* (parent-side) or *distal* (child-side).
+- **Connection point detection** (`connections.py`, `endpoint_detection.py`,
+  `circle_fitting.py`) — locates bore and shaft centres by analysing
+  cylindrical surface axes, slicing cross-sections near mesh ends, and fitting
+  circles to the profiles. Each connection point is classified as *proximal*
+  (parent-side) or *distal* (child-side). The subsection below describes the
+  algorithm in detail.
+
+#### Connection point detection algorithm
+
+The detection algorithm is structured as a decision tree that progressively
+narrows the problem based on the geometry it finds. The key insight is that
+robot arm links have a limited repertoire of shapes — straight tubes, L-shaped
+brackets, barrel-bodied joints — and each shape demands a different strategy
+for locating the bore or shaft centres at each end.
+
+**Axis grouping.** The first step groups all cylindrical surfaces detected by
+the feature analyser according to their axis direction. Two cylinders belong
+to the same group if their axes are within 30 degrees of each other (using the
+absolute dot product, so parallel and anti-parallel axes are equivalent). The
+groups are then sorted by total cylinder length so that the dominant axis —
+typically the one running along the main body of the link — comes first. This
+grouping is critical because it turns a potentially large collection of
+individual cylindrical patches into a small number of directional hypotheses.
+
+**Barrel filtering.** Many links have a bulging outer body — a barrel shape —
+that registers as a large-radius cylindrical surface alongside the smaller bore
+or shaft cylinders. To avoid confusing the barrel body with actual connection
+features, groups whose representative radius exceeds twice the smallest group's
+radius are separated out. When the filter leaves exactly one non-barrel group,
+the algorithm can still use the removed barrel axes as evidence for bore
+direction on barrel-shaped parts, where flat faces aligned with the barrel axis
+indicate bore openings.
+
+**Classification decision tree.** With grouping and filtering complete, the
+algorithm branches:
+
+- *No cylinders at all* — the part is treated as a base (e.g. a mounting
+  plate). Detection falls back to `detect_base_connection`, which finds the
+  largest upward-facing flat face and places a single distal connection point at
+  its centroid.
+- *Two or more axis groups after filtering* — the part has connection features
+  along multiple directions (e.g. an L-shaped bracket). The algorithm calls
+  `detect_multi_axis_connections`, which finds the bore centre along each axis
+  independently, then assigns proximal/distal labels by Z-position (lower Z is
+  proximal, closer to the robot base).
+- *One axis group* — the most common case for straight tubular links. The
+  algorithm calls `detect_endpoints_along_axis`, which looks for bore or shaft
+  circles at both the proximal (min-projection) and distal (max-projection)
+  ends of the mesh along the dominant cylinder axis.
+
+**Circle fitting.** Regardless of which branch is taken, the actual centre
+location relies on cross-section slicing. The algorithm slices the mesh at
+5%, 10%, and 15% inset from each end of the axis extent, trying progressively
+deeper cuts until one yields a usable cross-section polygon. For very elongated
+parts (over 200 mm), the inset is capped so slices stay near the end faces
+where bore openings actually are. Each cross-section polygon is tested for
+circularity — the ratio of radial standard deviation to mean radius — with a
+tight threshold (0.15) preferred and a relaxed one (0.35) as fallback. When
+cross-section slicing fails entirely (common with non-watertight meshes where
+trimesh cannot compute a closed section), a boundary vertex fallback collects
+vertices near the end, projects them onto the plane perpendicular to the axis,
+and fits a circle to the 2D point cloud instead.
+
+For details on how the detected connection points feed into joint origin
+computation and URDF assembly, see
+{doc}`/explanations/urdf-generation-pipeline`.
+
 - **URDF generation** (`urdf_generator.py`) — combines a hand-authored
   `chain.yaml` kinematic specification with the per-part analysis results to
   compute exact joint origins and produce a valid URDF XML file.
+
 Analysis results are written as YAML files into an `analysis/` directory
 alongside the source meshes.
 
