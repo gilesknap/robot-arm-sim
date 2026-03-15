@@ -484,6 +484,33 @@ f0d0da1 Visual joint alignment tuning, camera control and refine-with-image skil
 397e7e9 Fix wrist connection: A5 attaches to front bore of A3_4
 ```
 
+## Addendum: Multi-agent documentation review
+
+With the codebase stable, the documentation needed a comprehensive review.
+Rather than reading each page manually, the prompt asked Claude to deploy
+a fleet of specialised agents:
+
+> **I want to kick off a deep project documentation review. I'd like a
+> multiagent plan that dedicates an agent to each existing page. Plus an
+> agent to review for completeness for each of the code features analysis,
+> generation and simulation and for each of the 4 diataxis quadrants. Upon
+> completion, commit and PR the updates.**
+
+Claude designed a four-wave strategy: a simulator agent that captured live
+screenshots as a visual oracle, 20 per-page review agents that cross-referenced
+every doc against source code, 7 cross-cutting agents that checked feature
+completeness and Diataxis quadrant health, and a final integration pass that
+implemented all fixes.
+
+The review found fabricated documentation (an environment variable that didn't
+exist in the codebase), stale `literalinclude` line ranges pointing at the
+wrong code, incorrect UI descriptions, and missing fields in reference pages.
+A follow-up wave filled coverage gaps with new tutorial and how-to pages,
+expanded reference sections, and reduced overlap between explanation pages.
+
+The result: 24 files modified across two commits, 510 insertions, 150
+deletions — [PR #33](https://github.com/gilesknap/robot-arm-sim/pull/33).
+
 ## Related documents
 
 - {doc}`chrome-connector-workflow` — a detailed walkthrough of using the
