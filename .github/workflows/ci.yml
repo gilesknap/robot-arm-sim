@@ -25,6 +25,7 @@ jobs:
     with:
       runs-on: ${{ matrix.runs-on }}
       python-version: ${{ matrix.python-version }}
+    secrets: inherit
 
   container:
     needs: test
@@ -43,13 +44,6 @@ jobs:
 
   dist:
     uses: ./.github/workflows/_dist.yml
-  
-  pypi:
-    needs: [dist, test]
-    if: github.ref_type == 'tag'
-    uses: ./.github/workflows/_pypi.yml
-    permissions:
-      id-token: write
   
   release:
     needs: [dist, test, docs]

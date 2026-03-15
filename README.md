@@ -1,6 +1,6 @@
 [![CI](https://github.com/gilesknap/robot-arm-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/gilesknap/robot-arm-sim/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/gilesknap/robot-arm-sim/branch/main/graph/badge.svg)](https://codecov.io/gh/gilesknap/robot-arm-sim)
-[![PyPI](https://img.shields.io/pypi/v/robot-arm-sim.svg)](https://pypi.org/project/robot-arm-sim)
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 # robot-arm-sim
@@ -9,7 +9,6 @@ Analyze robot arm STL meshes, generate URDF models, and simulate them interactiv
 
 Source          | <https://github.com/gilesknap/robot-arm-sim>
 :---:           | :---:
-PyPI            | `pip install robot-arm-sim`
 Docker          | `docker run ghcr.io/gilesknap/robot-arm-sim:latest`
 Documentation   | <https://gilesknap.github.io/robot-arm-sim>
 Releases        | <https://github.com/gilesknap/robot-arm-sim/releases>

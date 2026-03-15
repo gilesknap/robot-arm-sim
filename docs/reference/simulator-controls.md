@@ -6,7 +6,11 @@ launched via `robot-arm-sim simulate`.
 ## Robot selector
 
 When the robots directory contains multiple robots (each with a `robot.urdf`),
-a dropdown at the top of the page lets you switch between them.
+a dropdown at the top of the page lets you switch between them. You can also
+navigate directly to a robot via its URL path (e.g. `/Meca500-R3`).
+
+To choose which robot is selected by default, create a `.default` file in
+the robots directory containing the robot folder name.
 
 ## Toolbar buttons
 
@@ -21,10 +25,13 @@ The toolbar runs along the bottom of the 3D viewport.
 | **Edit Connections** | Enter interactive connection assignment mode (see below) |
 | **Reload URDF** | Re-parse the URDF file and refresh the scene. Camera position, joint angles, and visibility state are preserved via session storage |
 | **Screenshot** | Download a PNG image of the current 3D viewport |
-| **Reset** | Return all joint angles to zero (home pose) |
-| **Stop Simulator** | Gracefully shut down the server (hidden in cluster mode) |
+| **Stop Simulator** | Gracefully shut down the server (hidden in cluster mode). Shows a confirmation dialog before stopping |
+| **Info** | Open the About dialog showing version, project description, and a toolbar button summary |
 
 ## Control panel (right sidebar)
+
+An **FK / IK** radio toggle at the top of the panel switches between forward
+and inverse kinematics modes.
 
 ### FK mode (default)
 
@@ -38,12 +45,21 @@ Six sliders control the desired end-effector pose:
 
 | Slider | Unit | Range |
 |--------|------|-------|
-| X, Y, Z | mm | -300 to +300 |
+| X | mm | -300 to +300 |
+| Y | mm | -300 to +300 |
+| Z | mm | 0 to +500 |
 | Rx, Ry, Rz | degrees | -180 to +180 |
 
 Moving any IK slider triggers the damped least-squares IK solver. If a
 solution is found, the FK sliders update automatically to show the
 resulting joint angles.
+
+### Reset buttons
+
+| Button | Description |
+|--------|-------------|
+| **Reset Joints** | Return all joint angles to zero (home pose) |
+| **Reset View** | Restore all part visibility, switch to orthographic front view, and fit the robot in the viewport |
 
 ### End-effector readout
 
@@ -59,9 +75,10 @@ meshes are rendered. Visibility state is preserved across URDF reloads.
 
 A 3D orientation widget in the top-right corner of the viewport.
 
-- **Six labelled faces** — click Front, Back, Left, Right, Top, or Bottom
+- **Six labelled faces** — click FRONT, BACK, LEFT, RIGHT, TOP, or BOTTOM
   to snap the camera to that orthographic view.
-- **Axis indicators** — X (red), Y (green), Z (blue).
+- **Axis indicators** — X (red), Y (green), Z (blue). Clicking an axis
+  indicator snaps to the corresponding axis-aligned view.
 - The cube rotates in sync with the main camera.
 
 Below the ViewCube:
@@ -75,32 +92,50 @@ Below the ViewCube:
 
 | Action | Input |
 |--------|-------|
-| Orbit | Right-click drag (or two-finger drag) |
+| Orbit | Left-click drag (or two-finger drag) |
 | Zoom | Scroll wheel |
-| Pan | Middle-click drag |
+| Pan | Right-click drag (or middle-click drag) |
+| Swipe (edit mode) | Drag on empty space to snap to the adjacent orthographic view (left/right/up/down). Only active in Edit Connections mode |
 
 ## Edit Connections mode
 
 Activated by the **Edit Connections** toolbar button. Used to manually assign
-flat-face connection points as proximal or distal connections.
+connection points and adjust mesh placement.
 
-When active:
+When entering Edit Connections mode:
 
-1. All meshes become semi-transparent (25 % opacity).
-2. Detected flat faces are shown as coloured sphere markers:
-   - **Yellow** — unassigned
-   - **Green** — proximal (parent-side)
-   - **Red** — distal (child-side)
-3. A **Proximal / Distal** toggle at the top selects the assignment mode.
-4. Click a sphere marker to assign it.
-5. Click **Save & Rebuild** to write connection assignments to the analysis
-   YAML files, propagate connection axes to `chain.yaml`, regenerate the
-   URDF, and reload the simulator.
+- All meshes become semi-transparent (25 % opacity)
+- Coordinate frames are automatically enabled
+- The camera locks to orthographic views (drag on empty space to swipe
+  between adjacent views)
+- The toolbar changes: **Edit Connections** becomes **Exit Edit**
+
+### Mode buttons
+
+| Mode | Colour | Description |
+|------|--------|-------------|
+| **Move Part** | amber | Drag a part to reposition, or use arrow keys (0.1 mm per press, Shift for 2 mm steps) |
+| **Proximal Centred** | blue | Click a mesh surface to place a `center`-mode proximal marker |
+| **Proximal Surface** | green | Click a mesh surface to place a `surface`-mode proximal marker |
+| **Distal** | red | Click a mesh surface to place a distal marker |
+
+### Action buttons
+
+| Button | Description |
+|--------|-------------|
+| **Undo** / **Redo** | Step back and forward through edits |
+| **Rot X** / **Rot Y** / **Rot Z** | Rotate selected part 90° around that axis |
+| **Remove Part Conns** | Remove connection points for the selected part only, baking current placement into `visual_xyz` |
+| **Remove Connections** | Remove all connection points for all parts, baking current placement into `visual_xyz` |
+| **Save & Rebuild** | Write changes to analysis YAML and chain.yaml, regenerate URDF, and reload |
+
+**Exit Edit** discards all unsaved changes — connection assignments, part
+moves, and rotations are restored to their state when edit mode was entered.
 
 ## Session state persistence
 
 The simulator uses browser `sessionStorage` to preserve state across URDF
-reloads (triggered by the Reload URDF button):
+reloads and page refreshes (via `beforeunload`):
 
 - Per-part visibility toggles
 - Joint angles (radians)
@@ -108,3 +143,9 @@ reloads (triggered by the Reload URDF button):
 
 State is restored approximately 3 seconds after page load to allow the
 Three.js scene to initialise.
+
+### Rendering
+
+The simulator upgrades mesh materials to PBR metallic finish with a
+procedural studio HDRI environment map for realistic lighting. The 3D
+viewport auto-resizes when the browser window changes.

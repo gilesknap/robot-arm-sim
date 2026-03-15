@@ -60,21 +60,19 @@ within its link frame. The goal is always the same: place the proximal
 connection point at the link frame origin so the joint rotates around the
 correct axis.
 
-### Axis snapping (both modes)
+### Visual origin computation (both modes)
 
-Regardless of centering mode, `compute_visual_origin` always **snaps the
-proximal bore center onto the joint axis line**. It decomposes the proximal
-position into along-axis and cross-axis components relative to the joint
-axis, then zeros the cross-axis error:
+For each link, `compute_visual_origin` negates the proximal connection
+point position (converting from mm to metres) so the connection sits at
+the link frame origin. Each mesh is positioned independently — no
+cross-link dependencies, no error accumulation up the chain.
 
 ```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
 :language: python
-:lines: 92-113
-:caption: Axis snapping and centering logic in compute_visual_origin
+:start-at: def compute_visual_origin(
+:end-at: return [round(v, 6)
+:caption: compute_visual_origin — places proximal connection at frame origin
 ```
-
-This means each mesh independently positions itself — no cross-link
-dependencies, no error accumulation up the chain.
 
 ### `surface` mode (default)
 
@@ -87,7 +85,8 @@ joint axis only** so its proximal surface meets the parent's distal surface:
 
 ```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
 :language: python
-:lines: 186-197
+:start-at: def close_surface_gaps_along_axis(
+:end-before: link_specs = {
 :caption: close_surface_gaps_along_axis docstring
 ```
 
@@ -116,16 +115,23 @@ L-shaped link where the proximal bore faces along Z but the distal bore
 faces along Y — the mesh also needs to be **rotated** so the proximal axis
 aligns with the joint frame. This is what `visual_rpy` in `chain.yaml` does.
 
-The URDF generation pipeline works in three passes:
+The URDF generation pipeline works in five passes:
 
+0. **Pass 0 — visual flip detection** (`auto_detect_visual_flips`) — detects
+   links where the proximal connection is frame-flipped relative to the joint
+   axis. For these links, the anchor switches to the distal connection point
+   so `compute_visual_origin` positions the mesh correctly.
 1. **Pass 1 — per-mesh snap** (`compute_visual_origin`) — for each link,
-   rotate the mesh (`visual_rpy`) and snap its proximal bore center onto the
-   joint axis line, zeroing cross-axis error. Along-axis placement depends
-   on centering mode.
+   rotate the mesh (`visual_rpy`) and negate the anchor position to place the
+   connection point at the link frame origin. For `center` mode, the position
+   is averaged with the opposite face along the bore axis before negation.
 2. **Pass 2 — surface gap closure** (`close_surface_gaps_along_axis`) — for
    surface-mode connections only, shift the child mesh along the joint axis
    so its proximal face meets the parent's distal face.
-3. **Pass 3 — visual_xyz nudge** — apply any `visual_xyz` offset from
+3. **Pass 2b — derived joint update** (`update_derived_joint_origins`) —
+   recompute connection-point-derived joint origins to reflect any visual
+   shifts from gap closing.
+4. **Pass 3 — visual_xyz nudge** — apply any `visual_xyz` offset from
    `chain.yaml` as a local-only adjustment. This is added *after*
    gap-closing, so nudging one part never affects any other part.
 
@@ -135,35 +141,16 @@ position is rotated first, then negated:
 
 ```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
 :language: python
-:lines: 108-113
+:start-at: if viz_rpy == [0, 0, 0]:
+:end-at: viz_xyz = (-rpy_to_rotation
 :caption: visual_rpy applied before translation in compute_visual_origin
 ```
 
-### Why this matters for fixing jumbled parts
+### Fixing jumbled parts
 
-When auto-detection picks the wrong connection points, parts end up in the
-wrong position *and* orientation. Fixing this requires both steps:
-
-1. **Place the markers correctly** — use Edit Connections and click directly on
-   the correct mesh surfaces to assign proximal and distal markers. This tells
-   the pipeline where the joint axes are, and gives it the axis directions from
-   the face normals.
-
-2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
-   face is not perpendicular to the joint axis (i.e. the STL mesh
-   coordinates don't naturally align with the link frame), you need a
-   `visual_rpy` rotation in `chain.yaml` to bring them into alignment.
-
-For a typical straight part where proximal and distal are on parallel faces
-along the same axis, `visual_rpy` can stay at `[0, 0, 0]`. For L-shaped or
-angled parts where the two connections face different directions, you need a
-rotation to align the proximal axis with the joint frame.
-
-**Work from base to tip.** Each link's visual origin is computed
-independently (snapped to its own joint axis), so errors no longer compound
-along the chain. However, surface gap closure still references the parent's
-distal position, so fixing a parent link's connections first makes it easier
-to verify child links visually.
+When auto-detection picks the wrong connection points, see
+{doc}`/how-to/edit-connection-points` for step-by-step instructions on
+placing markers and setting `visual_rpy`.
 
 ## What affects what
 
@@ -181,23 +168,28 @@ flowchart TB
 
     subgraph pipeline ["URDF generation pipeline"]
         direction TB
+        pass0["Pass 0: auto-detect visual flips<br/>flip anchor for frame-flipped links"]
         pass1["Pass 1: per-mesh snap<br/>proximal + visual_rpy → visual origin"]
         pass2["Pass 2: gap-closing<br/>parent distal → child shift along axis"]
+        pass2b["Pass 2b: derived joint update<br/>recompute connection-point-derived joint origins"]
         pass3["Pass 3: visual_xyz nudge<br/>local-only, never propagated"]
         joints["Joint origins ← DH params only"]
-        pass1 --> pass2 --> pass3
+        fk["FK validation<br/>verify joint + visual origins"]
+        pass0 --> pass1 --> pass2 --> pass2b --> pass3
+        pass3 --> fk
     end
 
     subgraph output ["Output"]
         urdf["robot.urdf"]
     end
 
+    analysis --> pass0
     analysis --> pass1
     analysis --> pass2
     chain --> pass1
     chain --> joints
     chain --> pass3
-    pass3 --> urdf
+    fk --> urdf
     joints --> urdf
 ```
 
