@@ -62,3 +62,39 @@ def test_link_defaults():
     assert link.mesh_scale == [0.001, 0.001, 0.001]
     assert link.origin_xyz == [0.0, 0.0, 0.0]
     assert link.origin_rpy == [0.0, 0.0, 0.0]
+
+
+def test_get_kinematic_chain_empty_joints():
+    """Robot with no joints should return an empty chain."""
+    robot = URDFRobot(name="empty", links=[URDFLink(name="base")])
+    assert robot.get_kinematic_chain() == []
+
+
+def test_get_kinematic_chain_cycle():
+    """When every parent is also a child (no root), return joints as-is."""
+    joints = [
+        URDFJoint(name="j1", joint_type="revolute", parent="a", child="b"),
+        URDFJoint(name="j2", joint_type="revolute", parent="b", child="a"),
+    ]
+    robot = URDFRobot(
+        name="cycle",
+        links=[URDFLink(name="a"), URDFLink(name="b")],
+        joints=joints,
+    )
+    chain = robot.get_kinematic_chain()
+    # No root found, so all joints returned in original order
+    assert chain == joints
+
+
+def test_joint_defaults():
+    """URDFJoint default values should match expected constants."""
+    import numpy as np
+
+    joint = URDFJoint(name="j", joint_type="revolute", parent="a", child="b")
+    assert joint.axis == [0.0, 0.0, 1.0]
+    assert joint.origin_xyz == [0.0, 0.0, 0.0]
+    assert joint.origin_rpy == [0.0, 0.0, 0.0]
+    assert joint.limit_lower == -np.pi
+    assert joint.limit_upper == np.pi
+    assert joint.limit_effort == 100.0
+    assert joint.limit_velocity == 1.0
