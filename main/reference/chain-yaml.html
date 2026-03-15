@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>chain.yaml specification &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>chain.yaml specification &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -479,7 +479,7 @@ analysis data to produce a standard URDF.</p>
 <section id="robot-name">
 <h3><code class="docutils literal notranslate"><span class="pre">robot_name</span></code><a class="headerlink" href="#robot-name" title="Link to this heading">#</a></h3>
 <p><strong>Type:</strong> string
-<strong>Required:</strong> no (defaults to <code class="docutils literal notranslate"><span class="pre">&quot;robot&quot;</span></code>)</p>
+<strong>Required:</strong> yes</p>
 <p>The name written into the URDF <code class="docutils literal notranslate"><span class="pre">&lt;robot&gt;</span></code> element.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robot_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Meca500-R3</span>
 </pre></div>
@@ -525,7 +525,7 @@ generated transforms.</p>
 <section id="mesh">
 <h3><code class="docutils literal notranslate"><span class="pre">mesh</span></code><a class="headerlink" href="#mesh" title="Link to this heading">#</a></h3>
 <p><strong>Type:</strong> string or <code class="docutils literal notranslate"><span class="pre">null</span></code>
-<strong>Required:</strong> yes</p>
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">null</span></code></p>
 <p>The STL file stem name (without <code class="docutils literal notranslate"><span class="pre">.stl</span></code> extension). The generator looks for
 <code class="docutils literal notranslate"><span class="pre">&lt;robot_dir&gt;/stl_files/&lt;mesh&gt;.stl</span></code>. Set to <code class="docutils literal notranslate"><span class="pre">null</span></code> for virtual links that
 have no geometry (e.g. when two joints are co-located).</p>
@@ -534,10 +534,17 @@ have no geometry (e.g. when two joints are co-located).</p>
 </pre></div>
 </div>
 </section>
+<section id="user-added">
+<h3><code class="docutils literal notranslate"><span class="pre">user_added</span></code><a class="headerlink" href="#user-added" title="Link to this heading">#</a></h3>
+<p><strong>Type:</strong> boolean
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
+<p>Marks links added by the user (e.g. end-effector links not present in the
+original STL set). When <code class="docutils literal notranslate"><span class="pre">false</span></code>, this field is omitted from YAML output.</p>
+</section>
 <section id="visual-rpy">
 <h3><code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code><a class="headerlink" href="#visual-rpy" title="Link to this heading">#</a></h3>
 <p><strong>Type:</strong> list of 3 floats <code class="docutils literal notranslate"><span class="pre">[roll,</span> <span class="pre">pitch,</span> <span class="pre">yaw]</span></code> in radians
-<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code></p>
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">null</span></code> (treated as <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> by the generator)</p>
 <p>Rotation applied to the STL mesh to align its coordinate frame with the link
 frame convention (Z-up). Use this when the STL’s natural orientation doesn’t
 match.</p>
@@ -549,7 +556,7 @@ match.</p>
 <section id="visual-xyz">
 <h3><code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code><a class="headerlink" href="#visual-xyz" title="Link to this heading">#</a></h3>
 <p><strong>Type:</strong> list of 3 floats <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y,</span> <span class="pre">z]</span></code> in metres
-<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code></p>
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">null</span></code> (treated as <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> by the generator)</p>
 <p><strong>This is additive.</strong> The generator automatically computes a visual offset
 from the mesh’s proximal connection point (so the connection centre sits at the
 link frame origin). The <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> value is added on top of that
@@ -595,10 +602,17 @@ detected — check the analysis YAML</p></li>
 <strong>Required:</strong> yes</p>
 <p>Name of the child link (must match a <code class="docutils literal notranslate"><span class="pre">links[].name</span></code>).</p>
 </section>
+<section id="id2">
+<h3><code class="docutils literal notranslate"><span class="pre">user_added</span></code><a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p><strong>Type:</strong> boolean
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
+<p>Marks joints added by the user (e.g. for user-added end-effector links).
+When <code class="docutils literal notranslate"><span class="pre">false</span></code>, this field is omitted from YAML output.</p>
+</section>
 <section id="axis">
 <h3><code class="docutils literal notranslate"><span class="pre">axis</span></code><a class="headerlink" href="#axis" title="Link to this heading">#</a></h3>
 <p><strong>Type:</strong> list of 3 floats <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y,</span> <span class="pre">z]</span></code>
-<strong>Required:</strong> yes</p>
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]</span></code></p>
 <p>Unit vector defining the joint rotation axis in the child link frame.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -633,13 +647,13 @@ range.</p>
 <section id="effort">
 <h3><code class="docutils literal notranslate"><span class="pre">effort</span></code><a class="headerlink" href="#effort" title="Link to this heading">#</a></h3>
 <p><strong>Type:</strong> number
-<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">100</span></code></p>
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">null</span></code> (the generator may apply a fallback of <code class="docutils literal notranslate"><span class="pre">100</span></code>)</p>
 <p>Maximum joint effort (N·m). Written to the URDF <code class="docutils literal notranslate"><span class="pre">&lt;limit&gt;</span></code> element.</p>
 </section>
 <section id="velocity">
 <h3><code class="docutils literal notranslate"><span class="pre">velocity</span></code><a class="headerlink" href="#velocity" title="Link to this heading">#</a></h3>
 <p><strong>Type:</strong> number
-<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+<strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">null</span></code> (the generator may apply a fallback of <code class="docutils literal notranslate"><span class="pre">1</span></code>)</p>
 <p>Maximum joint velocity (rad/s). Written to the URDF <code class="docutils literal notranslate"><span class="pre">&lt;limit&gt;</span></code> element.</p>
 </section>
 <section id="origin">
@@ -865,6 +879,7 @@ virtual links (<code class="docutils literal notranslate"><span class="pre">mesh
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#link-specification">Link specification</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mesh"><code class="docutils literal notranslate"><span class="pre">mesh</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#user-added"><code class="docutils literal notranslate"><span class="pre">user_added</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visual-rpy"><code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visual-xyz"><code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></a></li>
 </ul>
@@ -874,6 +889,7 @@ virtual links (<code class="docutils literal notranslate"><span class="pre">mesh
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parent"><code class="docutils literal notranslate"><span class="pre">parent</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#child"><code class="docutils literal notranslate"><span class="pre">child</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"><code class="docutils literal notranslate"><span class="pre">user_added</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#axis"><code class="docutils literal notranslate"><span class="pre">axis</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#limits"><code class="docutils literal notranslate"><span class="pre">limits</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#effort"><code class="docutils literal notranslate"><span class="pre">effort</span></code></a></li>

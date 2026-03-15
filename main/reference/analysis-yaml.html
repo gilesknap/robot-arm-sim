@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Analysis YAML format &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Analysis YAML format &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -530,12 +530,47 @@ and visual offsets.</p>
 <td><p>string</p></td>
 <td><p>Detection method (e.g. <code class="docutils literal notranslate"><span class="pre">cross_section</span></code>)</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">centering</span></code></p></td>
+<td><p>string or null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;surface&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;center&quot;</span></code> — controls how the visual origin is computed. See <a class="reference internal" href="../explanations/urdf-generation-pipeline.html"><span class="doc">URDF generation pipeline</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="valid-method-values">
+<h4>Valid <code class="docutils literal notranslate"><span class="pre">method</span></code> values<a class="headerlink" href="#valid-method-values" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cross_section</span></code></p></td>
+<td><p>Detected by slicing mesh perpendicular to bore axis and fitting circles</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cylinder_fit</span></code></p></td>
+<td><p>Detected by fitting a circle to boundary vertices near a mesh end</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">barrel_bore_face</span></code></p></td>
+<td><p>Detected on barrel-shaped parts using flat-face evidence along the bore axis</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">centroid_fallback</span></code></p></td>
+<td><p>Fallback: mesh centroid used when no geometric features found</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">largest_face_fallback</span></code></p></td>
+<td><p>Fallback: largest flat face used when no cylindrical features found</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">manual</span></code></p></td>
+<td><p>Manually placed via the Edit Connections UI</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">generate</span></code> command uses these positions to compute joint origins
 (distal-to-proximal distance between connected parts) and visual offsets
 (shift mesh so proximal connection centre is at the link frame origin).</p>
+</section>
 </section>
 <section id="geometry">
 <h3><code class="docutils literal notranslate"><span class="pre">geometry</span></code><a class="headerlink" href="#geometry" title="Link to this heading">#</a></h3>
@@ -685,17 +720,48 @@ identification.</p>
 </section>
 <section id="holes">
 <h4><code class="docutils literal notranslate"><span class="pre">holes</span></code><a class="headerlink" href="#holes" title="Link to this heading">#</a></h4>
-<p>List of detected holes (currently unused in most analyses).</p>
+<p>Holes are concave cylindrical surfaces with a radius less than 5 mm,
+detected by <code class="docutils literal notranslate"><span class="pre">_detect_cylindrical_surfaces</span></code> in <code class="docutils literal notranslate"><span class="pre">features.py</span></code>. Face normals
+that point inward (toward the cylinder centre) indicate concavity; the
+radius threshold separates small holes from larger bore features reported
+as <code class="docutils literal notranslate"><span class="pre">cylindrical_surfaces</span></code>.</p>
+<p>Each entry:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">description</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Human-readable summary</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">axis</span></code></p></td>
+<td><p>list of 3 floats</p></td>
+<td><p>Hole axis</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">radius_mm</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Hole radius in mm</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">length_mm</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Hole length in mm</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">center</span></code></p></td>
+<td><p>list of 3 floats</p></td>
+<td><p>Hole centre (mm)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 </section>
 <section id="text-description">
 <h3><code class="docutils literal notranslate"><span class="pre">text_description</span></code><a class="headerlink" href="#text-description" title="Link to this heading">#</a></h3>
 <p>A human-readable text summary of the part geometry.</p>
-</section>
-<section id="renders">
-<h3><code class="docutils literal notranslate"><span class="pre">renders</span></code><a class="headerlink" href="#renders" title="Link to this heading">#</a></h3>
-<p>A list of relative paths to rendered images of the part (front, side, top,
-isometric views).</p>
 </section>
 </section>
 <hr class="docutils" />
@@ -753,6 +819,14 @@ isometric views).</p>
 </tbody>
 </table>
 </div>
+<p>Role hints are generated by <code class="docutils literal notranslate"><span class="pre">_infer_role_hint</span></code> using several heuristics:
+parts with a bounding-box extent over 100 mm are tagged “large part”;
+the largest flat face pointing downward (-Z) adds “flat bottom face
+(possible base)”; all detected cylindrical surfaces are counted; a
+leading <code class="docutils literal notranslate"><span class="pre">0</span></code> in the part name adds “first part in sequence (likely base)”;
+and an underscore in the name flags “combined part (may span multiple
+joints)”. Parts matching none of these receive the default hint
+“standard link”.</p>
 </section>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading">#</a></h2>
@@ -810,7 +884,10 @@ complete set of analysis files.</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#per-part-yaml">Per-part YAML</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#top-level-fields">Top-level fields</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-points"><code class="docutils literal notranslate"><span class="pre">connection_points</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-points"><code class="docutils literal notranslate"><span class="pre">connection_points</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#valid-method-values">Valid <code class="docutils literal notranslate"><span class="pre">method</span></code> values</a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry"><code class="docutils literal notranslate"><span class="pre">geometry</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inertia"><code class="docutils literal notranslate"><span class="pre">inertia</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#features"><code class="docutils literal notranslate"><span class="pre">features</span></code></a><ul class="nav section-nav flex-column">
@@ -820,7 +897,6 @@ complete set of analysis files.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#text-description"><code class="docutils literal notranslate"><span class="pre">text_description</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#renders"><code class="docutils literal notranslate"><span class="pre">renders</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-yaml">summary.yaml</a></li>

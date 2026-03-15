@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>URDF generation pipeline &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>URDF generation pipeline &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -833,10 +833,12 @@ window.runMermaid = runMermaid;</script>
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -913,7 +915,7 @@ window.runMermaid = runMermaid;</script>
 <p>How connection points, centering modes, and chain.yaml settings combine
 to produce visual origins in the generated URDF.</p>
 <p>For step-by-step editing instructions, see
-<a class="reference internal" href="../how-to/edit-connection-points.html"><span class="doc">Edit connection points</span></a>.</p>
+<a class="reference internal" href="../how-to/edit-connection-points.html"><span class="doc">Edit connection points in the simulator</span></a>.</p>
 <section id="what-connection-points-are">
 <h2>What connection points are<a class="headerlink" href="#what-connection-points-are" title="Link to this heading">#</a></h2>
 <p>Every robot part has one or two <strong>connection points</strong> — the positions where it
@@ -1012,41 +1014,65 @@ along any axis.</p>
 within its link frame. The goal is always the same: place the proximal
 connection point at the link frame origin so the joint rotates around the
 correct axis.</p>
-<section id="axis-snapping-both-modes">
-<h3>Axis snapping (both modes)<a class="headerlink" href="#axis-snapping-both-modes" title="Link to this heading">#</a></h3>
-<p>Regardless of centering mode, <code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code> always <strong>snaps the
-proximal bore center onto the joint axis line</strong>. It decomposes the proximal
-position into along-axis and cross-axis components relative to the joint
-axis, then zeros the cross-axis error:</p>
+<section id="visual-origin-computation-both-modes">
+<h3>Visual origin computation (both modes)<a class="headerlink" href="#visual-origin-computation-both-modes" title="Link to this heading">#</a></h3>
+<p>For each link, <code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code> negates the proximal connection
+point position (converting from mm to metres) so the connection sits at
+the link frame origin. Each mesh is positioned independently — no
+cross-link dependencies, no error accumulation up the chain.</p>
 <div class="literal-block-wrapper docutils container" id="id4">
-<div class="code-block-caption"><span class="caption-text">Axis snapping and centering logic in compute_visual_origin</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>        <span class="n">link_name</span> <span class="o">=</span> <span class="n">link_spec</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s2">&quot;visual_rpy&quot;</span> <span class="ow">in</span> <span class="n">link_spec</span><span class="p">:</span>
-            <span class="k">continue</span>  <span class="c1"># explicitly set in chain.yaml, don&#39;t override</span>
+<div class="code-block-caption"><span class="caption-text">compute_visual_origin — places proximal connection at frame origin</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">compute_visual_origin</span><span class="p">(</span>
+    <span class="n">analysis</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">link_spec</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">link_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute visual origin xyz/rpy: place proximal connection at frame origin.</span>
 
-        <span class="n">creating_joint</span> <span class="o">=</span> <span class="n">child_to_joint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">creating_joint</span><span class="p">:</span>
-            <span class="k">continue</span>  <span class="c1"># base link</span>
+<span class="sd">    Translates the mesh so the proximal bore sits on the joint axis.</span>
+<span class="sd">    For center mode, averages with the opposite face along the bore axis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn_points</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_points&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">anchor_end</span> <span class="o">=</span> <span class="n">link_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_visual_anchor&quot;</span><span class="p">,</span> <span class="s2">&quot;proximal&quot;</span><span class="p">)</span>
+    <span class="n">anchor</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">cp</span> <span class="k">for</span> <span class="n">cp</span> <span class="ow">in</span> <span class="n">conn_points</span> <span class="k">if</span> <span class="n">cp</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">anchor_end</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">viz_rpy</span> <span class="o">=</span> <span class="n">link_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;visual_rpy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
 
-        <span class="n">origin_rpy</span> <span class="o">=</span> <span class="n">creating_joint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;origin_rpy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">origin_rpy</span><span class="p">):</span>
-            <span class="k">continue</span>  <span class="c1"># no rotation, no flip possible</span>
+    <span class="k">if</span> <span class="n">anchor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Fall back to proximal if requested anchor not found</span>
+        <span class="n">anchor</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">cp</span> <span class="k">for</span> <span class="n">cp</span> <span class="ow">in</span> <span class="n">conn_points</span> <span class="k">if</span> <span class="n">cp</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;proximal&quot;</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">anchor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">link_name</span><span class="si">}</span><span class="s2">: no proximal connection point&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">viz_rpy</span>
 
-        <span class="n">outgoing_joint</span> <span class="o">=</span> <span class="n">parent_to_joint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">outgoing_joint</span><span class="p">:</span>
-            <span class="k">continue</span>  <span class="c1"># tip link, no next joint to compare against</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">anchor</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># mm, mesh coords</span>
 
-        <span class="n">mesh_name</span> <span class="o">=</span> <span class="n">link_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mesh&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">mesh_name</span> <span class="ow">or</span> <span class="n">mesh_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">analyses</span><span class="p">:</span>
-            <span class="k">continue</span>
+    <span class="c1"># For center mode, average anchor with opposite face along bore axis</span>
+    <span class="n">bore_axis</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;axis&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="n">centering</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;centering&quot;</span><span class="p">,</span> <span class="s2">&quot;surface&quot;</span><span class="p">)</span>
 
-        <span class="n">analysis</span> <span class="o">=</span> <span class="n">analyses</span><span class="p">[</span><span class="n">mesh_name</span><span class="p">]</span>
-        <span class="n">conn_pts</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_points&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">if</span> <span class="n">centering</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="n">opp</span> <span class="o">=</span> <span class="n">_find_opposite_face</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">bore_axis</span><span class="p">,</span> <span class="n">axis_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">opp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">opp</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="c1"># Visual origin: places anchor connection point at frame origin (on axis)</span>
+    <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">link_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">anchor_end</span><span class="si">}</span><span class="s2"> @ origin,&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">anchor_end</span><span class="si">}</span><span class="s2">=(</span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">)mm&quot;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">viz_xyz</span><span class="p">],</span> <span class="n">viz_rpy</span>
 </pre></div>
 </div>
 </div>
-<p>This means each mesh independently positions itself — no cross-link
-dependencies, no error accumulation up the chain.</p>
 </section>
 <section id="surface-mode-default">
 <h3><code class="docutils literal notranslate"><span class="pre">surface</span></code> mode (default)<a class="headerlink" href="#surface-mode-default" title="Link to this heading">#</a></h3>
@@ -1057,18 +1083,19 @@ component of the proximal position is used as-is (only cross-axis is zeroed).</p
 joint axis only</strong> so its proximal surface meets the parent’s distal surface:</p>
 <div class="literal-block-wrapper docutils container" id="id5">
 <div class="code-block-caption"><span class="caption-text">close_surface_gaps_along_axis docstring</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-
-    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">viz_xyz</span><span class="p">],</span> <span class="n">viz_rpy</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">compute_joint_origin</span><span class="p">(</span>
-    <span class="n">joint_spec</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-    <span class="n">link_specs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">close_surface_gaps_along_axis</span><span class="p">(</span>
+    <span class="n">chain</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="n">analyses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-    <span class="n">dh_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">visual_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span>
+    <span class="n">joint_origins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="n">joint_rpys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shift surface-mode children along the joint axis to meet parent distal.</span>
+
+<span class="sd">    Only adjusts along the joint axis — cross-axis is already handled by</span>
+<span class="sd">    the per-mesh snap in compute_visual_origin.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -1096,15 +1123,22 @@ part’s proximal and distal faces are on different planes — for example, an
 L-shaped link where the proximal bore faces along Z but the distal bore
 faces along Y — the mesh also needs to be <strong>rotated</strong> so the proximal axis
 aligns with the joint frame. This is what <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> does.</p>
-<p>The URDF generation pipeline works in three passes:</p>
-<ol class="arabic simple">
+<p>The URDF generation pipeline works in five passes:</p>
+<ol class="arabic simple" start="0">
+<li><p><strong>Pass 0 — visual flip detection</strong> (<code class="docutils literal notranslate"><span class="pre">auto_detect_visual_flips</span></code>) — detects
+links where the proximal connection is frame-flipped relative to the joint
+axis. For these links, the anchor switches to the distal connection point
+so <code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code> positions the mesh correctly.</p></li>
 <li><p><strong>Pass 1 — per-mesh snap</strong> (<code class="docutils literal notranslate"><span class="pre">compute_visual_origin</span></code>) — for each link,
-rotate the mesh (<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>) and snap its proximal bore center onto the
-joint axis line, zeroing cross-axis error. Along-axis placement depends
-on centering mode.</p></li>
+rotate the mesh (<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>) and negate the anchor position to place the
+connection point at the link frame origin. For <code class="docutils literal notranslate"><span class="pre">center</span></code> mode, the position
+is averaged with the opposite face along the bore axis before negation.</p></li>
 <li><p><strong>Pass 2 — surface gap closure</strong> (<code class="docutils literal notranslate"><span class="pre">close_surface_gaps_along_axis</span></code>) — for
 surface-mode connections only, shift the child mesh along the joint axis
 so its proximal face meets the parent’s distal face.</p></li>
+<li><p><strong>Pass 2b — derived joint update</strong> (<code class="docutils literal notranslate"><span class="pre">update_derived_joint_origins</span></code>) —
+recompute connection-point-derived joint origins to reflect any visual
+shifts from gap closing.</p></li>
 <li><p><strong>Pass 3 — visual_xyz nudge</strong> — apply any <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> offset from
 <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> as a local-only adjustment. This is added <em>after</em>
 gap-closing, so nudging one part never affects any other part.</p></li>
@@ -1114,38 +1148,18 @@ negation of the proximal position. When a rotation is applied, the proximal
 position is rotated first, then negated:</p>
 <div class="literal-block-wrapper docutils container" id="id6">
 <div class="code-block-caption"><span class="caption-text">visual_rpy applied before translation in compute_visual_origin</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>        <span class="n">mesh_name</span> <span class="o">=</span> <span class="n">link_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mesh&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">mesh_name</span> <span class="ow">or</span> <span class="n">mesh_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">analyses</span><span class="p">:</span>
-            <span class="k">continue</span>
-
-        <span class="n">analysis</span> <span class="o">=</span> <span class="n">analyses</span><span class="p">[</span><span class="n">mesh_name</span><span class="p">]</span>
-        <span class="n">conn_pts</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_points&quot;</span><span class="p">,</span> <span class="p">[])</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">if</span> <span class="n">viz_rpy</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viz_xyz</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">rpy_to_rotation</span><span class="p">(</span><span class="n">viz_rpy</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">pos</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<section id="why-this-matters-for-fixing-jumbled-parts">
-<h3>Why this matters for fixing jumbled parts<a class="headerlink" href="#why-this-matters-for-fixing-jumbled-parts" title="Link to this heading">#</a></h3>
-<p>When auto-detection picks the wrong connection points, parts end up in the
-wrong position <em>and</em> orientation. Fixing this requires both steps:</p>
-<ol class="arabic simple">
-<li><p><strong>Place the markers correctly</strong> — use Edit Connections and click directly on
-the correct mesh surfaces to assign proximal and distal markers. This tells
-the pipeline where the joint axes are, and gives it the axis directions from
-the face normals.</p></li>
-<li><p><strong>Set <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> if the axes aren’t aligned</strong> — if a part’s proximal
-face is not perpendicular to the joint axis (i.e. the STL mesh
-coordinates don’t naturally align with the link frame), you need a
-<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> rotation in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> to bring them into alignment.</p></li>
-</ol>
-<p>For a typical straight part where proximal and distal are on parallel faces
-along the same axis, <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> can stay at <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code>. For L-shaped or
-angled parts where the two connections face different directions, you need a
-rotation to align the proximal axis with the joint frame.</p>
-<p><strong>Work from base to tip.</strong> Each link’s visual origin is computed
-independently (snapped to its own joint axis), so errors no longer compound
-along the chain. However, surface gap closure still references the parent’s
-distal position, so fixing a parent link’s connections first makes it easier
-to verify child links visually.</p>
+<section id="fixing-jumbled-parts">
+<h3>Fixing jumbled parts<a class="headerlink" href="#fixing-jumbled-parts" title="Link to this heading">#</a></h3>
+<p>When auto-detection picks the wrong connection points, see
+<a class="reference internal" href="../how-to/edit-connection-points.html"><span class="doc">Edit connection points in the simulator</span></a> for step-by-step instructions on
+placing markers and setting <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>.</p>
 </section>
 </section>
 <section id="what-affects-what">
@@ -1163,23 +1177,28 @@ editing connection points or chain.yaml values.</p>
 
     subgraph pipeline [&quot;URDF generation pipeline&quot;]
         direction TB
+        pass0[&quot;Pass 0: auto-detect visual flips&lt;br/&gt;flip anchor for frame-flipped links&quot;]
         pass1[&quot;Pass 1: per-mesh snap&lt;br/&gt;proximal + visual_rpy → visual origin&quot;]
         pass2[&quot;Pass 2: gap-closing&lt;br/&gt;parent distal → child shift along axis&quot;]
+        pass2b[&quot;Pass 2b: derived joint update&lt;br/&gt;recompute connection-point-derived joint origins&quot;]
         pass3[&quot;Pass 3: visual_xyz nudge&lt;br/&gt;local-only, never propagated&quot;]
         joints[&quot;Joint origins ← DH params only&quot;]
-        pass1 --&gt; pass2 --&gt; pass3
+        fk[&quot;FK validation&lt;br/&gt;verify joint + visual origins&quot;]
+        pass0 --&gt; pass1 --&gt; pass2 --&gt; pass2b --&gt; pass3
+        pass3 --&gt; fk
     end
 
     subgraph output [&quot;Output&quot;]
         urdf[&quot;robot.urdf&quot;]
     end
 
+    analysis --&gt; pass0
     analysis --&gt; pass1
     analysis --&gt; pass2
     chain --&gt; pass1
     chain --&gt; joints
     chain --&gt; pass3
-    pass3 --&gt; urdf
+    fk --&gt; urdf
     joints --&gt; urdf
     </pre></section>
 <section id="what-each-input-controls">
@@ -1300,13 +1319,13 @@ hasn’t changed.</p></li>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-connection-points-are">What connection points are</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-centering-modes">The two centering modes</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#axis-snapping-both-modes">Axis snapping (both modes)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visual-origin-computation-both-modes">Visual origin computation (both modes)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#surface-mode-default"><code class="docutils literal notranslate"><span class="pre">surface</span></code> mode (default)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#center-mode"><code class="docutils literal notranslate"><span class="pre">center</span></code> mode</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-three-pass-pipeline">The three-pass pipeline</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-this-matters-for-fixing-jumbled-parts">Why this matters for fixing jumbled parts</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixing-jumbled-parts">Fixing jumbled parts</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-affects-what">What affects what</a><ul class="nav section-nav flex-column">

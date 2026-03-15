@@ -52,7 +52,7 @@ meca500-related configuration. Key findings:
 
 ### Root cause
 
-The visibility panel code at `toolbar.py:256` used the link name as a
+The visibility panel code in `build_visibility_section()` used the link name as a
 fallback label for meshless links instead of skipping them. And the
 EndEffector was never added to the URDF kinematic chain.
 

@@ -22,20 +22,21 @@ uv sync
 uv run robot-arm-sim simulate robots/Meca500-R3/
 ```
 
-Your browser opens at `http://localhost:8080` with a 3D model of the
-Meca500-R3 collaborative robot.
+The simulator starts on port 8080. Open <http://localhost:8080> in your
+browser to see a 3D model of the Meca500-R3 collaborative robot.
 
 ## Explore the controls
 
 - **Joint sliders** (right panel) — drag any slider to rotate that joint.
   The model updates in real time.
-- **Show Labels** — click the button below the viewport to display part names
-  (blue, left) and joint names (red, right) as callout labels.
+- **Labels** — click the toolbar button to display part names (blue, left)
+  and joint names (red, right) as callout labels.
 - **Reset Joints** — returns all sliders to zero degrees.
 - **ViewCube** — a 3D orientation widget in the corner of the viewport. Click
   a face (Front, Right, Top, etc.) to snap to that view.
+- **Persp** — toggle between perspective and orthographic camera projection.
 - **Fit** — auto-zoom so the robot fills the viewport.
-- **Camera** — right-click drag to orbit, scroll to zoom, middle-click drag
+- **Camera** — left-click drag to orbit, scroll to zoom, right-click drag
   to pan.
 
 There are more controls not covered here — **IK mode** for controlling the

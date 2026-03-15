@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Run in a container &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Run in a container &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Explanations" href="../explanations.html" />
-    <link rel="prev" title="Edit connection points" href="edit-connection-points.html" />
+    <link rel="prev" title="Regenerate analysis and URDF" href="regenerate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -400,7 +400,9 @@
 <li class="toctree-l1"><a class="reference internal" href="add-a-robot.html">Add a new robot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deploy-kubernetes.html">Deploy on Kubernetes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-chain-yaml.html">Edit chain.yaml and analysis YAML directly</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points in the simulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regenerate.html">Regenerate analysis and URDF</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Run in a container</a></li>
 </ul>
 </div>
@@ -494,26 +496,24 @@ installed are available on <a class="reference external" href="https://ghcr.io/g
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ROBOT_DIR</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/app/robots</span></code></p></td>
-<td><p>Path to the directory containing robot folders inside the container</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CLUSTER_MODE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CLUSTER_MODE</span></code></p></td>
 <td><p><em>(unset)</em></p></td>
-<td><p>Set to <code class="docutils literal notranslate"><span class="pre">1</span></code> to enable cluster mode (disables the Stop button, enables health checks)</p></td>
+<td><p>Set to <code class="docutils literal notranslate"><span class="pre">1</span></code> to hide the Stop Simulator button (also auto-detected when <code class="docutils literal notranslate"><span class="pre">KUBERNETES_SERVICE_HOST</span></code> is set)</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>The <code class="docutils literal notranslate"><span class="pre">/healthz</span></code> health-check endpoint is always available regardless of
+<code class="docutils literal notranslate"><span class="pre">CLUSTER_MODE</span></code>.</p>
 </section>
 <section id="using-your-own-robot-data">
 <h2>Using your own robot data<a class="headerlink" href="#using-your-own-robot-data" title="Link to this heading">#</a></h2>
 <p>Mount a local directory of robot folders into the container and override
-<code class="docutils literal notranslate"><span class="pre">ROBOT_DIR</span></code>:</p>
+the default command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8080</span>:8080<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-v<span class="w"> </span>/path/to/my/robots:/data/robots<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-e<span class="w"> </span><span class="nv">ROBOT_DIR</span><span class="o">=</span>/data/robots<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>ghcr.io/gilesknap/robot-arm-sim:latest
+<span class="w">    </span>ghcr.io/gilesknap/robot-arm-sim:latest<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>simulate<span class="w"> </span>/data/robots
 </pre></div>
 </div>
 </section>
@@ -535,12 +535,12 @@ installed are available on <a class="reference external" href="https://ghcr.io/g
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="edit-connection-points.html"
+       href="regenerate.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Edit connection points</p>
+        <p class="prev-next-title">Regenerate analysis and URDF</p>
       </div>
     </a>
     <a class="right-next"

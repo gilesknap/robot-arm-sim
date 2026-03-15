@@ -1,5 +1,12 @@
 # Implementation plan
 
+```{admonition} Historical document
+:class: warning
+This page preserves the original implementation plan written during
+development. The actual architecture diverged in several ways — see
+{doc}`architecture` for the current state.
+```
+
 This is the original implementation plan that Claude wrote in response to
 {doc}`Prompt 10 <building-with-claude>` — before any code was written. It was
 saved as `/plan.md` in the repository root and used as the blueprint for the

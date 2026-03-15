@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Contribute to the project &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
+    <title>Edit chain.yaml and analysis YAML directly &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -47,7 +47,7 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/contribute';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/edit-chain-yaml';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
@@ -58,8 +58,8 @@
     <link rel="icon" href="../_static/dls-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Deploy on Kubernetes" href="deploy-kubernetes.html" />
-    <link rel="prev" title="Add a new robot" href="add-a-robot.html" />
+    <link rel="next" title="Edit connection points in the simulator" href="edit-connection-points.html" />
+    <link rel="prev" title="Deploy on Kubernetes" href="deploy-kubernetes.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -398,9 +398,9 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="add-a-robot.html">Add a new robot</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Contribute to the project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deploy-kubernetes.html">Deploy on Kubernetes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="edit-chain-yaml.html">Edit chain.yaml and analysis YAML directly</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Edit chain.yaml and analysis YAML directly</a></li>
 <li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points in the simulator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="regenerate.html">Regenerate analysis and URDF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="run-container.html">Run in a container</a></li>
@@ -447,7 +447,7 @@
     
     <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Contribute to the project</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Edit chain.yaml and analysis YAML directly</span></li>
   </ul>
 </nav>
 </div>
@@ -464,30 +464,76 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="contribute-to-the-project">
-<h1>Contribute to the project<a class="headerlink" href="#contribute-to-the-project" title="Link to this heading">#</a></h1>
-<p>Contributions and issues are most welcome! All issues and pull requests are
-handled through <a class="reference external" href="https://github.com/gilesknap/robot-arm-sim/issues">GitHub</a>. Also, please check for any existing issues before
-filing a new one. If you have a great idea but it involves big changes, please
-file a ticket before making a pull request! We want to make sure you don’t spend
-your time coding something that might not fit the scope of the project.</p>
-<section id="issue-or-discussion">
-<h2>Issue or Discussion?<a class="headerlink" href="#issue-or-discussion" title="Link to this heading">#</a></h2>
-<p>Github also offers <a class="reference external" href="https://github.com/gilesknap/robot-arm-sim/discussions">discussions</a> as a place to ask questions and share ideas. If
-your issue is open ended and it is not obvious when it can be “closed”, please
-raise it as a discussion instead.</p>
+  <section id="edit-chain-yaml-and-analysis-yaml-directly">
+<h1>Edit chain.yaml and analysis YAML directly<a class="headerlink" href="#edit-chain-yaml-and-analysis-yaml-directly" title="Link to this heading">#</a></h1>
+<p>How to adjust connection points, visual alignment, and joint parameters by
+editing YAML files and regenerating the URDF — without the simulator UI.</p>
+<p>For the interactive approach, see <a class="reference internal" href="edit-connection-points.html"><span class="doc">Edit connection points in the simulator</span></a>.
+For the full <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> field reference, see <a class="reference internal" href="../reference/chain-yaml.html"><span class="doc">chain.yaml specification</span></a>.</p>
+<section id="edit-connection-points-in-analysis-yaml">
+<h2>Edit connection points in analysis YAML<a class="headerlink" href="#edit-connection-points-in-analysis-yaml" title="Link to this heading">#</a></h2>
+<p>Each part’s analysis file (e.g. <code class="docutils literal notranslate"><span class="pre">robots/MyRobot/analysis/A1.yaml</span></code>) contains a
+<code class="docutils literal notranslate"><span class="pre">connection_points</span></code> section. You can edit the <code class="docutils literal notranslate"><span class="pre">position</span></code>, <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">centering</span></code> fields directly. Set <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">manual</span></code> to prevent the analyzer
+from overwriting your changes on the next run.</p>
+<p>After editing, regenerate the URDF:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>generate<span class="w"> </span>robots/MyRobot/
+</pre></div>
+</div>
 </section>
-<section id="code-coverage">
-<h2>Code Coverage<a class="headerlink" href="#code-coverage" title="Link to this heading">#</a></h2>
-<p>While 100% code coverage does not make a library bug-free, it significantly
-reduces the number of easily caught bugs! Please make sure coverage remains the
-same or is improved by a pull request!</p>
+<section id="fine-tune-with-visual-xyz">
+<h2>Fine-tune with <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code><a class="headerlink" href="#fine-tune-with-visual-xyz" title="Link to this heading">#</a></h2>
+<p>After connection points place the mesh approximately, apply a small local
+nudge via <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>. This offset is applied after all
+other pipeline computation and never affects other links.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_2</span>
+<span class="w">  </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A2</span>
+<span class="w">  </span><span class="nt">visual_xyz</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-0.003</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># shift 3mm down</span>
+</pre></div>
+</div>
+<p>Then regenerate:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>generate<span class="w"> </span>robots/MyRobot/
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="../explanations/urdf-generation-pipeline.html#key-rules"><span class="std std-ref">the pipeline explanation</span></a> for details on what
+propagates and what doesn’t.</p>
 </section>
-<section id="developer-information">
-<h2>Developer Information<a class="headerlink" href="#developer-information" title="Link to this heading">#</a></h2>
-<p>It is recommended that developers use a <a class="reference external" href="https://code.visualstudio.com/docs/devcontainers/containers">vscode devcontainer</a>. This repository contains configuration to set up a containerized development environment that suits its own needs.</p>
-<p>This project was created using the <a class="reference external" href="https://github.com/DiamondLightSource/python-copier-template">Diamond Light Source Copier Template</a> for Python projects.</p>
-<p>For more information on common tasks like setting up a developer environment, running the tests, and setting a pre-commit hook, see the template’s <a class="reference external" href="https://diamondlightsource.github.io/python-copier-template/5.0.2/how-to.html">How-to guides</a>.</p>
+<section id="adjust-mesh-orientation-with-visual-rpy">
+<h2>Adjust mesh orientation with <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code><a class="headerlink" href="#adjust-mesh-orientation-with-visual-rpy" title="Link to this heading">#</a></h2>
+<p>When a part’s STL coordinate frame doesn’t align with the link frame
+convention (Z-up along joint axis), add a <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> rotation in
+<code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_3</span>
+<span class="w">  </span><span class="nt">mesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A3</span>
+<span class="w">  </span><span class="nt">visual_rpy</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-1.5708</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># -90° pitch rotates X to Z</span>
+</pre></div>
+</div>
+</section>
+<section id="adjust-joint-parameters">
+<h2>Adjust joint parameters<a class="headerlink" href="#adjust-joint-parameters" title="Link to this heading">#</a></h2>
+<p>Joint limits, axes, and types are set in the <code class="docutils literal notranslate"><span class="pre">joints</span></code> section of
+<code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>. Common edits:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_2</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revolute</span>
+<span class="w">  </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_1</span>
+<span class="w">  </span><span class="nt">child</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link_2</span>
+<span class="w">  </span><span class="nt">axis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span><span class="w">              </span><span class="c1"># pitch axis</span>
+<span class="w">  </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-2.356</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2.356</span><span class="p p-Indicator">]</span><span class="w">      </span><span class="c1"># ±135°</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="../reference/chain-yaml.html"><span class="doc">chain.yaml specification</span></a> for the complete field reference.</p>
+</section>
+<section id="verify-changes">
+<h2>Verify changes<a class="headerlink" href="#verify-changes" title="Link to this heading">#</a></h2>
+<p>After any edit, regenerate and check the result:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>generate<span class="w"> </span>robots/MyRobot/
+uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/MyRobot/
+</pre></div>
+</div>
+<p>To diff against the previous URDF:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diff<span class="w"> </span>&lt;<span class="o">(</span>git<span class="w"> </span>show<span class="w"> </span>HEAD:robots/MyRobot/robot.urdf<span class="o">)</span><span class="w"> </span>robots/MyRobot/robot.urdf
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -502,20 +548,20 @@ same or is improved by a pull request!</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="add-a-robot.html"
+       href="deploy-kubernetes.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Add a new robot</p>
+        <p class="prev-next-title">Deploy on Kubernetes</p>
       </div>
     </a>
     <a class="right-next"
-       href="deploy-kubernetes.html"
+       href="edit-connection-points.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Deploy on Kubernetes</p>
+        <p class="prev-next-title">Edit connection points in the simulator</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -538,9 +584,11 @@ same or is improved by a pull request!</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issue-or-discussion">Issue or Discussion?</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code-coverage">Code Coverage</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#developer-information">Developer Information</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#edit-connection-points-in-analysis-yaml">Edit connection points in analysis YAML</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fine-tune-with-visual-xyz">Fine-tune with <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adjust-mesh-orientation-with-visual-rpy">Adjust mesh orientation with <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adjust-joint-parameters">Adjust joint parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verify-changes">Verify changes</a></li>
 </ul>
   </nav></div>
 
@@ -548,7 +596,7 @@ same or is improved by a pull request!</p>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/how-to/contribute.md">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/how-to/edit-chain-yaml.md">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -564,7 +612,7 @@ same or is improved by a pull request!</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/how-to/contribute.md.txt"
+      <li><a href="../_sources/how-to/edit-chain-yaml.md.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

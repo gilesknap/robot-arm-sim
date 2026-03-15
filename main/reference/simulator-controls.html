@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Simulator controls &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Simulator controls &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -471,7 +471,10 @@ launched via <code class="docutils literal notranslate"><span class="pre">robot-
 <section id="robot-selector">
 <h2>Robot selector<a class="headerlink" href="#robot-selector" title="Link to this heading">#</a></h2>
 <p>When the robots directory contains multiple robots (each with a <code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code>),
-a dropdown at the top of the page lets you switch between them.</p>
+a dropdown at the top of the page lets you switch between them. You can also
+navigate directly to a robot via its URL path (e.g. <code class="docutils literal notranslate"><span class="pre">/Meca500-R3</span></code>).</p>
+<p>To choose which robot is selected by default, create a <code class="docutils literal notranslate"><span class="pre">.default</span></code> file in
+the robots directory containing the robot folder name.</p>
 </section>
 <section id="toolbar-buttons">
 <h2>Toolbar buttons<a class="headerlink" href="#toolbar-buttons" title="Link to this heading">#</a></h2>
@@ -504,11 +507,11 @@ a dropdown at the top of the page lets you switch between them.</p>
 <tr class="row-even"><td><p><strong>Screenshot</strong></p></td>
 <td><p>Download a PNG image of the current 3D viewport</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Reset</strong></p></td>
-<td><p>Return all joint angles to zero (home pose)</p></td>
+<tr class="row-odd"><td><p><strong>Stop Simulator</strong></p></td>
+<td><p>Gracefully shut down the server (hidden in cluster mode). Shows a confirmation dialog before stopping</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Stop Simulator</strong></p></td>
-<td><p>Gracefully shut down the server (hidden in cluster mode)</p></td>
+<tr class="row-even"><td><p><strong>Info</strong></p></td>
+<td><p>Open the About dialog showing version, project description, and a toolbar button summary</p></td>
 </tr>
 </tbody>
 </table>
@@ -516,6 +519,8 @@ a dropdown at the top of the page lets you switch between them.</p>
 </section>
 <section id="control-panel-right-sidebar">
 <h2>Control panel (right sidebar)<a class="headerlink" href="#control-panel-right-sidebar" title="Link to this heading">#</a></h2>
+<p>An <strong>FK / IK</strong> radio toggle at the top of the panel switches between forward
+and inverse kinematics modes.</p>
 <section id="fk-mode-default">
 <h3>FK mode (default)<a class="headerlink" href="#fk-mode-default" title="Link to this heading">#</a></h3>
 <p>One slider per revolute or continuous joint. Drag to set the joint angle;
@@ -533,9 +538,17 @@ server computes forward kinematics and broadcasts transforms over WebSocket.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>X, Y, Z</p></td>
+<tr class="row-even"><td><p>X</p></td>
 <td><p>mm</p></td>
 <td><p>-300 to +300</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>mm</p></td>
+<td><p>-300 to +300</p></td>
+</tr>
+<tr class="row-even"><td><p>Z</p></td>
+<td><p>mm</p></td>
+<td><p>0 to +500</p></td>
 </tr>
 <tr class="row-odd"><td><p>Rx, Ry, Rz</p></td>
 <td><p>degrees</p></td>
@@ -547,6 +560,25 @@ server computes forward kinematics and broadcasts transforms over WebSocket.</p>
 <p>Moving any IK slider triggers the damped least-squares IK solver. If a
 solution is found, the FK sliders update automatically to show the
 resulting joint angles.</p>
+</section>
+<section id="reset-buttons">
+<h3>Reset buttons<a class="headerlink" href="#reset-buttons" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Button</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Reset Joints</strong></p></td>
+<td><p>Return all joint angles to zero (home pose)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Reset View</strong></p></td>
+<td><p>Restore all part visibility, switch to orthographic front view, and fit the robot in the viewport</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="end-effector-readout">
 <h3>End-effector readout<a class="headerlink" href="#end-effector-readout" title="Link to this heading">#</a></h3>
@@ -563,9 +595,10 @@ meshes are rendered. Visibility state is preserved across URDF reloads.</p>
 <h2>ViewCube<a class="headerlink" href="#viewcube" title="Link to this heading">#</a></h2>
 <p>A 3D orientation widget in the top-right corner of the viewport.</p>
 <ul class="simple">
-<li><p><strong>Six labelled faces</strong> — click Front, Back, Left, Right, Top, or Bottom
+<li><p><strong>Six labelled faces</strong> — click FRONT, BACK, LEFT, RIGHT, TOP, or BOTTOM
 to snap the camera to that orthographic view.</p></li>
-<li><p><strong>Axis indicators</strong> — X (red), Y (green), Z (blue).</p></li>
+<li><p><strong>Axis indicators</strong> — X (red), Y (green), Z (blue). Clicking an axis
+indicator snaps to the corresponding axis-aligned view.</p></li>
 <li><p>The cube rotates in sync with the main camera.</p></li>
 </ul>
 <p>Below the ViewCube:</p>
@@ -596,13 +629,16 @@ to snap the camera to that orthographic view.</p></li>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Orbit</p></td>
-<td><p>Right-click drag (or two-finger drag)</p></td>
+<td><p>Left-click drag (or two-finger drag)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Zoom</p></td>
 <td><p>Scroll wheel</p></td>
 </tr>
 <tr class="row-even"><td><p>Pan</p></td>
-<td><p>Middle-click drag</p></td>
+<td><p>Right-click drag (or middle-click drag)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Swipe (edit mode)</p></td>
+<td><p>Drag on empty space to snap to the adjacent orthographic view (left/right/up/down). Only active in Edit Connections mode</p></td>
 </tr>
 </tbody>
 </table>
@@ -611,28 +647,80 @@ to snap the camera to that orthographic view.</p></li>
 <section id="edit-connections-mode">
 <h2>Edit Connections mode<a class="headerlink" href="#edit-connections-mode" title="Link to this heading">#</a></h2>
 <p>Activated by the <strong>Edit Connections</strong> toolbar button. Used to manually assign
-flat-face connection points as proximal or distal connections.</p>
-<p>When active:</p>
-<ol class="arabic simple">
-<li><p>All meshes become semi-transparent (25 % opacity).</p></li>
-<li><p>Detected flat faces are shown as coloured sphere markers:</p>
+connection points and adjust mesh placement.</p>
+<p>When entering Edit Connections mode:</p>
 <ul class="simple">
-<li><p><strong>Yellow</strong> — unassigned</p></li>
-<li><p><strong>Green</strong> — proximal (parent-side)</p></li>
-<li><p><strong>Red</strong> — distal (child-side)</p></li>
+<li><p>All meshes become semi-transparent (25 % opacity)</p></li>
+<li><p>Coordinate frames are automatically enabled</p></li>
+<li><p>The camera locks to orthographic views (drag on empty space to swipe
+between adjacent views)</p></li>
+<li><p>The toolbar changes: <strong>Edit Connections</strong> becomes <strong>Exit Edit</strong></p></li>
 </ul>
-</li>
-<li><p>A <strong>Proximal / Distal</strong> toggle at the top selects the assignment mode.</p></li>
-<li><p>Click a sphere marker to assign it.</p></li>
-<li><p>Click <strong>Save &amp; Rebuild</strong> to write connection assignments to the analysis
-YAML files, propagate connection axes to <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>, regenerate the
-URDF, and reload the simulator.</p></li>
-</ol>
+<section id="mode-buttons">
+<h3>Mode buttons<a class="headerlink" href="#mode-buttons" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Colour</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Move Part</strong></p></td>
+<td><p>amber</p></td>
+<td><p>Drag a part to reposition, or use arrow keys (0.1 mm per press, Shift for 2 mm steps)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Proximal Centred</strong></p></td>
+<td><p>blue</p></td>
+<td><p>Click a mesh surface to place a <code class="docutils literal notranslate"><span class="pre">center</span></code>-mode proximal marker</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Proximal Surface</strong></p></td>
+<td><p>green</p></td>
+<td><p>Click a mesh surface to place a <code class="docutils literal notranslate"><span class="pre">surface</span></code>-mode proximal marker</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Distal</strong></p></td>
+<td><p>red</p></td>
+<td><p>Click a mesh surface to place a distal marker</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="action-buttons">
+<h3>Action buttons<a class="headerlink" href="#action-buttons" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Button</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Undo</strong> / <strong>Redo</strong></p></td>
+<td><p>Step back and forward through edits</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Rot X</strong> / <strong>Rot Y</strong> / <strong>Rot Z</strong></p></td>
+<td><p>Rotate selected part 90° around that axis</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Remove Part Conns</strong></p></td>
+<td><p>Remove connection points for the selected part only, baking current placement into <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Remove Connections</strong></p></td>
+<td><p>Remove all connection points for all parts, baking current placement into <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Save &amp; Rebuild</strong></p></td>
+<td><p>Write changes to analysis YAML and chain.yaml, regenerate URDF, and reload</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Exit Edit</strong> discards all unsaved changes — connection assignments, part
+moves, and rotations are restored to their state when edit mode was entered.</p>
+</section>
 </section>
 <section id="session-state-persistence">
 <h2>Session state persistence<a class="headerlink" href="#session-state-persistence" title="Link to this heading">#</a></h2>
 <p>The simulator uses browser <code class="docutils literal notranslate"><span class="pre">sessionStorage</span></code> to preserve state across URDF
-reloads (triggered by the Reload URDF button):</p>
+reloads and page refreshes (via <code class="docutils literal notranslate"><span class="pre">beforeunload</span></code>):</p>
 <ul class="simple">
 <li><p>Per-part visibility toggles</p></li>
 <li><p>Joint angles (radians)</p></li>
@@ -640,6 +728,12 @@ reloads (triggered by the Reload URDF button):</p>
 </ul>
 <p>State is restored approximately 3 seconds after page load to allow the
 Three.js scene to initialise.</p>
+<section id="rendering">
+<h3>Rendering<a class="headerlink" href="#rendering" title="Link to this heading">#</a></h3>
+<p>The simulator upgrades mesh materials to PBR metallic finish with a
+procedural studio HDRI environment map for realistic lighting. The 3D
+viewport auto-resizes when the browser window changes.</p>
+</section>
 </section>
 </section>
 
@@ -695,14 +789,22 @@ Three.js scene to initialise.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#control-panel-right-sidebar">Control panel (right sidebar)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fk-mode-default">FK mode (default)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ik-mode">IK mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reset-buttons">Reset buttons</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#end-effector-readout">End-effector readout</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visible-parts">Visible Parts</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#viewcube">ViewCube</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#camera-controls">Camera controls</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#edit-connections-mode">Edit Connections mode</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#session-state-persistence">Session state persistence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#edit-connections-mode">Edit Connections mode</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mode-buttons">Mode buttons</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#action-buttons">Action buttons</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#session-state-persistence">Session state persistence</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rendering">Rendering</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

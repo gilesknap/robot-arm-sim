@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Edit connection points &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Edit connection points in the simulator &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +58,8 @@
     <link rel="icon" href="../_static/dls-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Run in a container" href="run-container.html" />
-    <link rel="prev" title="Deploy on Kubernetes" href="deploy-kubernetes.html" />
+    <link rel="next" title="Regenerate analysis and URDF" href="regenerate.html" />
+    <link rel="prev" title="Edit chain.yaml and analysis YAML directly" href="edit-chain-yaml.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -400,7 +400,9 @@
 <li class="toctree-l1"><a class="reference internal" href="add-a-robot.html">Add a new robot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deploy-kubernetes.html">Deploy on Kubernetes</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Edit connection points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-chain-yaml.html">Edit chain.yaml and analysis YAML directly</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Edit connection points in the simulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regenerate.html">Regenerate analysis and URDF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="run-container.html">Run in a container</a></li>
 </ul>
 </div>
@@ -445,7 +447,7 @@
     
     <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Edit connection points</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Edit connection points in the simulator</span></li>
   </ul>
 </nav>
 </div>
@@ -462,14 +464,14 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="edit-connection-points">
-<h1>Edit connection points<a class="headerlink" href="#edit-connection-points" title="Link to this heading">#</a></h1>
-<p>How to assign and adjust connection point markers to fix mesh placement
-in the URDF.</p>
+  <section id="edit-connection-points-in-the-simulator">
+<h1>Edit connection points in the simulator<a class="headerlink" href="#edit-connection-points-in-the-simulator" title="Link to this heading">#</a></h1>
+<p>How to assign and adjust connection point markers interactively to fix mesh
+placement in the URDF.</p>
 <p>For background on how connection points, centering modes, and the pipeline
 work, see <a class="reference internal" href="../explanations/urdf-generation-pipeline.html"><span class="doc">URDF generation pipeline</span></a>.</p>
-<section id="using-the-simulator-ui">
-<h2>Using the simulator UI<a class="headerlink" href="#using-the-simulator-ui" title="Link to this heading">#</a></h2>
+<section id="enter-edit-connections-mode">
+<h2>Enter Edit Connections mode<a class="headerlink" href="#enter-edit-connections-mode" title="Link to this heading">#</a></h2>
 <ol class="arabic">
 <li><p>Launch the simulator:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/MyRobot/
@@ -479,22 +481,26 @@ work, see <a class="reference internal" href="../explanations/urdf-generation-pi
 <li><p>Click <strong>Edit Connections</strong> in the toolbar — meshes go semi-transparent and
 existing connection markers appear (green = proximal surface,
 blue = proximal centred, red = distal).</p>
-<p>The editor toolbar is split across two rows:</p>
+<p>The editor toolbar has a status label and two rows:</p>
 <ul class="simple">
-<li><p><strong>Row 1:</strong> Mode buttons, <strong>Show All</strong> checkbox, and the currently
-selected part name.</p></li>
+<li><p><strong>Row 1:</strong> Mode buttons (<strong>Move Part</strong>, <strong>Proximal Centred</strong>,
+<strong>Proximal Surface</strong>, <strong>Distal</strong>) and the currently selected part name.</p></li>
 <li><p><strong>Row 2:</strong> <strong>Undo</strong>/<strong>Redo</strong>, <strong>Rot X</strong>/<strong>Rot Y</strong>/<strong>Rot Z</strong>,
-<strong>Remove Part Conns</strong>, status label, <strong>Save &amp; Rebuild</strong>, and
-<strong>Remove Connections</strong>.</p></li>
+<strong>Remove Part Conns</strong>, <strong>Remove Connections</strong>, and <strong>Save &amp; Rebuild</strong>.</p></li>
 </ul>
 </li>
+</ol>
+</section>
+<section id="assign-connection-markers">
+<h2>Assign connection markers<a class="headerlink" href="#assign-connection-markers" title="Link to this heading">#</a></h2>
+<ol class="arabic" start="3">
 <li><p>Select a mode from row 1:</p>
 <ul class="simple">
 <li><p><strong>Proximal Centred</strong> (blue) — places a <code class="docutils literal notranslate"><span class="pre">center</span></code>-mode proximal marker.</p></li>
 <li><p><strong>Proximal Surface</strong> (green) — places a <code class="docutils literal notranslate"><span class="pre">surface</span></code>-mode proximal marker.</p></li>
 <li><p><strong>Distal</strong> (red) — places a distal marker (tells gap-closing which parent
 surface the child should meet).</p></li>
-<li><p><strong>Move Parts</strong> (amber) — drag a part or use arrow keys (0.1 mm per press,
+<li><p><strong>Move Part</strong> (amber) — drag a part or use arrow keys (0.1 mm per press,
 hold Shift for 2 mm steps).</p></li>
 </ul>
 <p>See <a class="reference internal" href="#when-to-use-each-mode"><span class="std std-ref">When to use each mode</span></a> below for guidance on <code class="docutils literal notranslate"><span class="pre">surface</span></code> vs <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p>
@@ -502,47 +508,72 @@ hold Shift for 2 mm steps).</p></li>
 <li><p>Click directly on any mesh surface to place the marker at the click point.
 The face normal at that point becomes the marker’s axis. Clicking a mesh
 also selects it — the selected part name appears in row 1.</p></li>
-<li><p>Use the <strong>Show All</strong> checkbox to see markers for all parts at once.</p></li>
 <li><p>Use <strong>Undo</strong> / <strong>Redo</strong> (row 2) to step back and forward through edits
 (connection assignments, part moves, and rotations).</p></li>
 <li><p>Use <strong>Rot X</strong> / <strong>Rot Y</strong> / <strong>Rot Z</strong> (row 2) to rotate the selected part
 90° around that axis. Useful for aligning a part whose STL orientation
 doesn’t match the link frame. On save, the rotation is composed with any
 existing <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>.</p></li>
+</ol>
+</section>
+<section id="save-and-rebuild">
+<h2>Save and rebuild<a class="headerlink" href="#save-and-rebuild" title="Link to this heading">#</a></h2>
+<ol class="arabic simple" start="7">
 <li><p>Click <strong>Save &amp; Rebuild</strong> — this writes changes to three places:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">analysis/*.yaml</span></code></strong> — updated connection points (with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">manual</span></code>)</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code></strong> — if you used Move Parts, the accumulated offset is
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code></strong> — if you used Move Part, the accumulated offset is
 saved as <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code>; if you rotated a part, the rotation is composed
-with existing <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>; if you only edited connections without
-moving or rotating, any stale <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> is cleared</p></li>
+with existing <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code></p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code></strong> — regenerated from the updated analysis and chain data</p></li>
 </ul>
 </li>
 </ol>
 </section>
-<section id="editing-analysis-yaml-directly">
-<h2>Editing analysis YAML directly<a class="headerlink" href="#editing-analysis-yaml-directly" title="Link to this heading">#</a></h2>
-<p>You can also edit the <code class="docutils literal notranslate"><span class="pre">connection_points</span></code> section of any analysis YAML file
-directly. After editing:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>generate<span class="w"> </span>robots/MyRobot/
-</pre></div>
-</div>
-<p>This regenerates the URDF from the updated analysis data.</p>
+<section id="remove-connection-points">
+<h2>Remove connection points<a class="headerlink" href="#remove-connection-points" title="Link to this heading">#</a></h2>
+<p>If auto-detected connections are consistently wrong and you prefer full manual
+control over mesh placement, you can remove all connection points and work
+entirely with <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> offsets.</p>
+<p><strong>When to use it:</strong> auto-detection places parts incorrectly for most joints, and
+fixing each one individually is slower than positioning parts manually.</p>
+<p><strong>How:</strong> click <strong>Remove Connections</strong> (red button, row 2). This:</p>
+<ol class="arabic simple">
+<li><p><strong>Bakes current placement into <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></strong> — each link’s current URDF
+visual origin is saved as <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>, preserving exact
+part positions.</p></li>
+<li><p><strong>Clears all <code class="docutils literal notranslate"><span class="pre">connection_points</span></code></strong> from every <code class="docutils literal notranslate"><span class="pre">analysis/*.yaml</span></code> file.</p></li>
+<li><p><strong>Regenerates the URDF</strong> — with no connection points the pipeline returns
+<code class="docutils literal notranslate"><span class="pre">[0,0,0]</span></code> for the visual origin, so the <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> values produce
+identical output.</p></li>
+</ol>
+<p>Parts do not move — the visual result is the same before and after.</p>
+<p>To remove connections for a <strong>single part</strong> instead, select it first (click on
+the mesh) then click <strong>Remove Part Conns</strong> (row 2). This bakes placement and
+clears connection points for that link only.</p>
+<p>After removal, fine-tune placement with <strong>Move Part</strong> mode, <strong>Rot X/Y/Z</strong>
+buttons, or by editing <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> / <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> values directly in
+<code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> (see <a class="reference internal" href="edit-chain-yaml.html"><span class="doc">Edit chain.yaml and analysis YAML directly</span></a>).</p>
+</section>
+<section id="exit-without-saving">
+<h2>Exit without saving<a class="headerlink" href="#exit-without-saving" title="Link to this heading">#</a></h2>
+<p>Clicking <strong>Exit Edit</strong> discards all unsaved changes — connection assignments,
+part moves, and rotations are all restored to their state when you entered
+edit mode. Dragged meshes snap back to their original positions.</p>
 </section>
 <section id="fixing-jumbled-parts">
 <h2>Fixing jumbled parts<a class="headerlink" href="#fixing-jumbled-parts" title="Link to this heading">#</a></h2>
 <p>When auto-detection picks the wrong connection points, parts end up in the
 wrong position <em>and</em> orientation. Fix this in two steps:</p>
 <ol class="arabic simple">
-<li><p><strong>Place the markers correctly</strong> — use Edit Connections and click directly on
-the correct mesh surfaces to assign proximal and distal markers. This tells
-the pipeline where the joint axes are, and gives it the axis directions from
-the face normals.</p></li>
+<li><p><strong>Place the markers correctly</strong> — click directly on the correct mesh
+surfaces to assign proximal and distal markers. This tells the pipeline
+where the joint axes are, and gives it the axis directions from the face
+normals.</p></li>
 <li><p><strong>Set <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> if the axes aren’t aligned</strong> — if a part’s proximal
-face is not perpendicular to the joint axis (i.e. the STL mesh
-coordinates don’t naturally align with the link frame), you need a
-<code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> rotation in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> to bring them into alignment.</p></li>
+face is not perpendicular to the joint axis, you need a <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>
+rotation. Use <strong>Rot X/Y/Z</strong> in the simulator, or edit <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>
+directly (see <a class="reference internal" href="edit-chain-yaml.html"><span class="doc">Edit chain.yaml and analysis YAML directly</span></a>).</p></li>
 </ol>
 <p>For a typical straight part where proximal and distal are on parallel faces
 along the same axis, <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> can stay at <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code>. For L-shaped or
@@ -587,51 +618,6 @@ which parent surface the child link should be shifted to meet. Auto-detected
 distals are usually correct; you only need to place one manually when
 auto-detection picked the wrong face.</p>
 </section>
-<section id="fine-tuning-with-visual-xyz">
-<h2>Fine-tuning with <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code><a class="headerlink" href="#fine-tuning-with-visual-xyz" title="Link to this heading">#</a></h2>
-<p>After connection points place the mesh approximately, you can apply a
-small local nudge via <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>. This offset is applied
-after all other pipeline computation and never affects other links.</p>
-<p>You can set it by:</p>
-<ul class="simple">
-<li><p>Using <strong>Move Parts</strong> mode in the simulator, then clicking <strong>Save &amp; Rebuild</strong></p></li>
-<li><p>Editing <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> directly and running <code class="docutils literal notranslate"><span class="pre">generate</span></code></p></li>
-</ul>
-<p>See <a class="reference internal" href="../explanations/urdf-generation-pipeline.html#key-rules"><span class="std std-ref">the pipeline explanation</span></a> for details on what
-propagates and what doesn’t.</p>
-</section>
-<section id="removing-connection-points">
-<h2>Removing connection points<a class="headerlink" href="#removing-connection-points" title="Link to this heading">#</a></h2>
-<p>If auto-detected connections are consistently wrong and you prefer full manual
-control over mesh placement, you can remove all connection points and work
-entirely with <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> offsets.</p>
-<p><strong>When to use it:</strong> auto-detection places parts incorrectly for most joints, and
-fixing each one individually is slower than positioning parts manually.</p>
-<p><strong>How:</strong> in the simulator, enter <strong>Edit Connections</strong> mode and click
-<strong>Remove Connections</strong> (red button, row 2). This:</p>
-<ol class="arabic simple">
-<li><p><strong>Bakes current placement into <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></strong> — each link’s current URDF
-visual origin is saved as <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> in <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>, preserving exact
-part positions.</p></li>
-<li><p><strong>Clears all <code class="docutils literal notranslate"><span class="pre">connection_points</span></code></strong> from every <code class="docutils literal notranslate"><span class="pre">analysis/*.yaml</span></code> file.</p></li>
-<li><p><strong>Regenerates the URDF</strong> — with no connection points the pipeline returns
-<code class="docutils literal notranslate"><span class="pre">[0,0,0]</span></code> for the visual origin, so the <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> values produce
-identical output.</p></li>
-</ol>
-<p>Parts do not move — the visual result is the same before and after.</p>
-<p>To remove connections for a <strong>single part</strong> instead, select it first (click on
-the mesh) then click <strong>Remove Part Conns</strong> (row 2). This bakes placement and
-clears connection points for that link only.</p>
-<p>After removal, fine-tune placement with <strong>Move Parts</strong> mode, <strong>Rot X/Y/Z</strong>
-buttons, or by editing <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code> / <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code> values directly in
-<code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>.</p>
-</section>
-<section id="exiting-without-saving">
-<h2>Exiting without saving<a class="headerlink" href="#exiting-without-saving" title="Link to this heading">#</a></h2>
-<p>Clicking <strong>Exit Edit</strong> discards all unsaved changes — connection assignments,
-part moves, and rotations are all restored to their state when you entered
-edit mode. Dragged meshes snap back to their original positions.</p>
-</section>
 </section>
 
 
@@ -645,20 +631,20 @@ edit mode. Dragged meshes snap back to their original positions.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="deploy-kubernetes.html"
+       href="edit-chain-yaml.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Deploy on Kubernetes</p>
+        <p class="prev-next-title">Edit chain.yaml and analysis YAML directly</p>
       </div>
     </a>
     <a class="right-next"
-       href="run-container.html"
+       href="regenerate.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Run in a container</p>
+        <p class="prev-next-title">Regenerate analysis and URDF</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -681,13 +667,13 @@ edit mode. Dragged meshes snap back to their original positions.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-simulator-ui">Using the simulator UI</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#editing-analysis-yaml-directly">Editing analysis YAML directly</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enter-edit-connections-mode">Enter Edit Connections mode</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assign-connection-markers">Assign connection markers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#save-and-rebuild">Save and rebuild</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#remove-connection-points">Remove connection points</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exit-without-saving">Exit without saving</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fixing-jumbled-parts">Fixing jumbled parts</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#when-to-use-each-mode">When to use each mode</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fine-tuning-with-visual-xyz">Fine-tuning with <code class="docutils literal notranslate"><span class="pre">visual_xyz</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#removing-connection-points">Removing connection points</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exiting-without-saving">Exiting without saving</a></li>
 </ul>
   </nav></div>
 

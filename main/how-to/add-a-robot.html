@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Add a new robot &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Add a new robot &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -400,7 +400,9 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Add a new robot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deploy-kubernetes.html">Deploy on Kubernetes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-chain-yaml.html">Edit chain.yaml and analysis YAML directly</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points in the simulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regenerate.html">Regenerate analysis and URDF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="run-container.html">Run in a container</a></li>
 </ul>
 </div>
@@ -504,14 +506,15 @@ comparison.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Build</span> <span class="n">robots</span><span class="o">/</span><span class="n">MyRobot</span><span class="o">/</span>
 </pre></div>
 </div>
-<p>Claude will run through 5 stages:</p>
+<p>Claude will run through 4 automated stages:</p>
 <ol class="arabic simple">
-<li><p><strong>Analyze STLs</strong> — detect connection points, geometry, and assembly hints</p></li>
+<li><p><strong>Analyze STLs</strong> — detect connection points, geometry, and assembly hints
+(runs in parallel with step 2)</p></li>
 <li><p><strong>Research manufacturer specs</strong> — find DH parameters, joint limits online</p></li>
 <li><p><strong>Infer kinematic chain</strong> — write <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> with topology, axes, limits</p></li>
 <li><p><strong>Generate &amp; verify URDF</strong> — produce <code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code> and check FK positions</p></li>
-<li><p><strong>Visual comparison</strong> — compare simulation against reference images</p></li>
 </ol>
+<p>Visual refinement is a manual step using the simulator (see Step 4 below).</p>
 <section id="chain-yaml-key-fields">
 <h3>chain.yaml key fields<a class="headerlink" href="#chain-yaml-key-fields" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -563,7 +566,7 @@ joint sliders on the right.</p>
 <p>The simulator includes several controls for inspecting the model:</p>
 <ul class="simple">
 <li><p><strong>Joint sliders</strong> — drag to rotate each joint in real time</p></li>
-<li><p><strong>Show Labels</strong> — display part names (blue) and joint names (red) as callout
+<li><p><strong>Labels</strong> — display part names (blue) and joint names (red) as callout
 labels</p></li>
 <li><p><strong>Reset Joints</strong> — return all sliders to zero degrees</p></li>
 <li><p><strong>ViewCube</strong> — a 3D orientation widget in the corner of the viewport. Click a
@@ -588,12 +591,13 @@ surfaces). When detection picks the wrong face, the URDF generator
 places joints incorrectly.</p>
 <p>The <strong>Edit Connections</strong> mode lets you fix this interactively:</p>
 <ol class="arabic simple">
-<li><p>Click <strong>Edit Connections</strong> in the toolbar — the meshes go semi-transparent and
-coloured sphere markers appear at every flat face centroid on each part.</p></li>
-<li><p>Use the <strong>Proximal / Distal</strong> toggle to choose which connection end to assign.</p></li>
-<li><p>Click a yellow marker to assign it. Markers turn <strong>green</strong> (proximal) or
-<strong>red</strong> (distal). If the opposite end was already at the same face, they
-swap automatically.</p></li>
+<li><p>Click <strong>Edit Connections</strong> in the toolbar — meshes go semi-transparent and
+coordinate frames appear.</p></li>
+<li><p>Select a mode: <strong>Proximal Centred</strong> (blue), <strong>Proximal Surface</strong> (green),
+or <strong>Distal</strong> (red). Use <strong>Move Part</strong> (amber) to reposition parts.</p></li>
+<li><p>Click directly on a mesh surface to place a connection marker. Markers
+are coloured by type: blue = proximal centred, green = proximal surface,
+red = distal.</p></li>
 <li><p>Repeat for any parts that need correction.</p></li>
 <li><p>Click <strong>Save &amp; Rebuild</strong> — the updated connection points are written to the
 analysis YAML files (with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">manual</span></code>) and the URDF is regenerated
@@ -603,7 +607,7 @@ and reloaded.</p></li>
 lateral motor bores that confuse the auto-detector. Manual assignment lets
 you pick the correct kinematic connection faces directly.</p>
 <p>For a detailed explanation of connection points, centering modes, and how
-they interact with <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>, see <a class="reference internal" href="edit-connection-points.html"><span class="doc">Edit connection points</span></a>.</p>
+they interact with <code class="docutils literal notranslate"><span class="pre">visual_rpy</span></code>, see <a class="reference internal" href="edit-connection-points.html"><span class="doc">Edit connection points in the simulator</span></a>.</p>
 </section>
 <section id="step-5-verify-and-commit">
 <h2>Step 5: Verify and commit<a class="headerlink" href="#step-5-verify-and-commit" title="Link to this heading">#</a></h2>
@@ -640,6 +644,10 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">control-simulator</span></code></p></td>
 <td><p>Camera control, part visibility, connection editing</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/control-simulator</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">center-on-axis</span></code></p></td>
+<td><p>Adjust centering mode for visual alignment</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/center-on-axis</span></code></p></td>
 </tr>
 </tbody>
 </table>

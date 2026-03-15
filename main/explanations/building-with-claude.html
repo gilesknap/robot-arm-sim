@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Building a Robot Simulator with Claude &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Building a Robot Simulator with Claude &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
     <link rel="icon" href="../_static/dls-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Debugging with the Chrome Connector" href="chrome-connector-workflow.html" />
+    <link rel="next" title="Implementation plan" href="implementation-plan.html" />
     <link rel="prev" title="Explanations" href="../explanations.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -397,10 +397,12 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Building a Robot Simulator with Claude</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -511,7 +513,7 @@ preserved.</p>
 <li><p><a class="reference internal" href="#phase-3-when-the-robot-doesn-t-match-reality" id="id16">Phase 3: When the robot doesn’t match reality</a></p>
 <ul>
 <li><p><a class="reference internal" href="#prompt-13-the-comparison-that-changed-everything" id="id17">Prompt 13 — The comparison that changed everything</a></p></li>
-<li><p><a class="reference internal" href="#prompt-14-implementing-the-fix" id="id18">Prompt 14 — Implementing the fix</a></p></li>
+<li><p><a class="reference internal" href="#implementing-the-fix" id="id18">Implementing the fix</a></p></li>
 <li><p><a class="reference internal" href="#prompt-15-documentation" id="id19">Prompt 15 — Documentation</a></p></li>
 </ul>
 </li>
@@ -533,6 +535,8 @@ preserved.</p>
 <li><p><a class="reference internal" href="#related-documents" id="id29">Related documents</a></p></li>
 </ul>
 </nav>
+<div class="toctree-wrapper compound">
+</div>
 <hr class="docutils" />
 <section id="first-some-general-principles">
 <h2><a class="toc-backref" href="#id1" role="doc-backlink">First, Some General Principles</a><a class="headerlink" href="#first-some-general-principles" title="Link to this heading">#</a></h2>
@@ -558,14 +562,14 @@ preserved.</p>
 <ul class="simple">
 <li><p>When you have spent effort working on a problem and have a solution, ask Claude to write a skill that captures the debugging methodology, not just the fix. This way you can reuse the same process for future problems.</p></li>
 <li><p>See examples from this project in <code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code></p></li>
-<li><p>Skills are only loaded when the agent sees that they might be needed (or you exlicity invoke with e.g. /build-robot). So they aren’t taking up context space all the time, but they are there when you need them.</p></li>
+<li><p>Skills are only loaded when the agent sees that they might be needed (or you explicitly invoke with e.g. /make-robot). So they aren’t taking up context space all the time, but they are there when you need them.</p></li>
 </ul>
 </li>
 <li><p>Look after memory:</p>
 <ul class="simple">
 <li><p>Claude Code has auto memory that is triggered on events like commits.</p></li>
-<li><p>ask Claude to remember useful things at other time too.</p></li>
-<li><p>its good to say remember useful tips from this context before clearing a context.</p></li>
+<li><p>ask Claude to remember useful things at other times too.</p></li>
+<li><p>it’s good to say remember useful tips from this context before clearing a context.</p></li>
 <li><p>See the memo skill in this project which makes this easy</p>
 <ul>
 <li><p>it remembers tips from the context</p></li>
@@ -644,6 +648,12 @@ concrete technology steer from the human. Second, the key design insight:
 <strong>the analysis output should be “fully understandable to Claude”</strong>. This meant
 structured YAML with human-readable text descriptions, not just numeric data.
 Every design choice downstream follows from this principle.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Skills mentioned in this narrative (<code class="docutils literal notranslate"><span class="pre">assembly-reasoning</span></code>, <code class="docutils literal notranslate"><span class="pre">visual-urdf-tuning</span></code>,
+<code class="docutils literal notranslate"><span class="pre">refine-with-image</span></code>) were later restructured into the current <code class="docutils literal notranslate"><span class="pre">make-robot</span></code> and
+<code class="docutils literal notranslate"><span class="pre">control-simulator</span></code> skills. The names below reflect what existed at each phase.</p>
+</div>
 </section>
 <section id="prompt-4-the-assembly-reasoning-skill">
 <h3><a class="toc-backref" href="#id6" role="doc-backlink">Prompt 4 — The assembly reasoning skill</a><a class="headerlink" href="#prompt-4-the-assembly-reasoning-skill" title="Link to this heading">#</a></h3>
@@ -793,21 +803,18 @@ the real Meca500-R3, parts were floating, disconnected, and misaligned. The
 assembly-reasoning skill had been <strong>guessing</strong> 3D offsets from text
 descriptions — and small errors compounded along the 6-joint chain.</p>
 <p>Claude proposed the key architectural insight:</p>
-<blockquote>
-<div><p><strong>Connection point detection (finding bore/shaft centres) is a well-defined
+<div class="tip admonition">
+<p class="admonition-title">Claude’s response</p>
+<p>Connection point detection (finding bore/shaft centres) is a well-defined
 geometric computation that Python can do precisely. Kinematic chain reasoning
 (which parts connect, joint types, axes) requires semantic understanding that
-Claude does well. Split the problem accordingly.</strong></p>
-</div></blockquote>
+Claude does well. Split the problem accordingly.</p>
+</div>
 <p>This led to plan 2, reproduced in <a class="reference internal" href="connection-point-plan.html"><span class="doc">Connection point detection plan</span></a>.</p>
 </section>
-<section id="prompt-14-implementing-the-fix">
-<h3><a class="toc-backref" href="#id18" role="doc-backlink">Prompt 14 — Implementing the fix</a><a class="headerlink" href="#prompt-14-implementing-the-fix" title="Link to this heading">#</a></h3>
-<blockquote>
-<div><p><strong>Implement the following plan: Fix URDF Assembly via Programmatic Connection
-Point Detection.</strong></p>
-</div></blockquote>
-<p>Claude implemented all seven steps from plan 2:</p>
+<section id="implementing-the-fix">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Implementing the fix</a><a class="headerlink" href="#implementing-the-fix" title="Link to this heading">#</a></h3>
+<p>The plan was accepted and Claude implemented all seven steps:</p>
 <ul class="simple">
 <li><p>A <code class="docutils literal notranslate"><span class="pre">ConnectionPoint</span></code> dataclass and detection module that slices cross-sections
 along cylindrical axes and fits circles to find bore centres</p></li>
@@ -1043,11 +1050,11 @@ Chrome connector and camera skills to debug the end-effector</p></li>
       </div>
     </a>
     <a class="right-next"
-       href="chrome-connector-workflow.html"
+       href="implementation-plan.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Debugging with the Chrome Connector</p>
+        <p class="prev-next-title">Implementation plan</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1089,7 +1096,7 @@ Chrome connector and camera skills to debug the end-effector</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-2-first-implementation">Phase 2: First implementation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phase-3-when-the-robot-doesn-t-match-reality">Phase 3: When the robot doesn’t match reality</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-13-the-comparison-that-changed-everything">Prompt 13 — The comparison that changed everything</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-14-implementing-the-fix">Prompt 14 — Implementing the fix</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implementing-the-fix">Implementing the fix</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-15-documentation">Prompt 15 — Documentation</a></li>
 </ul>
 </li>

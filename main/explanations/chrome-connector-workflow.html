@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Debugging with the Chrome Connector &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Debugging with the Chrome Connector &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +58,8 @@
     <link rel="icon" href="../_static/dls-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Implementation plan" href="implementation-plan.html" />
-    <link rel="prev" title="Building a Robot Simulator with Claude" href="building-with-claude.html" />
+    <link rel="next" title="Architecture" href="architecture.html" />
+    <link rel="prev" title="Connection point detection plan" href="connection-point-plan.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -397,10 +397,12 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Debugging with the Chrome Connector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -551,7 +553,7 @@ analysis YAML, but was not referenced anywhere in the URDF.</p></li>
 </section>
 <section id="root-cause">
 <h3><a class="toc-backref" href="#id5" role="doc-backlink">Root cause</a><a class="headerlink" href="#root-cause" title="Link to this heading">#</a></h3>
-<p>The visibility panel code at <code class="docutils literal notranslate"><span class="pre">toolbar.py:256</span></code> used the link name as a
+<p>The visibility panel code in <code class="docutils literal notranslate"><span class="pre">build_visibility_section()</span></code> used the link name as a
 fallback label for meshless links instead of skipping them. And the
 EndEffector was never added to the URDF kinematic chain.</p>
 <p>Claude presented the findings and proposed two fixes. The user’s response
@@ -768,20 +770,20 @@ correct.</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="building-with-claude.html"
+       href="connection-point-plan.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Building a Robot Simulator with Claude</p>
+        <p class="prev-next-title">Connection point detection plan</p>
       </div>
     </a>
     <a class="right-next"
-       href="implementation-plan.html"
+       href="architecture.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Implementation plan</p>
+        <p class="prev-next-title">Architecture</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

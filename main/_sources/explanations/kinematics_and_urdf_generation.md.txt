@@ -206,12 +206,18 @@ position to shift the mesh so the proximal bore lands at (0, 0, 0).
   *center* (barrel midpoint) is at the origin.  This matches the DH distance
   convention, closing the gap.
 
-We compute the bore center by replacing the bore-axis component of the face
-position with the bounding-box midpoint along that axis:
+We compute the bore center by finding the opposite flat face along the bore
+axis and averaging the two positions:
 
 ```python
+bore_axis = anchor.get("axis", [0, 0, 0])
 axis_idx = max(range(3), key=lambda i: abs(bore_axis[i]))
-pos[axis_idx] = (bbox_min[axis_idx] + bbox_max[axis_idx]) / 2
+centering = anchor.get("centering", "surface")
+
+if centering == "center" and abs(bore_axis[axis_idx]) > 0.5:
+    opp = _find_opposite_face(analysis, pos.tolist(), bore_axis, axis_idx)
+    if opp is not None:
+        pos[axis_idx] = (pos[axis_idx] + opp) / 2
 ```
 
 ## UR5 Worked Example: Shoulder → Upperarm
@@ -244,22 +250,11 @@ at joint_2, which has DH parameter d₂ = 135.85 mm along Y.
   producing the correct visual appearance with the joint axis passing
   through the barrel center on both sides
 
-## Where to Find These in a Robot Folder
+## How the pipeline uses these concepts
 
-Each robot lives under `robots/<RobotName>/`.  The core files that relate to
-the concepts on this page are:
+The URDF generation pipeline uses DH parameters for joint origins and
+connection points for visual origins. For details on how each pass works,
+see {doc}`urdf-generation-pipeline`.
 
-- **`chain.yaml`** — the kinematic chain specification: DH params, joint
-  definitions (axes, origins, limits), and link list with visual offsets.
-- **`robot.urdf`** — the generated URDF encoding joint origins (from DH/chain)
-  and visual origins (from bore analysis) that FK reads at runtime.
-- **`analysis/<part>.yaml`** — per-link bore geometry: proximal/distal
-  connection points (position, axis, radius).
-- **`stl_files/<part>.stl`** — visual meshes positioned by bore offsets.
-
-Individual robots may also include specs files with manufacturer DH tables,
-FK verification scripts, reference images, or view mappings.
-
-The FK implementation is in `src/robot_arm_sim/simulate/kinematics.py`
-(`forward_kinematics()`) and the IK solver is in
-`src/robot_arm_sim/simulate/ik_solver.py` (`solve_ik()`).
+For the robot directory layout and module structure, see
+{doc}`architecture`.

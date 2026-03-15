@@ -1,12 +1,12 @@
-# Edit connection points
+# Edit connection points in the simulator
 
-How to assign and adjust connection point markers to fix mesh placement
-in the URDF.
+How to assign and adjust connection point markers interactively to fix mesh
+placement in the URDF.
 
 For background on how connection points, centering modes, and the pipeline
 work, see {doc}`/explanations/urdf-generation-pipeline`.
 
-## Using the simulator UI
+## Enter Edit Connections mode
 
 1. Launch the simulator:
 
@@ -18,13 +18,14 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    existing connection markers appear (green = proximal surface,
    blue = proximal centred, red = distal).
 
-   The editor toolbar is split across two rows:
+   The editor toolbar has a status label and two rows:
 
-   - **Row 1:** Mode buttons, **Show All** checkbox, and the currently
-     selected part name.
+   - **Row 1:** Mode buttons (**Move Part**, **Proximal Centred**,
+     **Proximal Surface**, **Distal**) and the currently selected part name.
    - **Row 2:** **Undo**/**Redo**, **Rot X**/**Rot Y**/**Rot Z**,
-     **Remove Part Conns**, status label, **Save & Rebuild**, and
-     **Remove Connections**.
+     **Remove Part Conns**, **Remove Connections**, and **Save & Rebuild**.
+
+## Assign connection markers
 
 3. Select a mode from row 1:
 
@@ -32,7 +33,7 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    - **Proximal Surface** (green) — places a `surface`-mode proximal marker.
    - **Distal** (red) — places a distal marker (tells gap-closing which parent
      surface the child should meet).
-   - **Move Parts** (amber) — drag a part or use arrow keys (0.1 mm per press,
+   - **Move Part** (amber) — drag a part or use arrow keys (0.1 mm per press,
      hold Shift for 2 mm steps).
 
    See {ref}`when-to-use-each-mode` below for guidance on `surface` vs `center`.
@@ -41,50 +42,73 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    The face normal at that point becomes the marker's axis. Clicking a mesh
    also selects it — the selected part name appears in row 1.
 
-5. Use the **Show All** checkbox to see markers for all parts at once.
-
-6. Use **Undo** / **Redo** (row 2) to step back and forward through edits
+5. Use **Undo** / **Redo** (row 2) to step back and forward through edits
    (connection assignments, part moves, and rotations).
 
-7. Use **Rot X** / **Rot Y** / **Rot Z** (row 2) to rotate the selected part
+6. Use **Rot X** / **Rot Y** / **Rot Z** (row 2) to rotate the selected part
    90° around that axis. Useful for aligning a part whose STL orientation
    doesn't match the link frame. On save, the rotation is composed with any
    existing `visual_rpy` in `chain.yaml`.
 
-8. Click **Save & Rebuild** — this writes changes to three places:
+## Save and rebuild
+
+7. Click **Save & Rebuild** — this writes changes to three places:
 
    - **`analysis/*.yaml`** — updated connection points (with `method: manual`)
-   - **`chain.yaml`** — if you used Move Parts, the accumulated offset is
+   - **`chain.yaml`** — if you used Move Part, the accumulated offset is
      saved as `visual_xyz`; if you rotated a part, the rotation is composed
-     with existing `visual_rpy`; if you only edited connections without
-     moving or rotating, any stale `visual_xyz` is cleared
+     with existing `visual_rpy`
    - **`robot.urdf`** — regenerated from the updated analysis and chain data
 
-## Editing analysis YAML directly
+## Remove connection points
 
-You can also edit the `connection_points` section of any analysis YAML file
-directly. After editing:
+If auto-detected connections are consistently wrong and you prefer full manual
+control over mesh placement, you can remove all connection points and work
+entirely with `visual_xyz` offsets.
 
-```bash
-uv run robot-arm-sim generate robots/MyRobot/
-```
+**When to use it:** auto-detection places parts incorrectly for most joints, and
+fixing each one individually is slower than positioning parts manually.
 
-This regenerates the URDF from the updated analysis data.
+**How:** click **Remove Connections** (red button, row 2). This:
+
+1. **Bakes current placement into `visual_xyz`** — each link's current URDF
+   visual origin is saved as `visual_xyz` in `chain.yaml`, preserving exact
+   part positions.
+2. **Clears all `connection_points`** from every `analysis/*.yaml` file.
+3. **Regenerates the URDF** — with no connection points the pipeline returns
+   `[0,0,0]` for the visual origin, so the `visual_xyz` values produce
+   identical output.
+
+Parts do not move — the visual result is the same before and after.
+
+To remove connections for a **single part** instead, select it first (click on
+the mesh) then click **Remove Part Conns** (row 2). This bakes placement and
+clears connection points for that link only.
+
+After removal, fine-tune placement with **Move Part** mode, **Rot X/Y/Z**
+buttons, or by editing `visual_xyz` / `visual_rpy` values directly in
+`chain.yaml` (see {doc}`edit-chain-yaml`).
+
+## Exit without saving
+
+Clicking **Exit Edit** discards all unsaved changes — connection assignments,
+part moves, and rotations are all restored to their state when you entered
+edit mode. Dragged meshes snap back to their original positions.
 
 ## Fixing jumbled parts
 
 When auto-detection picks the wrong connection points, parts end up in the
 wrong position *and* orientation. Fix this in two steps:
 
-1. **Place the markers correctly** — use Edit Connections and click directly on
-   the correct mesh surfaces to assign proximal and distal markers. This tells
-   the pipeline where the joint axes are, and gives it the axis directions from
-   the face normals.
+1. **Place the markers correctly** — click directly on the correct mesh
+   surfaces to assign proximal and distal markers. This tells the pipeline
+   where the joint axes are, and gives it the axis directions from the face
+   normals.
 
 2. **Set `visual_rpy` if the axes aren't aligned** — if a part's proximal
-   face is not perpendicular to the joint axis (i.e. the STL mesh
-   coordinates don't naturally align with the link frame), you need a
-   `visual_rpy` rotation in `chain.yaml` to bring them into alignment.
+   face is not perpendicular to the joint axis, you need a `visual_rpy`
+   rotation. Use **Rot X/Y/Z** in the simulator, or edit `chain.yaml`
+   directly (see {doc}`edit-chain-yaml`).
 
 For a typical straight part where proximal and distal are on parallel faces
 along the same axis, `visual_rpy` can stay at `[0, 0, 0]`. For L-shaped or
@@ -111,53 +135,3 @@ to verify child links visually.
 which parent surface the child link should be shifted to meet. Auto-detected
 distals are usually correct; you only need to place one manually when
 auto-detection picked the wrong face.
-
-## Fine-tuning with `visual_xyz`
-
-After connection points place the mesh approximately, you can apply a
-small local nudge via `visual_xyz` in `chain.yaml`. This offset is applied
-after all other pipeline computation and never affects other links.
-
-You can set it by:
-
-- Using **Move Parts** mode in the simulator, then clicking **Save & Rebuild**
-- Editing `chain.yaml` directly and running `generate`
-
-See {ref}`the pipeline explanation <key-rules>` for details on what
-propagates and what doesn't.
-
-## Removing connection points
-
-If auto-detected connections are consistently wrong and you prefer full manual
-control over mesh placement, you can remove all connection points and work
-entirely with `visual_xyz` offsets.
-
-**When to use it:** auto-detection places parts incorrectly for most joints, and
-fixing each one individually is slower than positioning parts manually.
-
-**How:** in the simulator, enter **Edit Connections** mode and click
-**Remove Connections** (red button, row 2). This:
-
-1. **Bakes current placement into `visual_xyz`** — each link's current URDF
-   visual origin is saved as `visual_xyz` in `chain.yaml`, preserving exact
-   part positions.
-2. **Clears all `connection_points`** from every `analysis/*.yaml` file.
-3. **Regenerates the URDF** — with no connection points the pipeline returns
-   `[0,0,0]` for the visual origin, so the `visual_xyz` values produce
-   identical output.
-
-Parts do not move — the visual result is the same before and after.
-
-To remove connections for a **single part** instead, select it first (click on
-the mesh) then click **Remove Part Conns** (row 2). This bakes placement and
-clears connection points for that link only.
-
-After removal, fine-tune placement with **Move Parts** mode, **Rot X/Y/Z**
-buttons, or by editing `visual_xyz` / `visual_rpy` values directly in
-`chain.yaml`.
-
-## Exiting without saving
-
-Clicking **Exit Edit** discards all unsaved changes — connection assignments,
-part moves, and rotations are all restored to their state when you entered
-edit mode. Dragged meshes snap back to their original positions.

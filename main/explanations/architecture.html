@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Architecture &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Architecture &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Inverse kinematics solver" href="inverse-kinematics.html" />
-    <link rel="prev" title="Connection point detection plan" href="connection-point-plan.html" />
+    <link rel="prev" title="Debugging with the Chrome Connector" href="chrome-connector-workflow.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -397,10 +397,12 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -496,24 +498,85 @@ needed to build a kinematic model:</p>
 <li><p><strong>Feature detection</strong> (<code class="docutils literal notranslate"><span class="pre">features.py</span></code>) — identifies flat faces (potential
 mating surfaces) via facet clustering and cylindrical surfaces via normal
 ring patterns. Reports area, centroid, and normal vectors.</p></li>
-<li><p><strong>Connection point detection</strong> (<code class="docutils literal notranslate"><span class="pre">connections.py</span></code>) — locates bore and shaft
-centres by analysing cylindrical surface axes, slicing cross-sections near
-mesh ends, and fitting circles to the profiles. Each connection point is
-classified as <em>proximal</em> (parent-side) or <em>distal</em> (child-side).</p></li>
+<li><p><strong>Connection point detection</strong> (<code class="docutils literal notranslate"><span class="pre">connections.py</span></code>, <code class="docutils literal notranslate"><span class="pre">endpoint_detection.py</span></code>,
+<code class="docutils literal notranslate"><span class="pre">circle_fitting.py</span></code>) — locates bore and shaft centres by analysing
+cylindrical surface axes, slicing cross-sections near mesh ends, and fitting
+circles to the profiles. Each connection point is classified as <em>proximal</em>
+(parent-side) or <em>distal</em> (child-side). The subsection below describes the
+algorithm in detail.</p></li>
+</ul>
+<section id="connection-point-detection-algorithm">
+<h4>Connection point detection algorithm<a class="headerlink" href="#connection-point-detection-algorithm" title="Link to this heading">#</a></h4>
+<p>The detection algorithm is structured as a decision tree that progressively
+narrows the problem based on the geometry it finds. The key insight is that
+robot arm links have a limited repertoire of shapes — straight tubes, L-shaped
+brackets, barrel-bodied joints — and each shape demands a different strategy
+for locating the bore or shaft centres at each end.</p>
+<p><strong>Axis grouping.</strong> The first step groups all cylindrical surfaces detected by
+the feature analyser according to their axis direction. Two cylinders belong
+to the same group if their axes are within 30 degrees of each other (using the
+absolute dot product, so parallel and anti-parallel axes are equivalent). The
+groups are then sorted by total cylinder length so that the dominant axis —
+typically the one running along the main body of the link — comes first. This
+grouping is critical because it turns a potentially large collection of
+individual cylindrical patches into a small number of directional hypotheses.</p>
+<p><strong>Barrel filtering.</strong> Many links have a bulging outer body — a barrel shape —
+that registers as a large-radius cylindrical surface alongside the smaller bore
+or shaft cylinders. To avoid confusing the barrel body with actual connection
+features, groups whose representative radius exceeds twice the smallest group’s
+radius are separated out. When the filter leaves exactly one non-barrel group,
+the algorithm can still use the removed barrel axes as evidence for bore
+direction on barrel-shaped parts, where flat faces aligned with the barrel axis
+indicate bore openings.</p>
+<p><strong>Classification decision tree.</strong> With grouping and filtering complete, the
+algorithm branches:</p>
+<ul class="simple">
+<li><p><em>No cylinders at all</em> — the part is treated as a base (e.g. a mounting
+plate). Detection falls back to <code class="docutils literal notranslate"><span class="pre">detect_base_connection</span></code>, which finds the
+largest upward-facing flat face and places a single distal connection point at
+its centroid.</p></li>
+<li><p><em>Two or more axis groups after filtering</em> — the part has connection features
+along multiple directions (e.g. an L-shaped bracket). The algorithm calls
+<code class="docutils literal notranslate"><span class="pre">detect_multi_axis_connections</span></code>, which finds the bore centre along each axis
+independently, then assigns proximal/distal labels by Z-position (lower Z is
+proximal, closer to the robot base).</p></li>
+<li><p><em>One axis group</em> — the most common case for straight tubular links. The
+algorithm calls <code class="docutils literal notranslate"><span class="pre">detect_endpoints_along_axis</span></code>, which looks for bore or shaft
+circles at both the proximal (min-projection) and distal (max-projection)
+ends of the mesh along the dominant cylinder axis.</p></li>
+</ul>
+<p><strong>Circle fitting.</strong> Regardless of which branch is taken, the actual centre
+location relies on cross-section slicing. The algorithm slices the mesh at
+5%, 10%, and 15% inset from each end of the axis extent, trying progressively
+deeper cuts until one yields a usable cross-section polygon. For very elongated
+parts (over 200 mm), the inset is capped so slices stay near the end faces
+where bore openings actually are. Each cross-section polygon is tested for
+circularity — the ratio of radial standard deviation to mean radius — with a
+tight threshold (0.15) preferred and a relaxed one (0.35) as fallback. When
+cross-section slicing fails entirely (common with non-watertight meshes where
+trimesh cannot compute a closed section), a boundary vertex fallback collects
+vertices near the end, projects them onto the plane perpendicular to the axis,
+and fits a circle to the 2D point cloud instead.</p>
+<p>For details on how the detected connection points feed into joint origin
+computation and URDF assembly, see
+<a class="reference internal" href="urdf-generation-pipeline.html"><span class="doc">URDF generation pipeline</span></a>.</p>
+<ul class="simple">
 <li><p><strong>URDF generation</strong> (<code class="docutils literal notranslate"><span class="pre">urdf_generator.py</span></code>) — combines a hand-authored
 <code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code> kinematic specification with the per-part analysis results to
-compute exact joint origins and produce a valid URDF XML file.
-Analysis results are written as YAML files into an <code class="docutils literal notranslate"><span class="pre">analysis/</span></code> directory
-alongside the source meshes.</p></li>
+compute exact joint origins and produce a valid URDF XML file.</p></li>
 </ul>
+<p>Analysis results are written as YAML files into an <code class="docutils literal notranslate"><span class="pre">analysis/</span></code> directory
+alongside the source meshes.</p>
+</section>
 </section>
 <section id="data-models-robot-arm-sim-models">
 <h3>Data models (<code class="docutils literal notranslate"><span class="pre">robot_arm_sim.models</span></code>)<a class="headerlink" href="#data-models-robot-arm-sim-models" title="Link to this heading">#</a></h3>
-<p>Typed dataclasses shared across the pipeline:</p>
+<p>Typed data models shared across the pipeline:</p>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">PartAnalysis</span></code></strong> — mesh geometry (vertices, faces, bounding box, volume,
-centre of mass), detected geometric features, and connection points.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">URDFRobot</span></code></strong>, <strong><code class="docutils literal notranslate"><span class="pre">URDFLink</span></code></strong>, <strong><code class="docutils literal notranslate"><span class="pre">URDFJoint</span></code></strong> — a structured
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">PartAnalysis</span></code></strong> (Pydantic <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code>) — mesh geometry (vertices, faces,
+bounding box, volume, centre of mass), detected geometric features, and
+connection points.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">URDFRobot</span></code></strong>, <strong><code class="docutils literal notranslate"><span class="pre">URDFLink</span></code></strong>, <strong><code class="docutils literal notranslate"><span class="pre">URDFJoint</span></code></strong> (dataclasses) — a structured
 representation of the URDF model including mesh paths, joint types, axes,
 limits, and kinematic chain ordering.</p></li>
 </ul>
@@ -598,6 +661,9 @@ the browser over WebSocket.</p></li>
 <tr class="row-even"><td><p>pyyaml</p></td>
 <td><p>YAML configuration parsing</p></td>
 </tr>
+<tr class="row-odd"><td><p>pydantic</p></td>
+<td><p>Data validation and serialisation for analysis models</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -631,12 +697,12 @@ manual authoring — the rest is generated by the pipeline.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="connection-point-plan.html"
+       href="chrome-connector-workflow.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Connection point detection plan</p>
+        <p class="prev-next-title">Debugging with the Chrome Connector</p>
       </div>
     </a>
     <a class="right-next"
@@ -669,7 +735,10 @@ manual authoring — the rest is generated by the pipeline.</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-overview">Pipeline overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-components">Main components</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#analysis-robot-arm-sim-analyze">Analysis (<code class="docutils literal notranslate"><span class="pre">robot_arm_sim.analyze</span></code>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#analysis-robot-arm-sim-analyze">Analysis (<code class="docutils literal notranslate"><span class="pre">robot_arm_sim.analyze</span></code>)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-point-detection-algorithm">Connection point detection algorithm</a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-models-robot-arm-sim-models">Data models (<code class="docutils literal notranslate"><span class="pre">robot_arm_sim.models</span></code>)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-robot-arm-sim-simulate">Simulation (<code class="docutils literal notranslate"><span class="pre">robot_arm_sim.simulate</span></code>)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mesh-parsers-robot-arm-sim-analyze-parsers">Mesh parsers (<code class="docutils literal notranslate"><span class="pre">robot_arm_sim.analyze.parsers</span></code>)</a></li>

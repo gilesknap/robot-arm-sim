@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Kinematics and URDF Generation &#8212; robot-arm-sim 1.9.dev3+gd69c1af58 documentation</title>
+    <title>Kinematics and URDF Generation &#8212; robot-arm-sim 1.9.dev9+g0b82b7f58 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3162bd7c"></script>
+    <script src="../_static/documentation_options.js?v=650907f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -397,10 +397,12 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -761,10 +763,16 @@ sits offset by half a barrel diameter, creating a visible gap.</p></li>
 <em>center</em> (barrel midpoint) is at the origin.  This matches the DH distance
 convention, closing the gap.</p></li>
 </ul>
-<p>We compute the bore center by replacing the bore-axis component of the face
-position with the bounding-box midpoint along that axis:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-<span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox_min</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox_max</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+<p>We compute the bore center by finding the opposite flat face along the bore
+axis and averaging the two positions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bore_axis</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;axis&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">axis_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+<span class="n">centering</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;centering&quot;</span><span class="p">,</span> <span class="s2">&quot;surface&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">centering</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bore_axis</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+    <span class="n">opp</span> <span class="o">=</span> <span class="n">_find_opposite_face</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">bore_axis</span><span class="p">,</span> <span class="n">axis_idx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">opp</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
 </pre></div>
 </div>
 </section>
@@ -803,24 +811,13 @@ producing the correct visual appearance with the joint axis passing
 through the barrel center on both sides</p></li>
 </ul>
 </section>
-<section id="where-to-find-these-in-a-robot-folder">
-<h2>Where to Find These in a Robot Folder<a class="headerlink" href="#where-to-find-these-in-a-robot-folder" title="Link to this heading">#</a></h2>
-<p>Each robot lives under <code class="docutils literal notranslate"><span class="pre">robots/&lt;RobotName&gt;/</span></code>.  The core files that relate to
-the concepts on this page are:</p>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code></strong> — the kinematic chain specification: DH params, joint
-definitions (axes, origins, limits), and link list with visual offsets.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">robot.urdf</span></code></strong> — the generated URDF encoding joint origins (from DH/chain)
-and visual origins (from bore analysis) that FK reads at runtime.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">analysis/&lt;part&gt;.yaml</span></code></strong> — per-link bore geometry: proximal/distal
-connection points (position, axis, radius).</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">stl_files/&lt;part&gt;.stl</span></code></strong> — visual meshes positioned by bore offsets.</p></li>
-</ul>
-<p>Individual robots may also include specs files with manufacturer DH tables,
-FK verification scripts, reference images, or view mappings.</p>
-<p>The FK implementation is in <code class="docutils literal notranslate"><span class="pre">src/robot_arm_sim/simulate/kinematics.py</span></code>
-(<code class="docutils literal notranslate"><span class="pre">forward_kinematics()</span></code>) and the IK solver is in
-<code class="docutils literal notranslate"><span class="pre">src/robot_arm_sim/simulate/ik_solver.py</span></code> (<code class="docutils literal notranslate"><span class="pre">solve_ik()</span></code>).</p>
+<section id="how-the-pipeline-uses-these-concepts">
+<h2>How the pipeline uses these concepts<a class="headerlink" href="#how-the-pipeline-uses-these-concepts" title="Link to this heading">#</a></h2>
+<p>The URDF generation pipeline uses DH parameters for joint origins and
+connection points for visual origins. For details on how each pass works,
+see <a class="reference internal" href="urdf-generation-pipeline.html"><span class="doc">URDF generation pipeline</span></a>.</p>
+<p>For the robot directory layout and module structure, see
+<a class="reference internal" href="architecture.html"><span class="doc">Architecture</span></a>.</p>
 </section>
 </section>
 
@@ -894,7 +891,7 @@ FK verification scripts, reference images, or view mappings.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ur5-worked-example-shoulder-upperarm">UR5 Worked Example: Shoulder → Upperarm</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-find-these-in-a-robot-folder">Where to Find These in a Robot Folder</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-the-pipeline-uses-these-concepts">How the pipeline uses these concepts</a></li>
 </ul>
   </nav></div>
 
