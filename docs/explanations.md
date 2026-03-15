@@ -7,8 +7,6 @@ Explanations of how it works and why it works that way.
 
 explanations/building-with-claude
 explanations/chrome-connector-workflow
-explanations/implementation-plan
-explanations/connection-point-plan
 explanations/architecture
 explanations/inverse-kinematics
 explanations/decisions

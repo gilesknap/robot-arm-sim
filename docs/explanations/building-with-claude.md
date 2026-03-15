@@ -22,6 +22,13 @@ preserved.
 :depth: 2
 ```
 
+```{toctree}
+:hidden:
+
+implementation-plan
+connection-point-plan
+```
+
 ---
 
 ## First, Some General Principles
@@ -257,19 +264,19 @@ descriptions — and small errors compounded along the 6-joint chain.
 
 Claude proposed the key architectural insight:
 
-> **Connection point detection (finding bore/shaft centres) is a well-defined
-> geometric computation that Python can do precisely. Kinematic chain reasoning
-> (which parts connect, joint types, axes) requires semantic understanding that
-> Claude does well. Split the problem accordingly.**
+```{admonition} Claude's response
+:class: tip
+Connection point detection (finding bore/shaft centres) is a well-defined
+geometric computation that Python can do precisely. Kinematic chain reasoning
+(which parts connect, joint types, axes) requires semantic understanding that
+Claude does well. Split the problem accordingly.
+```
 
 This led to plan 2, reproduced in {doc}`connection-point-plan`.
 
-### Prompt 14 — Implementing the fix
+### Implementing the fix
 
-> **Implement the following plan: Fix URDF Assembly via Programmatic Connection
-> Point Detection.**
-
-Claude implemented all seven steps from plan 2:
+The plan was accepted and Claude implemented all seven steps:
 
 - A `ConnectionPoint` dataclass and detection module that slices cross-sections
   along cylindrical axes and fits circles to find bore centres

@@ -28,8 +28,6 @@ found:
 
 Each file records the part's bounding box, volume, connection points (where
 links attach), and notable geometric features such as large flat faces.
-The analyzer also writes multi-angle renders of each part for visual
-inspection.
 
 ## Stage 2 -- Generate the URDF
 
