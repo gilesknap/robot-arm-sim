@@ -53,16 +53,16 @@ Launch two sub-agents **in parallel**:
   - **Gate**: All joints within 2mm of manufacturer specs
   - **Loop**: Fix chain.yaml → regenerate → re-verify until passing
 
-### 4. Visual Refinement (HUMAN STEP)
+### 4. Visual Refinement
 
-Steps visual connection point refinement requires human judgement and is better done manually using the simulator's Edit Connections UI. review.md provides a structured process for this discussion and refinement.
+Use the `/visual-refine` skill to visually align meshes in the simulator.
+This works base-upward through each link using browser automation
+with Frames + Transparent mode to assess and correct mesh placement.
 
-Launch the simulator and hand off to the human:
-```bash
-nohup uv run robot-arm-sim simulate robots/<name>/ > /tmp/sim.log 2>&1 &
-```
+Read instructions from `.claude/skills/refine/SKILL.md`.
 
-Tell the user: "The simulator is running at localhost:8080. Use **Edit Connections** to click on mating surfaces for each link (proximal = toward base, distal = toward tip). Click **Save & Rebuild** after each link. The auto-detected connection points are a starting point but will need manual adjustment."
+Alternatively, the user can refine manually using the simulator's
+**Edit Connections** UI to click on mating surfaces for each link.
 
 ### 7. Error Handling
 
