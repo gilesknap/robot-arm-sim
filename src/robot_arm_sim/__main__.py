@@ -101,6 +101,30 @@ def generate(
 
 
 @app.command()
+def build_chain(
+    robot_dir: Path = typer.Argument(
+        ...,
+        help="Path to robot directory (must contain specs.yaml and analysis/).",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+    output: Path | None = typer.Option(
+        None,
+        help="Output chain.yaml path (default: <robot_dir>/chain.yaml).",
+    ),
+) -> None:
+    """Build chain.yaml from DH parameters in specs.yaml."""
+    from .chain_builder import build_chain_cli
+
+    typer.echo(f"Building chain for {robot_dir}...")
+    messages = build_chain_cli(robot_dir, output)
+    for msg in messages:
+        typer.echo(msg)
+    typer.echo("Done.")
+
+
+@app.command()
 def simulate(
     robots_dir: Path = typer.Argument(
         ...,
