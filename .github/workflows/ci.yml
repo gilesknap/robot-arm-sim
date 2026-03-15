@@ -25,6 +25,7 @@ jobs:
     with:
       runs-on: ${{ matrix.runs-on }}
       python-version: ${{ matrix.python-version }}
+    secrets: inherit
 
   container:
     needs: test
