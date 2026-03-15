@@ -1,5 +1,12 @@
 # Connection point detection plan
 
+```{admonition} Historical document
+:class: warning
+This page preserves the connection point detection plan written during
+development. For the current pipeline, see {doc}`architecture` and
+{doc}`urdf-generation-pipeline`.
+```
+
 This is the second plan, written after the first implementation revealed that
 the assembly-reasoning skill could not produce accurate URDF files by
 guessing 3D offsets from text descriptions. It was saved as `/plan2.md` in

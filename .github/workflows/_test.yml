@@ -37,3 +37,4 @@ jobs:
         with:
           name: ${{ inputs.python-version }}/${{ inputs.runs-on }}
           files: cov.xml
+          token: ${{ secrets.CODECOV_TOKEN }}

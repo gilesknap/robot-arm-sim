@@ -11,7 +11,7 @@ docs_type: sphinx
 git_platform: github.com
 github_org: gilesknap
 package_name: robot_arm_sim
-pypi: true
+pypi: false
 repo_name: robot-arm-sim
 strict_typing: false
 type_checker: pyright

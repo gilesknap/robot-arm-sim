@@ -22,6 +22,13 @@ preserved.
 :depth: 2
 ```
 
+```{toctree}
+:hidden:
+
+implementation-plan
+connection-point-plan
+```
+
 ---
 
 ## First, Some General Principles
@@ -41,11 +48,11 @@ The specific files mentioned here are for Claude Code, but the same features are
 1. Create skills:
    - When you have spent effort working on a problem and have a solution, ask Claude to write a skill that captures the debugging methodology, not just the fix. This way you can reuse the same process for future problems.
    - See examples from this project in `.claude/skills/`
-   - Skills are only loaded when the agent sees that they might be needed (or you exlicity invoke with e.g. /build-robot). So they aren't taking up context space all the time, but they are there when you need them.
+   - Skills are only loaded when the agent sees that they might be needed (or you explicitly invoke with e.g. /make-robot). So they aren't taking up context space all the time, but they are there when you need them.
 1. Look after memory:
    - Claude Code has auto memory that is triggered on events like commits.
-   - ask Claude to remember useful things at other time too.
-   - its good to say remember useful tips from this context before clearing a context.
+   - ask Claude to remember useful things at other times too.
+   - it's good to say remember useful tips from this context before clearing a context.
    - See the memo skill in this project which makes this easy
      - it remembers tips from the context
      - then it trims down memory to only currently useful things
@@ -107,6 +114,12 @@ concrete technology steer from the human. Second, the key design insight:
 **the analysis output should be "fully understandable to Claude"**. This meant
 structured YAML with human-readable text descriptions, not just numeric data.
 Every design choice downstream follows from this principle.
+
+```{note}
+Skills mentioned in this narrative (`assembly-reasoning`, `visual-urdf-tuning`,
+`refine-with-image`) were later restructured into the current `make-robot` and
+`control-simulator` skills. The names below reflect what existed at each phase.
+```
 
 ### Prompt 4 — The assembly reasoning skill
 
@@ -251,19 +264,19 @@ descriptions — and small errors compounded along the 6-joint chain.
 
 Claude proposed the key architectural insight:
 
-> **Connection point detection (finding bore/shaft centres) is a well-defined
-> geometric computation that Python can do precisely. Kinematic chain reasoning
-> (which parts connect, joint types, axes) requires semantic understanding that
-> Claude does well. Split the problem accordingly.**
+```{admonition} Claude's response
+:class: tip
+Connection point detection (finding bore/shaft centres) is a well-defined
+geometric computation that Python can do precisely. Kinematic chain reasoning
+(which parts connect, joint types, axes) requires semantic understanding that
+Claude does well. Split the problem accordingly.
+```
 
 This led to plan 2, reproduced in {doc}`connection-point-plan`.
 
-### Prompt 14 — Implementing the fix
+### Implementing the fix
 
-> **Implement the following plan: Fix URDF Assembly via Programmatic Connection
-> Point Detection.**
-
-Claude implemented all seven steps from plan 2:
+The plan was accepted and Claude implemented all seven steps:
 
 - A `ConnectionPoint` dataclass and detection module that slices cross-sections
   along cylindrical axes and fits circles to find bore centres

@@ -46,13 +46,15 @@ Then tell Claude which robot to work on:
 Build robots/MyRobot/
 ```
 
-Claude will run through 5 stages:
+Claude will run through 4 automated stages:
 
 1. **Analyze STLs** — detect connection points, geometry, and assembly hints
+   (runs in parallel with step 2)
 2. **Research manufacturer specs** — find DH parameters, joint limits online
 3. **Infer kinematic chain** — write `chain.yaml` with topology, axes, limits
 4. **Generate & verify URDF** — produce `robot.urdf` and check FK positions
-5. **Visual comparison** — compare simulation against reference images
+
+Visual refinement is a manual step using the simulator (see Step 4 below).
 
 ### chain.yaml key fields
 
@@ -88,7 +90,7 @@ Check that:
 The simulator includes several controls for inspecting the model:
 
 - **Joint sliders** — drag to rotate each joint in real time
-- **Show Labels** — display part names (blue) and joint names (red) as callout
+- **Labels** — display part names (blue) and joint names (red) as callout
   labels
 - **Reset Joints** — return all sliders to zero degrees
 - **ViewCube** — a 3D orientation widget in the corner of the viewport. Click a
@@ -114,12 +116,13 @@ places joints incorrectly.
 
 The **Edit Connections** mode lets you fix this interactively:
 
-1. Click **Edit Connections** in the toolbar — the meshes go semi-transparent and
-   coloured sphere markers appear at every flat face centroid on each part.
-2. Use the **Proximal / Distal** toggle to choose which connection end to assign.
-3. Click a yellow marker to assign it. Markers turn **green** (proximal) or
-   **red** (distal). If the opposite end was already at the same face, they
-   swap automatically.
+1. Click **Edit Connections** in the toolbar — meshes go semi-transparent and
+   coordinate frames appear.
+2. Select a mode: **Proximal Centred** (blue), **Proximal Surface** (green),
+   or **Distal** (red). Use **Move Part** (amber) to reposition parts.
+3. Click directly on a mesh surface to place a connection marker. Markers
+   are coloured by type: blue = proximal centred, green = proximal surface,
+   red = distal.
 4. Repeat for any parts that need correction.
 5. Click **Save & Rebuild** — the updated connection points are written to the
    analysis YAML files (with `method: manual`) and the URDF is regenerated
@@ -157,6 +160,7 @@ Once the simulation looks correct:
 |---|---|---|
 | `make-robot` | Full pipeline: analyze, infer chain, generate, verify | `/make-robot` |
 | `control-simulator` | Camera control, part visibility, connection editing | `/control-simulator` |
+| `center-on-axis` | Adjust centering mode for visual alignment | `/center-on-axis` |
 
 All skills edit `chain.yaml` and regenerate — they never touch `robot.urdf`
 directly.
