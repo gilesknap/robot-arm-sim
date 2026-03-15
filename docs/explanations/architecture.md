@@ -37,11 +37,12 @@ alongside the source meshes.
 
 ### Data models (`robot_arm_sim.models`)
 
-Typed dataclasses shared across the pipeline:
+Typed data models shared across the pipeline:
 
-- **`PartAnalysis`** — mesh geometry (vertices, faces, bounding box, volume,
-  centre of mass), detected geometric features, and connection points.
-- **`URDFRobot`**, **`URDFLink`**, **`URDFJoint`** — a structured
+- **`PartAnalysis`** (Pydantic `BaseModel`) — mesh geometry (vertices, faces,
+  bounding box, volume, centre of mass), detected geometric features, and
+  connection points.
+- **`URDFRobot`**, **`URDFLink`**, **`URDFJoint`** (dataclasses) — a structured
   representation of the URDF model including mesh paths, joint types, axes,
   limits, and kinematic chain ordering.
 
@@ -105,6 +106,7 @@ The browser-based simulator uses several layers:
 | nicegui | Web UI framework (Vue.js + Quasar frontend) |
 | typer | CLI argument parsing |
 | pyyaml | YAML configuration parsing |
+| pydantic | Data validation and serialisation for analysis models |
 
 ## Robot directory layout
 

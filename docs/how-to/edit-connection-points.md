@@ -18,13 +18,12 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    existing connection markers appear (green = proximal surface,
    blue = proximal centred, red = distal).
 
-   The editor toolbar is split across two rows:
+   The editor toolbar has a status label and two rows:
 
-   - **Row 1:** Mode buttons, **Show All** checkbox, and the currently
-     selected part name.
+   - **Row 1:** Mode buttons (**Move Part**, **Proximal Centred**,
+     **Proximal Surface**, **Distal**) and the currently selected part name.
    - **Row 2:** **Undo**/**Redo**, **Rot X**/**Rot Y**/**Rot Z**,
-     **Remove Part Conns**, status label, **Save & Rebuild**, and
-     **Remove Connections**.
+     **Remove Part Conns**, **Remove Connections**, and **Save & Rebuild**.
 
 3. Select a mode from row 1:
 
@@ -32,7 +31,7 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    - **Proximal Surface** (green) — places a `surface`-mode proximal marker.
    - **Distal** (red) — places a distal marker (tells gap-closing which parent
      surface the child should meet).
-   - **Move Parts** (amber) — drag a part or use arrow keys (0.1 mm per press,
+   - **Move Part** (amber) — drag a part or use arrow keys (0.1 mm per press,
      hold Shift for 2 mm steps).
 
    See {ref}`when-to-use-each-mode` below for guidance on `surface` vs `center`.
@@ -41,9 +40,7 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
    The face normal at that point becomes the marker's axis. Clicking a mesh
    also selects it — the selected part name appears in row 1.
 
-5. Use the **Show All** checkbox to see markers for all parts at once.
-
-6. Use **Undo** / **Redo** (row 2) to step back and forward through edits
+5. Use **Undo** / **Redo** (row 2) to step back and forward through edits
    (connection assignments, part moves, and rotations).
 
 7. Use **Rot X** / **Rot Y** / **Rot Z** (row 2) to rotate the selected part
@@ -54,10 +51,9 @@ work, see {doc}`/explanations/urdf-generation-pipeline`.
 8. Click **Save & Rebuild** — this writes changes to three places:
 
    - **`analysis/*.yaml`** — updated connection points (with `method: manual`)
-   - **`chain.yaml`** — if you used Move Parts, the accumulated offset is
+   - **`chain.yaml`** — if you used Move Part, the accumulated offset is
      saved as `visual_xyz`; if you rotated a part, the rotation is composed
-     with existing `visual_rpy`; if you only edited connections without
-     moving or rotating, any stale `visual_xyz` is cleared
+     with existing `visual_rpy`
    - **`robot.urdf`** — regenerated from the updated analysis and chain data
 
 ## Editing analysis YAML directly
@@ -120,7 +116,7 @@ after all other pipeline computation and never affects other links.
 
 You can set it by:
 
-- Using **Move Parts** mode in the simulator, then clicking **Save & Rebuild**
+- Using **Move Part** mode in the simulator, then clicking **Save & Rebuild**
 - Editing `chain.yaml` directly and running `generate`
 
 See {ref}`the pipeline explanation <key-rules>` for details on what
@@ -152,7 +148,7 @@ To remove connections for a **single part** instead, select it first (click on
 the mesh) then click **Remove Part Conns** (row 2). This bakes placement and
 clears connection points for that link only.
 
-After removal, fine-tune placement with **Move Parts** mode, **Rot X/Y/Z**
+After removal, fine-tune placement with **Move Part** mode, **Rot X/Y/Z**
 buttons, or by editing `visual_xyz` / `visual_rpy` values directly in
 `chain.yaml`.
 

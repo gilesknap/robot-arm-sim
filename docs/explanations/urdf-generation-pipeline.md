@@ -60,21 +60,19 @@ within its link frame. The goal is always the same: place the proximal
 connection point at the link frame origin so the joint rotates around the
 correct axis.
 
-### Axis snapping (both modes)
+### Visual origin computation (both modes)
 
-Regardless of centering mode, `compute_visual_origin` always **snaps the
-proximal bore center onto the joint axis line**. It decomposes the proximal
-position into along-axis and cross-axis components relative to the joint
-axis, then zeros the cross-axis error:
+For each link, `compute_visual_origin` negates the proximal connection
+point position (converting from mm to metres) so the connection sits at
+the link frame origin. Each mesh is positioned independently — no
+cross-link dependencies, no error accumulation up the chain.
 
 ```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
 :language: python
-:lines: 92-113
-:caption: Axis snapping and centering logic in compute_visual_origin
+:start-at: def compute_visual_origin(
+:end-at: return [round(v, 6)
+:caption: compute_visual_origin — places proximal connection at frame origin
 ```
-
-This means each mesh independently positions itself — no cross-link
-dependencies, no error accumulation up the chain.
 
 ### `surface` mode (default)
 
@@ -87,7 +85,8 @@ joint axis only** so its proximal surface meets the parent's distal surface:
 
 ```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
 :language: python
-:lines: 186-197
+:start-at: def close_surface_gaps_along_axis(
+:end-before: link_specs = {
 :caption: close_surface_gaps_along_axis docstring
 ```
 
@@ -116,16 +115,23 @@ L-shaped link where the proximal bore faces along Z but the distal bore
 faces along Y — the mesh also needs to be **rotated** so the proximal axis
 aligns with the joint frame. This is what `visual_rpy` in `chain.yaml` does.
 
-The URDF generation pipeline works in three passes:
+The URDF generation pipeline works in five passes:
 
+0. **Pass 0 — visual flip detection** (`auto_detect_visual_flips`) — detects
+   links where the proximal connection is frame-flipped relative to the joint
+   axis. For these links, the anchor switches to the distal connection point
+   so `compute_visual_origin` positions the mesh correctly.
 1. **Pass 1 — per-mesh snap** (`compute_visual_origin`) — for each link,
-   rotate the mesh (`visual_rpy`) and snap its proximal bore center onto the
-   joint axis line, zeroing cross-axis error. Along-axis placement depends
-   on centering mode.
+   rotate the mesh (`visual_rpy`) and negate the anchor position to place the
+   connection point at the link frame origin. For `center` mode, the position
+   is averaged with the opposite face along the bore axis before negation.
 2. **Pass 2 — surface gap closure** (`close_surface_gaps_along_axis`) — for
    surface-mode connections only, shift the child mesh along the joint axis
    so its proximal face meets the parent's distal face.
-3. **Pass 3 — visual_xyz nudge** — apply any `visual_xyz` offset from
+3. **Pass 2b — derived joint update** (`update_derived_joint_origins`) —
+   recompute connection-point-derived joint origins to reflect any visual
+   shifts from gap closing.
+4. **Pass 3 — visual_xyz nudge** — apply any `visual_xyz` offset from
    `chain.yaml` as a local-only adjustment. This is added *after*
    gap-closing, so nudging one part never affects any other part.
 
@@ -135,7 +141,8 @@ position is rotated first, then negated:
 
 ```{literalinclude} ../../src/robot_arm_sim/analyze/urdf_transforms.py
 :language: python
-:lines: 108-113
+:start-at: if viz_rpy == [0, 0, 0]:
+:end-at: viz_xyz = (-rpy_to_rotation
 :caption: visual_rpy applied before translation in compute_visual_origin
 ```
 

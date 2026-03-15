@@ -50,19 +50,19 @@ $ robot-arm-sim analyze robots/Meca500-R3/
 Generate a URDF file from a kinematic chain specification and analysis data.
 
 ```bash
-$ robot-arm-sim generate ROBOT_DIR CHAIN_FILE [--output PATH]
+$ robot-arm-sim generate ROBOT_DIR [CHAIN_FILE] [--output PATH]
 ```
 
 | Argument / Option | Description |
 |-------------------|-------------|
 | `ROBOT_DIR` | Path to robot directory. Must contain an `analysis/` subdirectory. |
-| `CHAIN_FILE` | Path to the `chain.yaml` kinematic chain specification. |
+| `CHAIN_FILE` | Path to the `chain.yaml` kinematic chain specification. Default: `<ROBOT_DIR>/chain.yaml`. |
 | `--output PATH` | Output URDF path. Default: `<ROBOT_DIR>/robot.urdf`. |
 
 **Example:**
 
 ```bash
-$ robot-arm-sim generate robots/Meca500-R3/ robots/Meca500-R3/chain.yaml
+$ robot-arm-sim generate robots/Meca500-R3/
 ```
 
 ```bash
@@ -81,7 +81,7 @@ $ robot-arm-sim simulate ROBOTS_DIR [--port PORT]
 
 | Argument / Option | Description |
 |-------------------|-------------|
-| `ROBOTS_DIR` | Directory containing one or more robot folders (each with a `robot.urdf`). |
+| `ROBOTS_DIR` | Path to a single robot folder or a directory containing robot folders (each with a `robot.urdf`). |
 | `--port PORT` | Port for the web UI. Default: `8080`. |
 
 The simulator auto-discovers all robots under `ROBOTS_DIR` that contain a
@@ -103,6 +103,5 @@ $ robot-arm-sim simulate robots/Meca500-R3/
 $ robot-arm-sim simulate robots/ --port 9090
 ```
 
-The simulator serves the web UI at `http://localhost:<PORT>` and opens the
-browser automatically. STL files are served at `/stl/<robot_name>/` paths.
+The simulator serves the web UI at `http://localhost:<PORT>`. STL files are served at `/stl/<robot_name>/` paths.
 A health-check endpoint is available at `/healthz`.

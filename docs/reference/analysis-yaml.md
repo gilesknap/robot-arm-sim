@@ -28,6 +28,7 @@ A list of detected connection points. Each entry:
 | `axis` | list of 3 floats | Normalised connection axis vector |
 | `radius_mm` | float | Detected connection radius in mm |
 | `method` | string | Detection method (e.g. `cross_section`) |
+| `centering` | string or null | `"surface"` (default) or `"center"` — controls how the visual origin is computed. See {doc}`/explanations/urdf-generation-pipeline` |
 
 The `generate` command uses these positions to compute joint origins
 (distal-to-proximal distance between connected parts) and visual offsets
@@ -85,16 +86,19 @@ Each entry:
 
 #### `holes`
 
-List of detected holes (currently unused in most analyses).
+Each entry:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `description` | string | Human-readable summary |
+| `axis` | list of 3 floats | Hole axis |
+| `radius_mm` | float | Hole radius in mm |
+| `length_mm` | float | Hole length in mm |
+| `center` | list of 3 floats | Hole centre (mm) |
 
 ### `text_description`
 
 A human-readable text summary of the part geometry.
-
-### `renders`
-
-A list of relative paths to rendered images of the part (front, side, top,
-isometric views).
 
 ---
 

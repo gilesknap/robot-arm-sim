@@ -14,7 +14,7 @@ analysis data to produce a standard URDF.
 ### `robot_name`
 
 **Type:** string
-**Required:** no (defaults to `"robot"`)
+**Required:** yes
 
 The name written into the URDF `<robot>` element.
 
@@ -66,7 +66,7 @@ The link name used in URDF and referenced by joints.
 ### `mesh`
 
 **Type:** string or `null`
-**Required:** yes
+**Default:** `null`
 
 The STL file stem name (without `.stl` extension). The generator looks for
 `<robot_dir>/stl_files/<mesh>.stl`. Set to `null` for virtual links that
@@ -77,10 +77,18 @@ have no geometry (e.g. when two joints are co-located).
   mesh: null
 ```
 
+### `user_added`
+
+**Type:** boolean
+**Default:** `false`
+
+Marks links added by the user (e.g. end-effector links not present in the
+original STL set). When `false`, this field is omitted from YAML output.
+
 ### `visual_rpy`
 
 **Type:** list of 3 floats `[roll, pitch, yaw]` in radians
-**Default:** `[0, 0, 0]`
+**Default:** `null` (treated as `[0, 0, 0]` by the generator)
 
 Rotation applied to the STL mesh to align its coordinate frame with the link
 frame convention (Z-up). Use this when the STL's natural orientation doesn't
@@ -95,7 +103,7 @@ visual_rpy: [0, -1.5708, 0]   # -90° pitch rotates X to Z
 ### `visual_xyz`
 
 **Type:** list of 3 floats `[x, y, z]` in metres
-**Default:** `[0, 0, 0]`
+**Default:** `null` (treated as `[0, 0, 0]` by the generator)
 
 **This is additive.** The generator automatically computes a visual offset
 from the mesh's proximal connection point (so the connection centre sits at the
@@ -147,10 +155,18 @@ Name of the parent link (must match a `links[].name`).
 
 Name of the child link (must match a `links[].name`).
 
+### `user_added`
+
+**Type:** boolean
+**Default:** `false`
+
+Marks joints added by the user (e.g. for user-added end-effector links).
+When `false`, this field is omitted from YAML output.
+
 ### `axis`
 
 **Type:** list of 3 floats `[x, y, z]`
-**Required:** yes
+**Default:** `[0, 0, 1]`
 
 Unit vector defining the joint rotation axis in the child link frame.
 
@@ -175,14 +191,14 @@ limits: [-3.054, 3.054]   # approximately ±175°
 ### `effort`
 
 **Type:** number
-**Default:** `100`
+**Default:** `null` (the generator may apply a fallback of `100`)
 
 Maximum joint effort (N·m). Written to the URDF `<limit>` element.
 
 ### `velocity`
 
 **Type:** number
-**Default:** `1`
+**Default:** `null` (the generator may apply a fallback of `1`)
 
 Maximum joint velocity (rad/s). Written to the URDF `<limit>` element.
 
