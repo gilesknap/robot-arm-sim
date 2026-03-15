@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>robot-arm-sim &#8212; robot-arm-sim 1.9.dev13+g9892a781a documentation</title>
+    <title>robot-arm-sim &#8212; robot-arm-sim 1.9.dev15+gec69b400e documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=9d4aeb98"></script>
+    <script src="_static/documentation_options.js?v=b7131c0e"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -441,6 +441,11 @@
 </tbody>
 </table>
 </div>
+<section id="ai-coding-assistant-showcase">
+<h2>AI Coding Assistant Showcase<a class="headerlink" href="#ai-coding-assistant-showcase" title="Link to this heading">#</a></h2>
+<p>I built this project from concept to completion in 4 days assisted by Claude Code. I had no prior experience of robots, URDF, or 3D graphics programming.</p>
+<p>For some details of how I use Claude and what prompts got this project started, see <a class="reference external" href="https://gilesknap.github.io/robot-arm-sim/main/explanations/building-with-claude.html">Building a Robot Simulator with Claude</a>).</p>
+</section>
 <section id="pipeline">
 <h2>Pipeline<a class="headerlink" href="#pipeline" title="Link to this heading">#</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>STL files → analyze → chain.yaml → generate → URDF → simulate
@@ -455,15 +460,8 @@ uv<span class="w"> </span>sync
 uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/Meca500-R3/
 </pre></div>
 </div>
-<p>Opens a browser at <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code> with a 3D model and joint sliders.</p>
-</section>
-<section id="cli">
-<h2>CLI<a class="headerlink" href="#cli" title="Link to this heading">#</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">robot</span><span class="o">-</span><span class="n">arm</span><span class="o">-</span><span class="n">sim</span> <span class="n">analyze</span>  <span class="o">&lt;</span><span class="n">robot_dir</span><span class="o">&gt;</span>                    <span class="c1"># Analyze STL meshes</span>
-<span class="n">robot</span><span class="o">-</span><span class="n">arm</span><span class="o">-</span><span class="n">sim</span> <span class="n">generate</span> <span class="o">&lt;</span><span class="n">robot_dir</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">chain</span><span class="o">.</span><span class="n">yaml</span><span class="o">&gt;</span>       <span class="c1"># Generate URDF</span>
-<span class="n">robot</span><span class="o">-</span><span class="n">arm</span><span class="o">-</span><span class="n">sim</span> <span class="n">simulate</span> <span class="o">&lt;</span><span class="n">robot_dir</span><span class="o">&gt;</span> <span class="p">[</span><span class="o">--</span><span class="n">port</span> <span class="mi">8080</span><span class="p">]</span>      <span class="c1"># Launch simulator</span>
-</pre></div>
-</div>
+<p>Opens a browser at <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code> with a 3D model and joint sliders.)</p>
+<p><img alt="simulator image" src="https://raw.githubusercontent.com/gilesknap/robot-arm-sim/main/docs/images/simulator.png" /></p>
 </section>
 <section id="how-the-documentation-is-structured">
 <h2>How the documentation is structured<a class="headerlink" href="#how-the-documentation-is-structured" title="Link to this heading">#</a></h2>
