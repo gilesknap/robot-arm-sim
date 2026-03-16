@@ -206,7 +206,7 @@ def build_visibility_section(state: SimulatorState) -> None:
 
     def toggle_all(e):
         """Toggle all parts on/off."""
-        val = not e.value
+        val = e.value
         for lname in state.chain_link_names:
             state.visible_links[lname] = val
         state.update_scene_now()
@@ -226,7 +226,7 @@ def build_visibility_section(state: SimulatorState) -> None:
 
             def make_vis_handler(ln):
                 def on_change(e):
-                    state.visible_links[ln] = not e.value
+                    state.visible_links[ln] = e.value
                     state.update_scene_now()
                     state.on_visibility_changed()
 
