@@ -10,5 +10,6 @@ Drive the robot-arm-sim NiceGUI/Three.js simulator: camera positioning, part vis
 - [buttons.md](buttons.md) — Click toolbar buttons via JS helper, standard init sequence
 - [camera.md](camera.md) — Camera control: zoom, rotate, orthographic/perspective, named views, one-liner templates
 - [toggles.md](toggles.md) — Toolbar toggle buttons (Frames, Transparent, etc.) with state checking
-- [visible-parts.md](visible-parts.md) — Show/hide robot links via JS chip clicks
+- [visible-parts.md](visible-parts.md) — Show/hide robot links via JS checkbox clicks
+- [nudge-parts.md](nudge-parts.md) — Move parts with arrow keys, alignment strategies (bore centering + face mating)
 - [edit-connections.md](edit-connections.md) — Assign proximal/distal connection points on robot meshes
