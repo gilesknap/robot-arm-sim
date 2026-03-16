@@ -4,9 +4,23 @@ Drive the Edit Connections mode in the simulator to assign proximal/distal conne
 
 ## Entering Edit Connections Mode
 
-1. Find and click the "Edit Connections" button in the toolbar (use `find` to get ref)
-2. Meshes go semi-transparent, green/red markers appear for existing connections
-3. A bottom bar appears with: Proximal/Distal toggle, Centering dropdown, Show All checkbox, status label, Save & Rebuild button
+Via JS (preferred):
+```javascript
+clickBtn('Edit Connections');
+```
+
+Meshes go semi-transparent, green/red markers appear for existing connections. A bottom bar appears with: Proximal/Distal toggle, Centering dropdown, Show All checkbox, status label, Save & Rebuild button.
+
+## Remove All Connections
+
+Strips all connection points and resets `visual_xyz` to DH-only positions. Use this before starting a fresh visual refinement.
+
+```javascript
+clickBtn('Edit Connections');
+clickBtn('Remove Connections');  // auto-saves and rebuilds, exits edit mode
+```
+
+This triggers Save & Rebuild automatically — the URDF regenerates and the scene re-renders. No confirmation dialog. You are returned to the normal (non-edit) view you were in before entering edit mode.
 
 ## The Proximal/Distal Toggle
 

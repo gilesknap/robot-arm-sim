@@ -27,21 +27,25 @@ _VIEWCUBE_JS = (
     if (!THREE) return;
     window.__THREE_REF = THREE;
 
-    // Find main scene component
-    const appEl = document.getElementById('app');
-    if (!appEl || !appEl.__vue_app__) return;
-    let mainSC = null;
-    function walk(n, d) {
-        if (d > 30 || mainSC) return;
-        if (n.component) {
-            const p = n.component.proxy;
-            if (p && p.renderer && p.scene && p.camera) { mainSC = p; return; }
-            if (n.component.subTree) walk(n.component.subTree, d+1);
+    // Find main scene component (reusable — called on init and by handlers)
+    function findMainSC() {
+        const appEl = document.getElementById('app');
+        if (!appEl || !appEl.__vue_app__) return null;
+        let found = null;
+        function walk(n, d) {
+            if (d > 30 || found) return;
+            if (n.component) {
+                const p = n.component.proxy;
+                if (p && p.renderer && p.scene && p.camera) { found = p; return; }
+                if (n.component.subTree) walk(n.component.subTree, d+1);
+            }
+            if (Array.isArray(n.children))
+                n.children.forEach(c => c && typeof c === 'object' && walk(c, d+1));
         }
-        if (Array.isArray(n.children))
-            n.children.forEach(c => c && typeof c === 'object' && walk(c, d+1));
+        walk(appEl.__vue_app__._container._vnode, 0);
+        return found;
     }
-    walk(appEl.__vue_app__._container._vnode, 0);
+    let mainSC = findMainSC();
     if (!mainSC) return;
 
     // --- Create the ViewCube mini-scene ---
@@ -329,6 +333,10 @@ _VIEWCUBE_JS = (
     function animate() {
         requestAnimationFrame(animate);
 
+        // Re-find scene component if stale
+        if (!mainSC || !mainSC.camera) mainSC = findMainSC();
+        if (!mainSC) return;
+
         // Get main camera's view direction
         const mainCam = mainSC.camera;
         const camPos = mainCam.position.clone();
@@ -348,24 +356,26 @@ _VIEWCUBE_JS = (
     const toggleBtn = document.getElementById('viewcube-proj-toggle');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
-            const mainCam = mainSC.camera;
+            if (!mainSC) return;
+
+            const curCam = mainSC.camera;
             const ctrl = mainSC.controls;
             const canvas = mainSC.renderer.domElement;
             const aspect = canvas.width / canvas.height;
 
-            if (mainCam.isPerspectiveCamera) {
+            if (curCam.isPerspectiveCamera) {
                 // Switch to ortho
-                const d = mainCam.position.distanceTo(ctrl.target);
-                const fovRad = (mainCam.fov * Math.PI) / 180;
+                const d = curCam.position.distanceTo(ctrl.target);
+                const fovRad = (curCam.fov * Math.PI) / 180;
                 const frustumH = 2 * d * Math.tan(fovRad / 2);
                 const frustumW = frustumH * aspect;
 
                 const ortho = new THREE.OrthographicCamera(
                     -frustumW/2, frustumW/2, frustumH/2, -frustumH/2, 0.001, 100
                 );
-                ortho.position.copy(mainCam.position);
-                ortho.quaternion.copy(mainCam.quaternion);
-                ortho.up.copy(mainCam.up);
+                ortho.position.copy(curCam.position);
+                ortho.quaternion.copy(curCam.quaternion);
+                ortho.up.copy(curCam.up);
                 ortho.zoom = 1;
                 ortho.updateProjectionMatrix();
 
@@ -377,9 +387,9 @@ _VIEWCUBE_JS = (
             } else {
                 // Switch to perspective
                 const persp = new THREE.PerspectiveCamera(50, aspect, 0.01, 100);
-                persp.position.copy(mainCam.position);
-                persp.quaternion.copy(mainCam.quaternion);
-                persp.up.copy(mainCam.up);
+                persp.position.copy(curCam.position);
+                persp.quaternion.copy(curCam.quaternion);
+                persp.up.copy(curCam.up);
                 persp.updateProjectionMatrix();
 
                 mainSC.camera = persp;
@@ -395,6 +405,8 @@ _VIEWCUBE_JS = (
     const fitBtn = document.getElementById('viewcube-fit-btn');
     if (fitBtn) {
         fitBtn.addEventListener('click', () => {
+            if (!mainSC) return;
+
             const mainCam = mainSC.camera;
             const ctrl = mainSC.controls;
             const canvas = mainSC.renderer.domElement;
@@ -402,6 +414,7 @@ _VIEWCUBE_JS = (
 
             // Compute bounding box of robot meshes only
             // (STL meshes have high vertex counts vs primitives)
+            // Hidden parts are moved to (0,0,-100) so skip those
             const box = new THREE.Box3();
             mainSC.scene.traverse((obj) => {
                 if (!obj.isMesh || !obj.visible) return;
@@ -410,6 +423,10 @@ _VIEWCUBE_JS = (
                     !geo.attributes.position) return;
                 const vc = geo.attributes.position.count;
                 if (vc < 100) return;  // skip primitives
+                // Skip meshes hidden off-screen (z ~ -100)
+                const wp = new THREE.Vector3();
+                obj.getWorldPosition(wp);
+                if (wp.z < -10) return;
                 box.expandByObject(obj);
             });
             if (box.isEmpty()) return;
@@ -433,22 +450,20 @@ _VIEWCUBE_JS = (
                     center.clone().sub(dir.multiplyScalar(dist))
                 );
             } else {
-                // Ortho: adjust frustum to fit robot
-                const pad = 1.2;
-                const frustumH = maxDim * pad;
-                const frustumW = frustumH * aspect;
-                mainCam.left = -frustumW / 2;
-                mainCam.right = frustumW / 2;
-                mainCam.top = frustumH / 2;
-                mainCam.bottom = -frustumH / 2;
-                const dir = new THREE.Vector3();
-                mainCam.getWorldDirection(dir);
-                mainCam.position.copy(
-                    center.clone().sub(dir.multiplyScalar(CAMERA_DIST))
-                );
+                // Ortho: OrbitControls manages zoom via camera.zoom.
+                // Store the original unzoomed frustum height on first use.
+                if (!mainCam._baseFrustumH) {
+                    const h = mainCam.top - mainCam.bottom;
+                    mainCam._baseFrustumH = h / mainCam.zoom;
+                }
+                const pad = 1.3;
+                const desiredH = maxDim * pad;
+                mainCam.zoom = mainCam._baseFrustumH / desiredH;
                 mainCam.updateProjectionMatrix();
             }
             ctrl.update();
+            // Force a render pass so the new frustum takes effect
+            mainSC.renderer.render(mainSC.scene, mainSC.camera);
         });
     }
 })();

@@ -96,7 +96,7 @@ def build_controls_panel(state: SimulatorState) -> None:
             for lname in state.visible_links:
                 state.visible_links[lname] = True
                 if lname in state.link_checkboxes:
-                    state.link_checkboxes[lname].selected = True
+                    state.link_checkboxes[lname].value = True
             state.update_scene_now()
             await ui.run_javascript(
                 "(() => {"
@@ -292,7 +292,7 @@ def _setup_state_restore(state: SimulatorState) -> None:
             if lname in state.visible_links:
                 state.visible_links[lname] = vis
                 if lname in state.link_checkboxes:
-                    state.link_checkboxes[lname].selected = vis
+                    state.link_checkboxes[lname].value = vis
 
         # Restore joint angles
         joints_state = saved.get("joints", {})
