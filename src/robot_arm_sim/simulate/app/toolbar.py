@@ -204,18 +204,20 @@ def build_toolbar(state: SimulatorState) -> None:
 def build_visibility_section(state: SimulatorState) -> None:
     """Build per-part visibility checkboxes for right sidebar."""
 
-    def toggle_all(e):
-        """Toggle all parts on/off."""
-        val = e.value
+    def set_all(visible: bool):
+        """Set all parts visible or hidden."""
         for lname in state.chain_link_names:
-            state.visible_links[lname] = val
+            state.visible_links[lname] = visible
+            if lname in state.link_checkboxes:
+                state.link_checkboxes[lname].value = visible
         state.update_scene_now()
         state.on_visibility_changed()
 
     ui.label("Visible Parts").classes("text-subtitle2 q-mt-md")
+    with ui.row().classes("q-pa-xs").style("gap: 4px"):
+        ui.button("All", on_click=lambda: set_all(True)).props("flat dense")
+        ui.button("None", on_click=lambda: set_all(False)).props("flat dense")
     with ui.row().classes("q-pa-xs").style("gap: 8px; flex-wrap: wrap"):
-        ui.checkbox("All", value=True, on_change=toggle_all).props("dense")
-
         for lname in state.chain_link_names:
             lnk = state.robot.get_link(lname)
             if lnk and lnk.mesh_path:

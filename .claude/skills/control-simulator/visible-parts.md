@@ -1,52 +1,60 @@
 # Visible Parts
 
-Control which robot parts are visible in the simulator using the Visible Parts chip toggles.
+Control which robot parts are visible in the simulator.
 
-## Via JavaScript (preferred)
+## Via JavaScript
 
 ```javascript
-function clickChip(name) {
-  const chips = document.querySelectorAll('.q-chip');
-  const chip = Array.from(chips).find(c => c.textContent.trim().replace('check', '') === name);
-  if (chip) { chip.click(); return 'clicked ' + name; }
-  return 'not found: ' + name;
+function setCB(name, checked) {
+  const cbs = document.querySelectorAll('.q-checkbox');
+  const cb = Array.from(cbs).find(c => c.textContent.trim() === name);
+  if (!cb) return 'not found: ' + name;
+  const isChecked = cb.getAttribute('aria-checked') === 'true';
+  if (isChecked !== checked) { cb.click(); return 'toggled ' + name; }
+  return name + ' already ' + (checked ? 'checked' : 'unchecked');
 }
 ```
 
-Chip text content includes a "check" prefix from the checkmark icon — the helper strips it.
+Use `setCB(name, true)` to show a part and `setCB(name, false)` to hide it. This is idempotent — it checks current state via `aria-checked` and only clicks if a change is needed.
+
+The widgets are NiceGUI `ui.checkbox` elements rendered as Quasar `.q-checkbox`.
+
+## "All" Checkbox Behaviour
+
+- **All checked**: every part is visible regardless of individual checkboxes
+- **All unchecked**: individual checkboxes control visibility
+
+To show only specific parts, **uncheck All first**, then uncheck the parts you want hidden.
 
 ## Common Patterns
 
 **Show only a pair of links** (e.g. base + shoulder):
 ```javascript
-clickChip('All');        // deselect everything
-clickChip('base');       // show base
-clickChip('shoulder');   // show shoulder
-```
-
-**Show links base through link N** (cumulative base-to-tip):
-```javascript
-clickChip('All');        // deselect everything
-clickChip('base');
-clickChip('shoulder');
-clickChip('upperarm');   // etc.
+setCB('All', false);
+setCB('base', true);
+setCB('shoulder', true);
+setCB('upperarm', false);
+setCB('forearm', false);
+setCB('wrist1', false);
+setCB('wrist2', false);
+setCB('wrist3', false);
 ```
 
 **Show all links**:
 ```javascript
-clickChip('All');        // if currently deselected, this selects all
+setCB('All', true);
 ```
 
-## Chip Names
+## Checkbox Names
 
-Chip names match the link names in chain.yaml. They vary per robot, e.g.:
+Names match the mesh file stems in chain.yaml. They vary per robot, e.g.:
 - UR5: `base`, `shoulder`, `upperarm`, `forearm`, `wrist1`, `wrist2`, `wrist3`
 - Meca500: `A0`, `A1`, `A2`, `A3_4`, `A5`, `A6`, `EndEffector`
 
-The `All` chip is always present and toggles every part on/off.
+The `All` checkbox is always present.
 
 ## Notes
 
-- The "All" chip has special behaviour: toggling it off deselects every link, toggling it on selects every link
-- After toggling, the 3D scene updates automatically (no need to call reload)
-- Chip names are case-sensitive
+- Checkbox names are case-sensitive
+- After toggling, the 3D scene updates automatically
+- After Fit, only visible parts are used to compute the bounding box
