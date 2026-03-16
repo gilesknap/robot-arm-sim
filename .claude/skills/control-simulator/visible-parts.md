@@ -19,30 +19,29 @@ Use `setCB(name, true)` to show a part and `setCB(name, false)` to hide it. This
 
 The widgets are NiceGUI `ui.checkbox` elements rendered as Quasar `.q-checkbox`.
 
-## "All" Checkbox Behaviour
+## All / None Buttons
 
-- **All checked**: every part is visible regardless of individual checkboxes
-- **All unchecked**: individual checkboxes control visibility
+- **All** button: checks every individual checkbox (shows all parts)
+- **None** button: unchecks every individual checkbox (hides all parts)
 
-To show only specific parts, **uncheck All first**, then uncheck the parts you want hidden.
+These are `ui.button` elements, not checkboxes. Click via JS:
+```javascript
+clickBtn('All');   // show all parts
+clickBtn('None');  // hide all parts
+```
 
 ## Common Patterns
 
 **Show only a pair of links** (e.g. base + shoulder):
 ```javascript
-setCB('All', false);
+clickBtn('None');          // hide all first
 setCB('base', true);
 setCB('shoulder', true);
-setCB('upperarm', false);
-setCB('forearm', false);
-setCB('wrist1', false);
-setCB('wrist2', false);
-setCB('wrist3', false);
 ```
 
 **Show all links**:
 ```javascript
-setCB('All', true);
+clickBtn('All');
 ```
 
 ## Checkbox Names

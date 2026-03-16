@@ -438,6 +438,12 @@ _VIEWCUBE_JS = (
             const maxDim = Math.max(size.x, size.y, size.z);
 
             // Point camera at the robot center
+            // In ortho locked mode, move camera with target to
+            // preserve the view direction.
+            if (window.__orthoLocked) {
+                const offset = center.clone().sub(ctrl.target);
+                mainCam.position.add(offset);
+            }
             ctrl.target.copy(center);
 
             if (mainCam.isPerspectiveCamera) {

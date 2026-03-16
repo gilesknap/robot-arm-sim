@@ -39,9 +39,11 @@ import('nicegui-scene').then(SceneLib => {
     if (sc.controls) sc.controls.mouseButtons.MIDDLE = 2;
 
     // Ortho view lock for Edit Connections mode
+    window.__orthoLocked = false;
     window.__lockToOrthoViews = function(lock) {
         const ctrl = sc.controls;
         if (!ctrl) return;
+        window.__orthoLocked = lock;
         if (lock) {
             // Snap to nearest orthogonal view
             const cam = sc.camera;
@@ -60,10 +62,40 @@ import('nicegui-scene').then(SceneLib => {
                 const dot = dir.x*c.d[0] + dir.y*c.d[1] + dir.z*c.d[2];
                 if (dot > bestDot) { bestDot = dot; best = c; }
             }
-            // Switch to ortho if perspective
-            const tb = document.getElementById('viewcube-proj-toggle');
-            if (cam.isPerspectiveCamera && tb) tb.click();
-            // Snap camera
+            // Switch to ortho directly if perspective
+            if (cam.isPerspectiveCamera) {
+                const canvas = renderer.domElement;
+                const aspect = canvas.width / canvas.height;
+                const d = cam.position.distanceTo(ctrl.target);
+                const fovRad = (cam.fov * Math.PI) / 180;
+                const fH = 2 * d * Math.tan(fovRad / 2);
+                const fW = fH * aspect;
+                const ortho = new THREE.OrthographicCamera(
+                    -fW/2, fW/2, fH/2, -fH/2, 0.001, 100
+                );
+                ortho.position.copy(cam.position);
+                ortho.quaternion.copy(cam.quaternion);
+                ortho.up.copy(cam.up);
+                ortho.zoom = 1;
+                ortho.updateProjectionMatrix();
+                sc.camera = ortho;
+                ctrl.object = ortho;
+                ctrl.update();
+                // Update toggle button text
+                const tb = document.getElementById(
+                    'viewcube-proj-toggle'
+                );
+                if (tb) {
+                    tb.textContent = 'Ortho';
+                    tb.classList.add('viewcube-ortho-active');
+                }
+            }
+            // Disable the persp/ortho toggle button
+            const tb = document.getElementById(
+                'viewcube-proj-toggle'
+            );
+            if (tb) tb.style.display = 'none';
+            // Snap camera to nearest ortho view
             setTimeout(() => {
                 const c2 = sc.camera;
                 const t = ctrl.target;
@@ -73,12 +105,19 @@ import('nicegui-scene').then(SceneLib => {
                     t.y - best.d[1]*dist,
                     t.z - best.d[2]*dist
                 );
-                c2.up.set(best.up[0], best.up[1], best.up[2]);
+                c2.up.set(
+                    best.up[0], best.up[1], best.up[2]
+                );
                 ctrl.update();
             }, 50);
             ctrl.enableRotate = false;
         } else {
             ctrl.enableRotate = true;
+            // Re-enable the persp/ortho toggle button
+            const tb = document.getElementById(
+                'viewcube-proj-toggle'
+            );
+            if (tb) tb.style.display = '';
         }
     };
 
