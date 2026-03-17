@@ -1,71 +1,59 @@
 # Visible Parts
 
-Control which robot parts are visible in the simulator using the Visible Parts chip toggles.
+Control which robot parts are visible in the simulator.
 
-## When to Use
+## Via JavaScript
 
-Use when you need to show/hide specific robot links in the simulator, such as:
-- Isolating a single link for inspection during visual refinement
-- Showing a subset of links (e.g. base_link + link_1 to check a joint)
-- Restoring all parts to visible
-
-## How the Widgets Work
-
-The Visible Parts section is always visible in the right sidebar (no expansion panel) containing NiceGUI `ui.chip` widgets (`q-chip` in Quasar). Each chip is `selectable=True`:
-
-- **Selected** (checked): chip has a checkmark icon, part is visible
-- **Deselected** (unchecked): no checkmark, part is hidden
-
-There is an "All" chip that toggles every part on/off at once.
-
-## How to Interact
-
-### Step 1: Find the chip refs
-
-Use `mcp__claude-in-chrome__find` to get element references:
-```
-find: "selectable chip buttons for visible parts"
+```javascript
+function setCB(name, checked) {
+  const cbs = document.querySelectorAll('.q-checkbox');
+  const cb = Array.from(cbs).find(c => c.textContent.trim() === name);
+  if (!cb) return 'not found: ' + name;
+  const isChecked = cb.getAttribute('aria-checked') === 'true';
+  if (isChecked !== checked) { cb.click(); return 'toggled ' + name; }
+  return name + ' already ' + (checked ? 'checked' : 'unchecked');
+}
 ```
 
-Returns refs like:
-- `ref_124`: "All"
-- `ref_127`: "base_link"
-- `ref_130`: "link_1"
-- etc.
+Use `setCB(name, true)` to show a part and `setCB(name, false)` to hide it. This is idempotent — it checks current state via `aria-checked` and only clicks if a change is needed.
 
-**Important**: ref IDs change between page loads. Always use `find` to get fresh refs.
+The widgets are NiceGUI `ui.checkbox` elements rendered as Quasar `.q-checkbox`.
 
-### Step 2: Click chips using refs
+## All / None Buttons
 
-Use `mcp__claude-in-chrome__computer` with `left_click` and `ref` parameter:
+- **All** button: checks every individual checkbox (shows all parts)
+- **None** button: unchecks every individual checkbox (hides all parts)
+
+These are `ui.button` elements, not checkboxes. Click via JS:
+```javascript
+clickBtn('All');   // show all parts
+clickBtn('None');  // hide all parts
 ```
-action: left_click
-ref: ref_124  (the "All" chip)
+
+## Common Patterns
+
+**Show only a pair of links** (e.g. base + shoulder):
+```javascript
+clickBtn('None');          // hide all first
+setCB('base', true);
+setCB('shoulder', true);
 ```
-
-### Common Patterns
-
-**Show only one link** (e.g. base_link):
-1. Click "All" chip to deselect everything (if currently all selected)
-2. Click the specific link chip to select it
-
-**Show links 0 through N** (for base-to-tip inspection):
-1. Click "All" to deselect everything
-2. Click each link chip from base_link through link_N
 
 **Show all links**:
-1. Click "All" chip (if currently deselected, this selects all)
+```javascript
+clickBtn('All');
+```
 
-### Checking Current State
+## Checkbox Names
 
-- A chip with a checkmark (tick icon) is **selected/visible**
-- A chip without a checkmark is **deselected/hidden**
-- Take a screenshot or zoom into the chip area to verify state
-- Zoom region for chips: approximately `[1010, 550, 1200, 680]` (may vary)
+Names match the mesh file stems in chain.yaml. They vary per robot, e.g.:
+- UR5: `base`, `shoulder`, `upperarm`, `forearm`, `wrist1`, `wrist2`, `wrist3`
+- Meca500: `A0`, `A1`, `A2`, `A3_4`, `A5`, `A6`, `EndEffector`
 
-## Key Details
+The `All` checkbox is always present.
 
-- The chips are Quasar `q-chip` elements, NOT standard checkboxes
-- Clicking the chip body toggles selection — **always use `ref` parameter**
-- The "All" chip has special behavior: toggling it off deselects every link, toggling it on selects every link
-- After toggling, the 3D scene updates automatically (no need to call reload)
+## Notes
+
+- Checkbox names are case-sensitive
+- After toggling, the 3D scene updates automatically
+- After Fit, only visible parts are used to compute the bounding box

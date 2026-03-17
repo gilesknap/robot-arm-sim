@@ -202,27 +202,22 @@ def build_toolbar(state: SimulatorState) -> None:
 
 
 def build_visibility_section(state: SimulatorState) -> None:
-    """Build per-part visibility chips (collapsible, for right sidebar)."""
+    """Build per-part visibility checkboxes for right sidebar."""
 
-    def toggle_all(e):
-        """Toggle all parts on/off."""
-        val = e.value
+    def set_all(visible: bool):
+        """Set all parts visible or hidden."""
         for lname in state.chain_link_names:
-            state.visible_links[lname] = val
+            state.visible_links[lname] = visible
             if lname in state.link_checkboxes:
-                state.link_checkboxes[lname].selected = val
+                state.link_checkboxes[lname].value = visible
         state.update_scene_now()
         state.on_visibility_changed()
 
     ui.label("Visible Parts").classes("text-subtitle2 q-mt-md")
+    with ui.row().classes("q-pa-xs").style("gap: 4px"):
+        ui.button("All", on_click=lambda: set_all(True)).props("flat dense")
+        ui.button("None", on_click=lambda: set_all(False)).props("flat dense")
     with ui.row().classes("q-pa-xs").style("gap: 8px; flex-wrap: wrap"):
-        all_chip = ui.chip(  # noqa: F841
-            "All",
-            selectable=True,
-            selected=True,
-            on_selection_change=toggle_all,
-        ).props("dense")
-
         for lname in state.chain_link_names:
             lnk = state.robot.get_link(lname)
             if lnk and lnk.mesh_path:
@@ -239,10 +234,9 @@ def build_visibility_section(state: SimulatorState) -> None:
 
                 return on_change
 
-            chip = ui.chip(
+            cb = ui.checkbox(
                 display,
-                selectable=True,
-                selected=True,
-                on_selection_change=make_vis_handler(lname),
+                value=True,
+                on_change=make_vis_handler(lname),
             ).props("dense")
-            state.link_checkboxes[lname] = chip
+            state.link_checkboxes[lname] = cb
