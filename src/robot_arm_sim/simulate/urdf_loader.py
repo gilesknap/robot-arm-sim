@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -129,8 +130,8 @@ def _parse_joint(elem: ET.Element) -> URDFJoint:
     if axis_elem is not None:
         axis = _parse_floats(axis_elem.attrib.get("xyz", "0 0 1"))
 
-    limit_lower = -3.14159
-    limit_upper = 3.14159
+    limit_lower = -math.pi
+    limit_upper = math.pi
     limit_effort = 100.0
     limit_velocity = 1.0
     limit_elem = elem.find("limit")

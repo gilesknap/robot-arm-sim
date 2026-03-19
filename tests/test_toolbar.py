@@ -266,52 +266,33 @@ def _find_button_call(mock_ui, label):
 class TestBuildVisibilitySection:
     """Tests for build_visibility_section."""
 
-    def _setup_chip_mock(self, mock_ui):
-        """Set up chip mock that tracks on_selection_change handlers."""
-        chip_mock = MagicMock()
-        chip_mock.__enter__ = MagicMock(return_value=chip_mock)
-        chip_mock.__exit__ = MagicMock(return_value=False)
-        chip_mock.selected = True
-        mock_ui.chip = MagicMock(return_value=chip_mock)
-        return chip_mock
-
     def test_builds_without_error(self, mock_ui: MagicMock, robot_dir: Path):
         from robot_arm_sim.simulate.app.toolbar import build_visibility_section
 
         state = _make_state(mock_ui, robot_dir)
-        self._setup_chip_mock(mock_ui)
 
         build_visibility_section(state)
 
-        # Should have called ui.chip at least once (for "All" + per-link chips)
-        assert mock_ui.chip.call_count > 0
+        # Should have called ui.checkbox at least once (per-link checkboxes)
+        assert mock_ui.checkbox.call_count > 0
 
     def test_toggle_all_handler(self, mock_ui: MagicMock, robot_dir: Path):
-        """Exercise the toggle_all handler (lines 209-215)."""
+        """Exercise the set_all(True) handler via the 'All' button."""
         from robot_arm_sim.simulate.app.toolbar import build_visibility_section
 
         state = _make_state(mock_ui, robot_dir)
         state.update_scene_now = MagicMock()
         state.on_visibility_changed = MagicMock()
-        self._setup_chip_mock(mock_ui)
 
         build_visibility_section(state)
 
-        # Find the "All" chip call and get its on_selection_change handler
-        all_call = None
-        for call in mock_ui.chip.call_args_list:
-            args, kwargs = call
-            if args and args[0] == "All":
-                all_call = kwargs
-                break
+        # Find the "None" button to set all invisible
+        none_call = _find_button_call(mock_ui, "None")
+        assert none_call is not None, "'None' button not found"
+        none_handler = none_call[1]["on_click"]
 
-        assert all_call is not None, "'All' chip not found"
-        toggle_all_handler = all_call["on_selection_change"]
-
-        # Mock event
-        event = MagicMock()
-        event.value = False
-        toggle_all_handler(event)
+        # Call the "None" handler (a lambda wrapping set_all(False))
+        none_handler()
 
         # All links should be set to False
         for lname in state.chain_link_names:
@@ -320,24 +301,22 @@ class TestBuildVisibilitySection:
         state.on_visibility_changed.assert_called()
 
     def test_per_link_vis_handler(self, mock_ui: MagicMock, robot_dir: Path):
-        """Exercise the per-link visibility handler (lines 236-238)."""
+        """Exercise the per-link visibility handler."""
         from robot_arm_sim.simulate.app.toolbar import build_visibility_section
 
         state = _make_state(mock_ui, robot_dir)
         state.update_scene_now = MagicMock()
         state.on_visibility_changed = MagicMock()
-        self._setup_chip_mock(mock_ui)
 
         build_visibility_section(state)
 
-        # Find a per-link chip call (not "All")
+        # Find a per-link checkbox call
         per_link_handler = None
         link_name = None
-        for call in mock_ui.chip.call_args_list:
+        for call in mock_ui.checkbox.call_args_list:
             args, kwargs = call
-            if args and args[0] != "All" and "on_selection_change" in kwargs:
-                per_link_handler = kwargs["on_selection_change"]
-                # Find matching link name from chain_link_names
+            if args and "on_change" in kwargs:
+                per_link_handler = kwargs["on_change"]
                 display = args[0]
                 for lname in state.chain_link_names:
                     lnk = state.robot.get_link(lname)
@@ -356,11 +335,10 @@ class TestBuildVisibilitySection:
             state.on_visibility_changed.assert_called()
 
     def test_skip_links_without_mesh(self, mock_ui: MagicMock, robot_dir: Path):
-        """Links without mesh_path should be skipped (line 232)."""
+        """Links without mesh_path should be skipped."""
         from robot_arm_sim.simulate.app.toolbar import build_visibility_section
 
         state = _make_state(mock_ui, robot_dir)
-        self._setup_chip_mock(mock_ui)
 
         # Add a link with no mesh to chain_link_names
         state.chain_link_names.append("fake_no_mesh_link")

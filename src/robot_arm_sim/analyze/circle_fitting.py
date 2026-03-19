@@ -6,10 +6,28 @@ to detect bore/shaft centers and radii.
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 import trimesh
 
 from robot_arm_sim.models import GeometricFeature
+
+logger = logging.getLogger(__name__)
+
+# Bore slicing: cap effective extent so slices stay near end faces
+_MAX_VIRTUAL_EXTENT_MM = 200.0
+# Fractions of extent at which to attempt cross-section slices
+_BORE_SLICE_FRACTIONS = [0.05, 0.10, 0.15]
+# Fallback: fraction of extent defining "near the end" for vertex centroid
+_END_VERTEX_FRACTION = 0.08
+# Minimum polygon area (mm²) to consider as a bore candidate
+_MIN_POLYGON_AREA_MM2 = 10
+# Circularity thresholds: std(radii)/mean(radii) — lower = more circular
+_CIRCULARITY_STRICT = 0.15
+_CIRCULARITY_RELAXED = 0.35
+# Default fallback radius when estimation fails (mm)
+_DEFAULT_RADIUS_MM = 20.0
 
 
 def find_circle_center_at_slice(
@@ -31,12 +49,8 @@ def find_circle_center_at_slice(
     if extent < 1.0:
         return None
 
-    # Try slicing at 5%, 10%, 15% from the end.
-    # For very elongated parts (>200mm), cap offsets as if extent were 200mm
-    # so slices stay near end faces where bore openings are.
-    max_virtual_extent = 200.0
-    for frac in [0.05, 0.10, 0.15]:
-        effective = min(extent, max_virtual_extent)
+    for frac in _BORE_SLICE_FRACTIONS:
+        effective = min(extent, _MAX_VIRTUAL_EXTENT_MM)
         inset = frac * effective
         if direction == "above":
             offset = proj_min + inset
@@ -47,6 +61,7 @@ def find_circle_center_at_slice(
         try:
             section = mesh.section(plane_origin=plane_origin, plane_normal=axis)
         except Exception:
+            logger.debug("Mesh section failed at offset %.1f", offset)
             continue
 
         if section is None:
@@ -57,7 +72,7 @@ def find_circle_center_at_slice(
             return center
 
     # Fallback: centroid of vertices near the end
-    threshold = 0.08 * extent
+    threshold = _END_VERTEX_FRACTION * extent
     if direction == "above":
         mask = projections < (proj_min + threshold)
     else:
@@ -78,6 +93,7 @@ def _extract_circle_center_from_section(
     try:
         path_2d, transform = section.to_planar()
     except Exception:
+        logger.debug("Section to_planar() failed")
         return None
 
     if not hasattr(path_2d, "polygons_full"):
@@ -138,7 +154,7 @@ def estimate_radius_at_slice(
     extent = proj_max - proj_min
 
     frac = 0.10
-    effective = min(extent, 200.0)
+    effective = min(extent, _MAX_VIRTUAL_EXTENT_MM)
     inset = frac * effective
     if direction == "above":
         offset = proj_min + inset
