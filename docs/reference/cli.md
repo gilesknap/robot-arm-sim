@@ -1,6 +1,6 @@
 # CLI reference
 
-robot-arm-sim provides three subcommands corresponding to the three pipeline
+robot-arm-sim provides four subcommands corresponding to the pipeline
 stages. Run any command with `--help` for built-in usage.
 
 ## Global options
@@ -40,6 +40,43 @@ $ robot-arm-sim analyze ROBOT_DIR [--override-manual]
 
 ```bash
 $ robot-arm-sim analyze robots/Meca500-R3/
+```
+
+---
+
+## `build-chain`
+
+Build a draft `chain.yaml` from `specs.yaml` and analysis data.
+
+```bash
+$ robot-arm-sim build-chain ROBOT_DIR [--output PATH] [--dry-run]
+```
+
+| Argument / Option | Description |
+|-------------------|-------------|
+| `ROBOT_DIR` | Path to robot directory. Must contain `specs.yaml` and `analysis/`. |
+| `--output PATH` | Output chain.yaml path. Default: `<ROBOT_DIR>/chain.yaml`. |
+| `--dry-run` | Print diagnostics without writing chain.yaml. |
+
+The command automates the deterministic parts of chain construction:
+
+- Part ordering for numbered naming (link_0, link_1, ...)
+- Joint axes from parent distal bore detection
+- Joint origins from connection points or DH parameter fallback
+- Joint limits converted from degrees to radians
+- DH params metadata dict
+- Cross-validation of connection-point distances against DH parameters
+- Preservation of user-added links from existing chain.yaml
+
+Items requiring manual review are flagged with **REVIEW** in the output:
+semantic part ordering, missing connection points, and non-zero DH alpha
+rotations that may need `origin_rpy`.
+
+**Example:**
+
+```bash
+$ robot-arm-sim build-chain robots/UR5/ --dry-run
+$ robot-arm-sim build-chain robots/FANUC-LRMate200iD/
 ```
 
 ---
