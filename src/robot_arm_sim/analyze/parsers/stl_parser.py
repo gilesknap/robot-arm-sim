@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +11,8 @@ import trimesh
 from robot_arm_sim.models import BoundingBox, Geometry, Inertia, PartAnalysis
 
 from .base import AbstractMeshParser
+
+logger = logging.getLogger(__name__)
 
 
 class STLParser(AbstractMeshParser):
@@ -36,6 +39,7 @@ class STLParser(AbstractMeshParser):
             moments = mesh.principal_inertia_components.tolist()
             axes = mesh.principal_inertia_vectors.tolist()
         except Exception:
+            logger.warning("Inertia calculation failed for %s", file_path.stem)
             moments = [0.0, 0.0, 0.0]
             axes = []
 
@@ -43,6 +47,10 @@ class STLParser(AbstractMeshParser):
         try:
             com = mesh.center_mass.tolist()
         except Exception:
+            logger.warning(
+                "Center of mass failed for %s, using bounds midpoint",
+                file_path.stem,
+            )
             com = np.mean(mesh.bounds, axis=0).tolist()
 
         return PartAnalysis(

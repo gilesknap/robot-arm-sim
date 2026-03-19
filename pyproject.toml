@@ -35,6 +35,7 @@ dev = [
     "pytest",
     "pytest-asyncio>=1.3.0",
     "pytest-cov",
+    "requests",
     "ruff",
     "sphinx-autobuild",
     "sphinx-copybutton",
@@ -141,21 +142,6 @@ commands = [
         "--show-traceback",
         "--fail-on-warning",
         "--keep-going",
-        "docs",
-        "build/html",
-        { replace = "posargs", default = [
-        ], extend = true },
-    ],
-]
-
-[tool.tox.env.docs-autobuild]
-description = "Run docs with autobuild on change"
-commands = [
-    [
-        "sphinx-autobuild",
-        "--show-traceback",
-        "--watch",
-        "README.md",
         "docs",
         "build/html",
         { replace = "posargs", default = [

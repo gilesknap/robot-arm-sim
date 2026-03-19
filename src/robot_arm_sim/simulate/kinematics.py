@@ -140,6 +140,8 @@ def axis_to_quaternion(axis: list | np.ndarray) -> list[float]:
     # cross([0,1,0], a) = [a[2], 0, -a[0]]  (only Y=0 component)
     cx, cy, cz = float(a[2]), 0.0, float(-a[0])
     s = np.sqrt((1.0 + dot) * 2.0)
+    if s < 1e-12:
+        return [0.0, 0.0, 1.0, 0.0]
     inv_s = 1.0 / s
     return [cx * inv_s, cy * inv_s, cz * inv_s, s * 0.5]
 
