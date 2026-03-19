@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Visual centering tradeoffs &#8212; robot-arm-sim 1.9.dev22+g70f639b1d documentation</title>
+    <title>Visual centering tradeoffs &#8212; robot-arm-sim 1.9.dev25+g0b8cd00b8 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=fef8ce32"></script>
+    <script src="../_static/documentation_options.js?v=b1e4210c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -512,6 +512,7 @@ locate bore centres:</p>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">path_2d</span><span class="p">,</span> <span class="n">transform</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">to_planar</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Section to_planar() failed&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">path_2d</span><span class="p">,</span> <span class="s2">&quot;polygons_full&quot;</span><span class="p">):</span>

@@ -1,0 +1,862 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Migrating from Claude Code to GitHub Copilot &#8212; robot-arm-sim 1.9.dev25+g0b8cd00b8 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=b1e4210c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/claude-code-vs-copilot';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'main';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contribute to the project" href="contribute.html" />
+    <link rel="prev" title="Add a new robot" href="add-a-robot.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="main" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">robot-arm-sim</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/robot-arm-sim" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/robot-arm-sim" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="add-a-robot.html">Add a new robot</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Migrating from Claude Code to GitHub Copilot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy-kubernetes.html">Deploy on Kubernetes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-chain-yaml.html">Edit chain.yaml and analysis YAML directly</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edit-connection-points.html">Edit connection points in the simulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regenerate.html">Regenerate analysis and URDF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-container.html">Run in a container</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Migrating from Claude Code to GitHub Copilot</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="migrating-from-claude-code-to-github-copilot">
+<h1>Migrating from Claude Code to GitHub Copilot<a class="headerlink" href="#migrating-from-claude-code-to-github-copilot" title="Link to this heading">#</a></h1>
+<p>This guide covers how to transfer the AI-assisted development features in this
+project’s <code class="docutils literal notranslate"><span class="pre">.claude/</span></code> directory to GitHub Copilot, and the trade-offs between the
+two harnesses.</p>
+<section id="what-lives-in-claude">
+<h2>What Lives in <code class="docutils literal notranslate"><span class="pre">.claude/</span></code><a class="headerlink" href="#what-lives-in-claude" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Asset</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CLAUDE.md</span></code> (repo root)</p></td>
+<td><p>Project conventions, critical rules, safety constraints</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">settings.json</span></code></p></td>
+<td><p>Permissions (allow/prompt lists), devcontainer enforcement hook</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">settings.local.json</span></code></p></td>
+<td><p>Machine-specific permissions (uv, git, gh CLI)</p></td>
+</tr>
+<tr class="row-odd"><td><p>14 skill files across 8 skills</p></td>
+<td><p>Domain-specific multi-step workflows</p></td>
+</tr>
+<tr class="row-even"><td><p>Memory system (<code class="docutils literal notranslate"><span class="pre">~/.claude/projects/.../memory/</span></code>)</p></td>
+<td><p>Persistent cross-session knowledge</p></td>
+</tr>
+<tr class="row-odd"><td><p>MCP integration (<code class="docutils literal notranslate"><span class="pre">claude-in-chrome</span></code>)</p></td>
+<td><p>Browser automation for visual refinement</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="what-transfers-directly">
+<h2>What Transfers Directly<a class="headerlink" href="#what-transfers-directly" title="Link to this heading">#</a></h2>
+<section id="skills-90-compatible">
+<h3>Skills (90% Compatible)<a class="headerlink" href="#skills-90-compatible" title="Link to this heading">#</a></h3>
+<p>GitHub Copilot adopted the same <code class="docutils literal notranslate"><span class="pre">SKILL.md</span></code> format and explicitly supports the
+<code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code> directory as a valid skill location. The existing skill
+directory structure works as-is with Copilot CLI, Copilot coding agent, and
+VS Code agent mode.</p>
+<p>Minor adjustments needed:</p>
+<ul class="simple">
+<li><p>Add YAML frontmatter to skills that lack it. Copilot uses the <code class="docutils literal notranslate"><span class="pre">name</span></code> and
+<code class="docutils literal notranslate"><span class="pre">description</span></code> fields in the frontmatter to decide when to auto-load a skill.
+Skills without frontmatter (e.g. <code class="docutils literal notranslate"><span class="pre">control-simulator/SKILL.md</span></code>,
+<code class="docutils literal notranslate"><span class="pre">center-on-axis/SKILL.md</span></code>) should be updated.</p></li>
+<li><p>Multi-file skills (e.g. <code class="docutils literal notranslate"><span class="pre">make-robot/01-analyze-stls.md</span></code> through
+<code class="docutils literal notranslate"><span class="pre">04-generate-verify.md</span></code>) work the same way – the <code class="docutils literal notranslate"><span class="pre">SKILL.md</span></code> references
+sub-files and the agent loads them when needed.</p></li>
+</ul>
+<p><strong>References:</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-skills">GitHub Docs: Creating Agent Skills</a></p></li>
+<li><p><a class="reference external" href="https://code.visualstudio.com/docs/copilot/customization/agent-skills">VS Code: Agent Skills</a></p></li>
+<li><p><a class="reference external" href="https://docs.github.com/en/copilot/concepts/agents/about-agent-skills">GitHub Docs: About Agent Skills</a></p></li>
+</ul>
+</section>
+<section id="hooks-structurally-compatible-syntax-differs">
+<h3>Hooks (Structurally Compatible, Syntax Differs)<a class="headerlink" href="#hooks-structurally-compatible-syntax-differs" title="Link to this heading">#</a></h3>
+<p>Copilot supports the same lifecycle events with the same concepts:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Claude Code Event</p></th>
+<th class="head"><p>Copilot Equivalent</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UserPromptSubmit</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">UserPromptSubmit</span></code></p></td>
+<td><p>Same name and semantics</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PreToolUse</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PreToolUse</span></code></p></td>
+<td><p>Can allow/deny/modify tool calls</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PostToolUse</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PostToolUse</span></code></p></td>
+<td><p>Can inject context or block</p></td>
+</tr>
+<tr class="row-odd"><td><p>Exit code 2 = block</p></td>
+<td><p>Exit code 2 = block</p></td>
+<td><p>Same convention</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Copilot reads hooks from <code class="docutils literal notranslate"><span class="pre">.github/hooks/*.json</span></code> files (for team-shared hooks)
+or <code class="docutils literal notranslate"><span class="pre">.claude/settings.json</span></code> (for compatibility). However, <strong>tool name matchers
+are parsed but not applied</strong> – so permission patterns like
+<code class="docutils literal notranslate"><span class="pre">Bash(git</span> <span class="pre">push</span> <span class="pre">--force</span> <span class="pre">*)</span></code> will not enforce in Copilot. The devcontainer
+enforcement hook works since it only uses exit codes.</p>
+<p><strong>References:</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://code.visualstudio.com/docs/copilot/customization/hooks">VS Code: Agent Hooks</a></p></li>
+<li><p><a class="reference external" href="https://smartscope.blog/en/generative-ai/github-copilot/github-copilot-hooks-guide/">SmartScope: Copilot Hooks Guide</a></p></li>
+</ul>
+</section>
+<section id="instructions-manual-copy">
+<h3>Instructions (Manual Copy)<a class="headerlink" href="#instructions-manual-copy" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">CLAUDE.md</span></code> maps to <code class="docutils literal notranslate"><span class="pre">.github/copilot-instructions.md</span></code>. Copy the content
+directly; the format is identical (natural language in Markdown). Copilot also
+supports path-scoped instructions via <code class="docutils literal notranslate"><span class="pre">.github/instructions/*.instructions.md</span></code>
+with <code class="docutils literal notranslate"><span class="pre">applyTo</span></code> glob patterns.</p>
+<p><strong>References:</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.github.com/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot">GitHub Docs: Custom Instructions</a></p></li>
+</ul>
+</section>
+</section>
+<section id="what-needs-significant-adaptation">
+<h2>What Needs Significant Adaptation<a class="headerlink" href="#what-needs-significant-adaptation" title="Link to this heading">#</a></h2>
+<section id="permissions-model-no-equivalent">
+<h3>Permissions Model – No Equivalent<a class="headerlink" href="#permissions-model-no-equivalent" title="Link to this heading">#</a></h3>
+<p>The fine-grained <code class="docutils literal notranslate"><span class="pre">allow</span></code>/<code class="docutils literal notranslate"><span class="pre">prompt</span></code> permission lists in <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> (e.g.
+allowing <code class="docutils literal notranslate"><span class="pre">Bash(uv</span> <span class="pre">run:*)</span></code> but prompting for <code class="docutils literal notranslate"><span class="pre">Bash(git</span> <span class="pre">push</span> <span class="pre">--force</span> <span class="pre">*)</span></code>) have
+no direct Copilot equivalent:</p>
+<ul class="simple">
+<li><p><strong>Coding agent</strong>: runs in a sandboxed cloud VM – no local system access</p></li>
+<li><p><strong>VS Code agent mode</strong>: uses VS Code’s built-in workspace trust model</p></li>
+<li><p><strong>Copilot CLI</strong>: has a simpler allow/deny model without glob-pattern
+granularity</p></li>
+</ul>
+<p>Approximate this with <code class="docutils literal notranslate"><span class="pre">PreToolUse</span></code> hooks that inspect tool inputs and return
+<code class="docutils literal notranslate"><span class="pre">permissionDecision:</span> <span class="pre">&quot;deny&quot;</span></code>.</p>
+</section>
+<section id="memory-system-different-architecture">
+<h3>Memory System – Different Architecture<a class="headerlink" href="#memory-system-different-architecture" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>Claude Code</p></th>
+<th class="head"><p>Copilot</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Storage</p></td>
+<td><p>Local files you control</p></td>
+<td><p>Cloud-hosted, managed by GitHub</p></td>
+</tr>
+<tr class="row-odd"><td><p>Structure</p></td>
+<td><p>Typed (user/feedback/project/reference) with frontmatter</p></td>
+<td><p>Unstructured facts auto-discovered</p></td>
+</tr>
+<tr class="row-even"><td><p>Control</p></td>
+<td><p>Full read/write/delete via file operations</p></td>
+<td><p>View/delete via github.com settings</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scope</p></td>
+<td><p>Per-project directory</p></td>
+<td><p>Per-repository or per-user</p></td>
+</tr>
+<tr class="row-even"><td><p>Portability</p></td>
+<td><p>Git-trackable, shareable</p></td>
+<td><p>Locked to GitHub account</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">memo</span></code> skill (which promotes learnings from memory into skills) has no
+Copilot equivalent. Put those learnings directly into skills or
+<code class="docutils literal notranslate"><span class="pre">copilot-instructions.md</span></code> instead.</p>
+<p><strong>References:</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.github.com/en/copilot/how-tos/use-copilot-agents/copilot-memory">GitHub Docs: Copilot Memory</a></p></li>
+</ul>
+</section>
+<section id="mcp-integrations-partially-available">
+<h3>MCP Integrations – Partially Available<a class="headerlink" href="#mcp-integrations-partially-available" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">claude-in-chrome</span></code> MCP server for browser automation is critical to the
+<code class="docutils literal notranslate"><span class="pre">visual-refine</span></code> and <code class="docutils literal notranslate"><span class="pre">control-simulator</span></code> skills. Copilot in VS Code supports MCP
+servers, but:</p>
+<ul class="simple">
+<li><p>The <strong>coding agent</strong> (cloud-based) has limited MCP support – it runs in a
+sandboxed VM without access to your local browser</p></li>
+<li><p><strong>Copilot CLI</strong> supports MCP via plugins, but <code class="docutils literal notranslate"><span class="pre">claude-in-chrome</span></code> specifically
+targets Claude Code’s MCP protocol</p></li>
+</ul>
+<p>Verify that any MCP server works with Copilot’s MCP implementation before
+relying on it.</p>
+</section>
+<section id="sub-agent-orchestration">
+<h3>Sub-agent Orchestration<a class="headerlink" href="#sub-agent-orchestration" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">make-robot</span></code> skill explicitly launches parallel sub-agents (e.g.
+<code class="docutils literal notranslate"><span class="pre">01-analyze-stls</span></code> + <code class="docutils literal notranslate"><span class="pre">02-research-specs</span></code> in parallel). Claude Code’s <code class="docutils literal notranslate"><span class="pre">Agent</span></code>
+tool with <code class="docutils literal notranslate"><span class="pre">subagent_type</span></code> is a first-class feature. Copilot has built-in
+specialised agents (Explore, Task, Code Review, Plan) but custom sub-agent
+orchestration within skills is less mature – skills are instructions the agent
+follows, not programmatic orchestration.</p>
+</section>
+</section>
+<section id="advantages-and-disadvantages">
+<h2>Advantages and Disadvantages<a class="headerlink" href="#advantages-and-disadvantages" title="Link to this heading">#</a></h2>
+<section id="claude-code-advantages">
+<h3>Claude Code Advantages<a class="headerlink" href="#claude-code-advantages" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Deeper agentic autonomy</strong> – Plans and executes multi-file, multi-step
+workflows with explicit sub-agent orchestration. The <code class="docutils literal notranslate"><span class="pre">make-robot</span></code> pipeline
+is a showcase for this.</p></li>
+<li><p><strong>Transparent, file-based configuration</strong> – Everything is inspectable,
+version-controllable, and diffable.</p></li>
+<li><p><strong>Fine-grained permissions</strong> – Glob-pattern tool permissions allow
+selective command approval.</p></li>
+<li><p><strong>MCP ecosystem</strong> – 300+ integrations including browser automation,
+critical for visual refinement.</p></li>
+<li><p><strong>1M token context</strong> – With Opus 4.6 the full context window is available.</p></li>
+<li><p><strong>Terminal-native</strong> – No IDE dependency; works directly in devcontainers.</p></li>
+</ol>
+</section>
+<section id="github-copilot-advantages">
+<h3>GitHub Copilot Advantages<a class="headerlink" href="#github-copilot-advantages" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Multi-model choice</strong> – Run Claude Opus 4.6, Sonnet 4.6, GPT-5.3-Codex,
+or Gemini 3 Pro. Pick the best model per task without switching tools.</p></li>
+<li><p><strong>Async cloud agent</strong> – The coding agent runs in a cloud VM, opens PRs
+autonomously. Assign a GitHub issue to Copilot and walk away.</p></li>
+<li><p><strong>IDE integration</strong> – Inline completions, chat panel, code review, and
+agent mode all in VS Code.</p></li>
+<li><p><strong>Cost</strong> – Copilot Pro ($10/mo) or Pro+ ($39/mo) includes the coding agent
+and premium model requests. Claude Code Pro is $20/mo with usage caps.</p></li>
+<li><p><strong>Team features</strong> – Organisation-wide policies, knowledge bases, and shared
+instructions via <code class="docutils literal notranslate"><span class="pre">.github/</span></code>.</p></li>
+<li><p><strong>Native GitHub integration</strong> – Issues, PRs, code search, and repository
+context are first-class.</p></li>
+<li><p><strong>Skills interoperability</strong> – <code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code> work in Copilot too, so
+skills are portable across both systems.</p></li>
+</ol>
+</section>
+<section id="why-claude-code-is-the-better-fit-for-this-project">
+<h3>Why Claude Code Is the Better Fit for This Project<a class="headerlink" href="#why-claude-code-is-the-better-fit-for-this-project" title="Link to this heading">#</a></h3>
+<p>This project relies heavily on:</p>
+<ul class="simple">
+<li><p><strong>MCP browser automation</strong> for visual mesh alignment</p></li>
+<li><p><strong>Sub-agent orchestration</strong> for the make-robot pipeline</p></li>
+<li><p><strong>Fine-grained permissions</strong> enforcing devcontainer-only operation</p></li>
+<li><p><strong>Structured memory</strong> for cross-session learning</p></li>
+</ul>
+<p>These are Claude Code’s unique strengths. A hybrid approach is viable: use
+Copilot’s coding agent for issue triage and routine PRs (it reads the shared
+<code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code>), and Claude Code for interactive visual refinement and
+robot-building pipelines.</p>
+</section>
+</section>
+<section id="migration-checklist">
+<h2>Migration Checklist<a class="headerlink" href="#migration-checklist" title="Link to this heading">#</a></h2>
+<p>If migrating (or running both side by side):</p>
+<ol class="arabic simple">
+<li><p>Copy <code class="docutils literal notranslate"><span class="pre">CLAUDE.md</span></code> to <code class="docutils literal notranslate"><span class="pre">.github/copilot-instructions.md</span></code></p></li>
+<li><p>Add YAML frontmatter (<code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>) to skills that lack it</p></li>
+<li><p>Skills stay in <code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code> – Copilot reads this directory natively</p></li>
+<li><p>Convert hooks to <code class="docutils literal notranslate"><span class="pre">.github/hooks/*.json</span></code> format</p></li>
+<li><p>Re-implement permissions as <code class="docutils literal notranslate"><span class="pre">PreToolUse</span></code> hook scripts</p></li>
+<li><p>Export key memories into skills or instructions (memory is not portable)</p></li>
+<li><p>Test <code class="docutils literal notranslate"><span class="pre">visual-refine</span></code> – highest-risk workflow due to MCP dependency</p></li>
+<li><p>Keep Claude Code available for browser automation workflows</p></li>
+</ol>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="add-a-robot.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Add a new robot</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="contribute.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contribute to the project</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-lives-in-claude">What Lives in <code class="docutils literal notranslate"><span class="pre">.claude/</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-transfers-directly">What Transfers Directly</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skills-90-compatible">Skills (90% Compatible)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hooks-structurally-compatible-syntax-differs">Hooks (Structurally Compatible, Syntax Differs)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#instructions-manual-copy">Instructions (Manual Copy)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-needs-significant-adaptation">What Needs Significant Adaptation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#permissions-model-no-equivalent">Permissions Model – No Equivalent</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-system-different-architecture">Memory System – Different Architecture</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mcp-integrations-partially-available">MCP Integrations – Partially Available</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sub-agent-orchestration">Sub-agent Orchestration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advantages-and-disadvantages">Advantages and Disadvantages</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#claude-code-advantages">Claude Code Advantages</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#github-copilot-advantages">GitHub Copilot Advantages</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-claude-code-is-the-better-fit-for-this-project">Why Claude Code Is the Better Fit for This Project</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#migration-checklist">Migration Checklist</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/how-to/claude-code-vs-copilot.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/how-to/claude-code-vs-copilot.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
