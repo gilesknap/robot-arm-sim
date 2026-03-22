@@ -198,14 +198,21 @@ Disable SSH agent forwarding and force git to use HTTPS:
 
 ```json
 "remoteEnv": {
-  "SSH_AUTH_SOCK": ""
+  "SSH_AUTH_SOCK": "",
+  "GIT_CONFIG_GLOBAL": "/cache/container-gitconfig"
 },
-"postCreateCommand": "git config --global url.'https://github.com/'.insteadOf 'git@github.com:' && git config --global url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
+"postCreateCommand": "... && git config --file /cache/container-gitconfig url.'https://github.com/'.insteadOf 'git@github.com:' && git config --file /cache/container-gitconfig url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
 ```
+
+The `GIT_CONFIG_GLOBAL` environment variable points git at a container-local
+config file. This is important — using `--global` would write to `~/.gitconfig`
+which VS Code shares with the host, breaking SSH-based git workflows outside
+the devcontainer.
 
 This ensures:
 - **No SSH agent** in the container — SSH is simply unavailable
 - **Git uses HTTPS** — authenticated by the scoped PAT, not SSH keys
+- **Config stays in the container** — host git workflows are unaffected
 - **You can still SSH from your host terminal** when needed — outside Claude's
   reach
 
@@ -247,12 +254,13 @@ Combine all layers into your devcontainer configuration:
 ```json
 {
   "remoteEnv": {
-    "SSH_AUTH_SOCK": ""
+    "SSH_AUTH_SOCK": "",
+    "GIT_CONFIG_GLOBAL": "/cache/container-gitconfig"
   },
   "mounts": [
     "source=gh-auth-${localWorkspaceFolderBasename},target=/root/.config/gh,type=volume"
   ],
-  "postCreateCommand": "git config --global url.'https://github.com/'.insteadOf 'git@github.com:' && git config --global url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
+  "postCreateCommand": "... && git config --file /cache/container-gitconfig url.'https://github.com/'.insteadOf 'git@github.com:' && git config --file /cache/container-gitconfig url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
 }
 ```
 
