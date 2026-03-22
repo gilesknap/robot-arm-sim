@@ -47,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -z \"$REMOTE_CONTAINERS\" ]; then echo 'BLOCKED: This project requires the devcontainer. Please reopen in the devcontainer before using Claude Code.'; exit 2; fi"
+            "command": "if [ -z \"$REMOTE_CONTAINERS\" ]; then echo 'BLOCKED: This project requires the devcontainer. Please reopen in the devcontainer before using Claude Code.'; exit 2; fi; if ssh-add -l 2>/dev/null; then echo 'BLOCKED: SSH agent is available in the container. Set SSH_AUTH_SOCK= in devcontainer.json remoteEnv to disable it.'; exit 2; fi"
           }
         ]
       }

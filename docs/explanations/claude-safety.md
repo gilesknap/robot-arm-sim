@@ -46,19 +46,26 @@ evading the patterns. Therefore:
 
 ## Layer 1: Devcontainer isolation
 
-Claude Code must only run inside a devcontainer. A `UserPromptSubmit` hook
-in `.claude/settings.json` enforces this:
+Claude Code must only run inside a devcontainer, and the container must not
+have SSH keys available. A `UserPromptSubmit` hook in `.claude/settings.json`
+checks both conditions on every prompt:
 
 ```json
 "hooks": {
   "UserPromptSubmit": [{
     "hooks": [{
       "type": "command",
-      "command": "if [ -z \"$REMOTE_CONTAINERS\" ]; then echo 'BLOCKED: ...'; exit 2; fi"
+      "command": "if [ -z \"$REMOTE_CONTAINERS\" ]; then echo 'BLOCKED: ...'; exit 2; fi; if ssh-add -l 2>/dev/null; then echo 'BLOCKED: SSH agent is available...'; exit 2; fi"
     }]
   }]
 }
 ```
+
+The first check verifies the `$REMOTE_CONTAINERS` environment variable is
+set (only present inside a VS Code devcontainer). The second check verifies
+that `ssh-add -l` **fails** — if it succeeds, SSH keys are reachable and the
+session is blocked. This catches cases where `SSH_AUTH_SOCK` was not cleared
+or was re-enabled.
 
 The devcontainer provides:
 
