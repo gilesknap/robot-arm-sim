@@ -19,8 +19,12 @@
         // Do the equivalent of "activate" the venv so we don't have to "uv run" everything
         "VIRTUAL_ENV": "/cache/venv-for${localWorkspaceFolder}",
         "PATH": "/cache/venv-for${localWorkspaceFolder}/bin:${containerEnv:PATH}",
-        // Use a container-local gitconfig so insteadOf rules don't leak to host
-        "GIT_CONFIG_GLOBAL": "/cache/container-gitconfig"
+        // Rewrite SSH git URLs to HTTPS without modifying ~/.gitconfig
+        "GIT_CONFIG_COUNT": "2",
+        "GIT_CONFIG_KEY_0": "url.https://github.com/.insteadOf",
+        "GIT_CONFIG_VALUE_0": "git@github.com:",
+        "GIT_CONFIG_KEY_1": "url.https://gitlab.diamond.ac.uk/.insteadOf",
+        "GIT_CONFIG_VALUE_1": "git@gitlab.diamond.ac.uk:"
     },
     "customizations": {
         "vscode": {
@@ -78,5 +82,5 @@
     // Mount the parent as /workspaces so we can pip install peers as editable
     "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind",
     // After the container is created, recreate the venv then make pre-commit first run faster
-    "postCreateCommand": "uv venv --clear && uv sync && pre-commit install --install-hooks && git config --file /cache/container-gitconfig url.'https://github.com/'.insteadOf 'git@github.com:' && git config --file /cache/container-gitconfig url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
+    "postCreateCommand": "uv venv --clear && uv sync && pre-commit install --install-hooks"
 }

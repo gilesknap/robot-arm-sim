@@ -199,15 +199,19 @@ Disable SSH agent forwarding and force git to use HTTPS:
 ```json
 "remoteEnv": {
   "SSH_AUTH_SOCK": "",
-  "GIT_CONFIG_GLOBAL": "/cache/container-gitconfig"
-},
-"postCreateCommand": "... && git config --file /cache/container-gitconfig url.'https://github.com/'.insteadOf 'git@github.com:' && git config --file /cache/container-gitconfig url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
+  "GIT_CONFIG_COUNT": "2",
+  "GIT_CONFIG_KEY_0": "url.https://github.com/.insteadOf",
+  "GIT_CONFIG_VALUE_0": "git@github.com:",
+  "GIT_CONFIG_KEY_1": "url.https://gitlab.diamond.ac.uk/.insteadOf",
+  "GIT_CONFIG_VALUE_1": "git@gitlab.diamond.ac.uk:"
+}
 ```
 
-The `GIT_CONFIG_GLOBAL` environment variable points git at a container-local
-config file. This is important — using `--global` would write to `~/.gitconfig`
-which VS Code shares with the host, breaking SSH-based git workflows outside
-the devcontainer.
+The `GIT_CONFIG_COUNT`/`KEY`/`VALUE` environment variables inject git config
+at the environment level without modifying any config file. This is important
+— writing to `~/.gitconfig` (via `--global`) would leak to the host and break
+SSH-based git workflows outside the devcontainer. The env var approach also
+preserves the host's `user.name`, `user.email`, and other global git settings.
 
 This ensures:
 - **No SSH agent** in the container — SSH is simply unavailable
@@ -255,12 +259,15 @@ Combine all layers into your devcontainer configuration:
 {
   "remoteEnv": {
     "SSH_AUTH_SOCK": "",
-    "GIT_CONFIG_GLOBAL": "/cache/container-gitconfig"
+    "GIT_CONFIG_COUNT": "2",
+    "GIT_CONFIG_KEY_0": "url.https://github.com/.insteadOf",
+    "GIT_CONFIG_VALUE_0": "git@github.com:",
+    "GIT_CONFIG_KEY_1": "url.https://gitlab.diamond.ac.uk/.insteadOf",
+    "GIT_CONFIG_VALUE_1": "git@gitlab.diamond.ac.uk:"
   },
   "mounts": [
     "source=gh-auth-${localWorkspaceFolderBasename},target=/root/.config/gh,type=volume"
-  ],
-  "postCreateCommand": "... && git config --file /cache/container-gitconfig url.'https://github.com/'.insteadOf 'git@github.com:' && git config --file /cache/container-gitconfig url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
+  ]
 }
 ```
 
