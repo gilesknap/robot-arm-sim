@@ -63,9 +63,7 @@ The specific files mentioned here are for Claude Code, but the same features are
    - but includes risks
    - this project uses quite permissive settings, but only runs in a devcontainer to mitigate risks.
    - See `.claude/settings.json` in this project
-   - See {doc}`claude-safety` for a comprehensive security pattern covering
-     devcontainer isolation, scoped tokens, SSH agent controls, and
-     self-escalation prevention
+   - See {doc}`claude-safety` for a comprehensive security pattern covering devcontainer isolation, scoped tokens, SSH agent controls, and self-escalation prevention
 1. Use `CLAUDE.md` for durable project instructions:
    - Checked into the repo, so every session and every contributor gets the same baseline.
    - Good for build commands, coding conventions, and constraints that Claude should always follow.
