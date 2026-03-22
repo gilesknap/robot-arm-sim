@@ -1,10 +1,16 @@
 # Securing Claude Code in Devcontainers
 
 This document describes a practical security pattern for running Claude Code
-autonomously in VS Code devcontainers. The goal is maximum autonomy with
-minimum blast radius — Claude should be able to read, write, build, test, and
-push code without constant permission prompts, while limiting the damage a
-prompt injection could cause.
+**interactively** in VS Code devcontainers — a human is present and reviews
+permission prompts. The goal is maximum autonomy with minimum blast radius:
+Claude should be able to read, write, build, test, and push code without
+constant permission prompts, while limiting the damage a prompt injection
+could cause.
+
+For **fully autonomous** use (CI pipelines, unattended sessions), where no
+human is reviewing prompts, see {doc}`claude-autonomous` which uses a
+dedicated container with network restrictions as the security boundary
+instead.
 
 The pattern was developed for this project but is designed to be reusable
 across any Claude-enabled repository.

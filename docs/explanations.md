@@ -7,6 +7,7 @@ Explanations of how it works and why it works that way.
 
 explanations/building-with-claude
 explanations/claude-safety
+explanations/claude-autonomous
 explanations/chrome-connector-workflow
 explanations/architecture
 explanations/inverse-kinematics
