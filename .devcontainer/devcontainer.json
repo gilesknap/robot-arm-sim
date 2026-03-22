@@ -8,6 +8,8 @@
     "remoteEnv": {
         // Allow X11 apps to run inside the container
         "DISPLAY": "${localEnv:DISPLAY}",
+        // Disable SSH agent forwarding to prevent prompt injection from using SSH keys
+        "SSH_AUTH_SOCK": "",
         // Put things that allow it in the persistent cache
         "PRE_COMMIT_HOME": "/cache/pre-commit",
         "UV_CACHE_DIR": "/cache/uv",
@@ -63,10 +65,16 @@
             "source": "devcontainer-shared-cache",
             "target": "/cache",
             "type": "volume"
+        },
+        // Persist gh auth across container rebuilds with per-repo scoped PAT
+        {
+            "source": "gh-auth-${localWorkspaceFolderBasename}",
+            "target": "/root/.config/gh",
+            "type": "volume"
         }
     ],
     // Mount the parent as /workspaces so we can pip install peers as editable
     "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind",
     // After the container is created, recreate the venv then make pre-commit first run faster
-    "postCreateCommand": "uv venv --clear && uv sync && pre-commit install --install-hooks"
+    "postCreateCommand": "uv venv --clear && uv sync && pre-commit install --install-hooks && git config --global url.'https://github.com/'.insteadOf 'git@github.com:' && git config --global url.'https://gitlab.diamond.ac.uk/'.insteadOf 'git@gitlab.diamond.ac.uk:'"
 }

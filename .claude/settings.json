@@ -9,8 +9,17 @@
       "WebFetch(*)",
       "mcp__claude-in-chrome__*"
     ],
+    "deny": [
+      "Edit(*.claude/settings.json)",
+      "Write(*.claude/settings.json)",
+      "Edit(*.claude/settings.local.json)",
+      "Write(*.claude/settings.local.json)",
+      "Bash(*settings.json*)",
+      "Bash(*settings.local.json*)"
+    ],
     "prompt": [
       "Bash(git push --force *)",
+      "Bash(git push -f *)",
       "Bash(git reset --hard*)",
       "Bash(ssh *)",
       "Bash(scp *)",
@@ -19,7 +28,13 @@
       "Bash(wget --post* *)",
       "Bash(telnet *)",
       "Bash(mail *)",
-      "Bash(sendmail *)"
+      "Bash(sendmail *)",
+      "Bash(gh pr merge*)",
+      "Bash(gh gist create*)",
+      "Bash(gh api *)",
+      "Bash(pip install*)",
+      "Bash(npm install*)",
+      "Bash(uv add*)"
     ]
   },
   "hooks": {

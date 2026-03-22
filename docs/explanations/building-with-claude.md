@@ -61,8 +61,11 @@ The specific files mentioned here are for Claude Code, but the same features are
 1. Manage permissions carefully.
    - giving more permission allows improved flow
    - but includes risks
-   - this project uses quite permissive settings, but only runs in a devcontainer to mitigate risks. It won't run outside of a devcontainer and it asks for permission on commands that may escape from the container.
+   - this project uses quite permissive settings, but only runs in a devcontainer to mitigate risks.
    - See `.claude/settings.json` in this project
+   - See {doc}`claude-safety` for a comprehensive security pattern covering
+     devcontainer isolation, scoped tokens, SSH agent controls, and
+     self-escalation prevention
 1. Use `CLAUDE.md` for durable project instructions:
    - Checked into the repo, so every session and every contributor gets the same baseline.
    - Good for build commands, coding conventions, and constraints that Claude should always follow.
@@ -513,6 +516,8 @@ deletions — [PR #33](https://github.com/gilesknap/robot-arm-sim/pull/33).
 
 ## Related documents
 
+- {doc}`claude-safety` — security pattern for running Claude Code
+  autonomously in devcontainers
 - {doc}`chrome-connector-workflow` — a detailed walkthrough of using the
   Chrome connector and camera skills to debug the end-effector
 - {doc}`implementation-plan` — the original plan written before any code
