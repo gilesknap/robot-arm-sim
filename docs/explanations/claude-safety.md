@@ -178,6 +178,8 @@ container can only access its own repository, not others.
 
 ---
 
+(layer-4-ssh-agent-and-git-transport)=
+
 ## Layer 4: SSH agent and git transport
 
 ### The problem
