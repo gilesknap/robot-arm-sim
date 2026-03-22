@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Pipeline walkthrough &#8212; robot-arm-sim 1.9.dev35+gfddf4961b documentation</title>
+    <title>Running Claude Code Autonomously in Containers &#8212; robot-arm-sim 1.9.dev35+gfddf4961b documentation</title>
   
   
   
@@ -47,7 +47,7 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/pipeline-walkthrough';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/claude-autonomous';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/robot-arm-sim/switcher.json';
@@ -58,8 +58,8 @@
     <link rel="icon" href="../_static/dls-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="How-to Guides" href="../how-to.html" />
-    <link rel="prev" title="Quick start" href="quick-start.html" />
+    <link rel="next" title="Debugging with the Chrome Connector" href="chrome-connector-workflow.html" />
+    <link rel="prev" title="Securing Claude Code in Devcontainers" href="claude-safety.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -146,7 +146,7 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../tutorials.html">
     Tutorials
   </a>
@@ -160,7 +160,7 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../explanations.html">
     Explanations
   </a>
@@ -294,7 +294,7 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../tutorials.html">
     Tutorials
   </a>
@@ -308,7 +308,7 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../explanations.html">
     Explanations
   </a>
@@ -397,8 +397,25 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick start</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Pipeline walkthrough</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="building-with-claude.html">Building a Robot Simulator with Claude</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="implementation-plan.html">Implementation plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connection-point-plan.html">Connection point detection plan</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="claude-safety.html">Securing Claude Code in Devcontainers</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Running Claude Code Autonomously in Containers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chrome-connector-workflow.html">Debugging with the Chrome Connector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inverse-kinematics.html">Inverse kinematics solver</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="decisions.html">Architectural Decision Records</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0003-keep-connection-point-auto-detection.html">3. Keep connection point auto-detection despite low success rate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="kinematics_and_urdf_generation.html">Kinematics and URDF Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf-generation-pipeline.html">URDF generation pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visual-centering-tradeoffs.html">Visual centering tradeoffs</a></li>
 </ul>
 </div>
 </nav></div>
@@ -440,9 +457,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../tutorials.html" class="nav-link">Tutorials</a></li>
+    <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Pipeline walkthrough</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Running Claude Code Autonomously in Containers</span></li>
   </ul>
 </nav>
 </div>
@@ -459,87 +476,176 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="pipeline-walkthrough">
-<h1>Pipeline walkthrough<a class="headerlink" href="#pipeline-walkthrough" title="Link to this heading">#</a></h1>
-<p>In the <a class="reference internal" href="quick-start.html"><span class="doc">Quick start</span></a> you launched a pre-built robot in the simulator.
-Now rebuild the Meca500-R3 from scratch to understand the three pipeline
-stages: <strong>analyze</strong>, <strong>generate</strong>, and <strong>simulate</strong>.</p>
-<section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+  <section id="running-claude-code-autonomously-in-containers">
+<h1>Running Claude Code Autonomously in Containers<a class="headerlink" href="#running-claude-code-autonomously-in-containers" title="Link to this heading">#</a></h1>
+<p>This document describes how to run Claude Code in a fully autonomous mode
+(no human in the loop) inside an isolated container. For the interactive
+devcontainer pattern where a human reviews prompts, see
+<a class="reference internal" href="claude-safety.html"><span class="doc">Securing Claude Code in Devcontainers</span></a>.</p>
+<nav class="contents local" id="contents">
 <ul class="simple">
-<li><p>You have completed the <a class="reference internal" href="quick-start.html"><span class="doc">Quick start</span></a> tutorial (clone, install, run).</p></li>
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#container-setup" id="id2">Container setup</a></p></li>
+<li><p><a class="reference internal" href="#restricting-network-access-with-a-filtering-proxy" id="id3">Restricting network access with a filtering proxy</a></p>
+<ul>
+<li><p><a class="reference internal" href="#why-not-iptables" id="id4">Why not iptables?</a></p></li>
+<li><p><a class="reference internal" href="#tinyproxy-setup" id="id5">tinyproxy setup</a></p></li>
+<li><p><a class="reference internal" href="#connecting-the-container-to-the-proxy" id="id6">Connecting the container to the proxy</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#comparison-with-the-interactive-pattern" id="id7">Comparison with the interactive pattern</a></p></li>
+<li><p><a class="reference internal" href="#checklist" id="id8">Checklist</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>When Claude runs unattended — in CI pipelines, scheduled tasks, or
+long-running autonomous sessions — the permission prompt system cannot
+provide safety because nobody is there to review. Instead, the
+<strong>container itself</strong> becomes the security boundary:</p>
+<ul class="simple">
+<li><p>A dedicated throwaway container with only the credentials Claude needs</p></li>
+<li><p>Network access restricted to an allowlist of hosts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--dangerously-skip-permissions</span></code> enables full autonomy inside the sandbox</p></li>
+</ul>
+<p>This is cleaner than layering security on top of a VS Code devcontainer,
+which injects its own credential helpers and SSH agents that then need to
+be suppressed.</p>
+</section>
+<hr class="docutils" />
+<section id="container-setup">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Container setup</a><a class="headerlink" href="#container-setup" title="Link to this heading">#</a></h2>
+<p>Run Claude in a dedicated container with a scoped GitHub PAT as the only
+credential. Use Podman (or Docker) to create an ephemeral environment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span>ANTHROPIC_API_KEY<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">GH_TOKEN</span><span class="o">=</span>&lt;scoped-pat&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">HTTPS_PROXY</span><span class="o">=</span>http://host.containers.internal:8888<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">HTTP_PROXY</span><span class="o">=</span>http://host.containers.internal:8888<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">NO_PROXY</span><span class="o">=</span>localhost,127.0.0.1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace:Z<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>&lt;image&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>claude<span class="w"> </span>--dangerously-skip-permissions<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;do the task&quot;</span>
+</pre></div>
+</div>
+<p>Key properties:</p>
+<ul class="simple">
+<li><p><strong>Ephemeral</strong> — <code class="docutils literal notranslate"><span class="pre">--rm</span></code> destroys the container after the task completes</p></li>
+<li><p><strong>No SSH agent</strong> — no keys are mounted or forwarded</p></li>
+<li><p><strong>No VS Code credential helper</strong> — this is not a devcontainer, so there
+is no OAuth token injection</p></li>
+<li><p><strong>Scoped PAT</strong> — the <code class="docutils literal notranslate"><span class="pre">GH_TOKEN</span></code> is a fine-grained PAT with access only
+to the repositories Claude needs (see <a class="reference internal" href="claude-safety.html"><span class="doc">Securing Claude Code in Devcontainers</span></a> Layer 3 for
+PAT setup)</p></li>
 </ul>
 </section>
-<section id="stage-1-analyze-the-stl-files">
-<h2>Stage 1 – Analyze the STL files<a class="headerlink" href="#stage-1-analyze-the-stl-files" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">analyze</span></code> command inspects every STL mesh in <code class="docutils literal notranslate"><span class="pre">stl_files/</span></code> and writes
-per-part geometry data to an <code class="docutils literal notranslate"><span class="pre">analysis/</span></code> directory.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>analyze<span class="w"> </span>robots/Meca500-R3/
-</pre></div>
-</div>
-<p>Once finished, open one of the generated YAML files to see what the analyzer
-found:</p>
-<div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">robots/Meca500-R3/analysis/A0.yaml (first 16 lines)</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">part_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A0</span>
-<span class="nt">source_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stl_files/A0.stl</span>
-<span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">binary_stl</span>
-<span class="nt">connection_points</span><span class="p">:</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">end</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">distal</span>
-<span class="w">  </span><span class="nt">position</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.048</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.096</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">93.037</span>
-<span class="w">  </span><span class="nt">axis</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
-<span class="w">  </span><span class="nt">radius_mm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">38.0</span>
-<span class="w">  </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cross_section</span>
-<span class="nt">geometry</span><span class="p">:</span>
-</pre></div>
-</div>
-</div>
-<p>Each file records the part’s bounding box, volume, connection points (where
-links attach), and notable geometric features such as large flat faces.</p>
-</section>
-<section id="stage-2-generate-the-urdf">
-<h2>Stage 2 – Generate the URDF<a class="headerlink" href="#stage-2-generate-the-urdf" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">generate</span></code> command combines the analysis data with the kinematic chain
-specification (<code class="docutils literal notranslate"><span class="pre">chain.yaml</span></code>) to produce a URDF file.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>generate<span class="w"> </span>robots/Meca500-R3/
-</pre></div>
-</div>
-<p>This writes <code class="docutils literal notranslate"><span class="pre">robots/Meca500-R3/robot.urdf</span></code>. The URDF describes every link’s
-visual mesh, every joint’s type and axis, and the transforms that connect them.
-You can open the file to verify link names and joint limits match the real
-robot’s datasheet.</p>
-</section>
-<section id="stage-3-simulate">
-<h2>Stage 3 – Simulate<a class="headerlink" href="#stage-3-simulate" title="Link to this heading">#</a></h2>
-<p>Launch the simulator to verify the result:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>robot-arm-sim<span class="w"> </span>simulate<span class="w"> </span>robots/Meca500-R3/
-</pre></div>
-</div>
-<p>Open <a class="reference external" href="http://localhost:8080">http://localhost:8080</a> and drag the joint sliders. If every joint rotates
-around the correct axis and the meshes line up without gaps, the pipeline
-succeeded.</p>
-</section>
-<section id="what-you-learned">
-<h2>What you learned<a class="headerlink" href="#what-you-learned" title="Link to this heading">#</a></h2>
-<p>The pipeline has three discrete stages. <strong>Analyze</strong> extracts geometry and
-connection points from raw STL meshes. <strong>Generate</strong> merges that geometry data
-with a kinematic chain spec to produce a standards-compliant URDF. <strong>Simulate</strong>
-loads the URDF into an interactive 3D viewer for verification. Each stage’s
-output feeds the next, so you can inspect or override intermediate files before
-moving on.</p>
-</section>
-<section id="next-steps">
-<h2>Next steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<section id="restricting-network-access-with-a-filtering-proxy">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Restricting network access with a filtering proxy</a><a class="headerlink" href="#restricting-network-access-with-a-filtering-proxy" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">--network=none</span></code> would block all network access including the GitHub API,
+so it is too restrictive. Instead, run a filtering forward proxy on the
+host that only allows connections to specific domains.</p>
+<section id="why-not-iptables">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Why not iptables?</a><a class="headerlink" href="#why-not-iptables" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><a class="reference internal" href="../how-to/add-a-robot.html"><span class="doc">Add a new robot</span></a> – add your own robot using the same pipeline.</p></li>
-<li><p><a class="reference internal" href="../explanations/architecture.html"><span class="doc">Architecture</span></a> – deeper look at how the stages connect.</p></li>
+<li><p>GitHub’s IP ranges change frequently — maintaining CIDR allowlists is
+fragile</p></li>
+<li><p>Rootless Podman cannot manipulate iptables without <code class="docutils literal notranslate"><span class="pre">--cap-add=NET_ADMIN</span></code></p></li>
+<li><p>Domain-based filtering at the proxy layer is simpler and more
+maintainable</p></li>
 </ul>
+</section>
+<section id="tinyproxy-setup">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">tinyproxy setup</a><a class="headerlink" href="#tinyproxy-setup" title="Link to this heading">#</a></h3>
+<p>Install tinyproxy on the host and create a configuration that denies all
+traffic by default, then allowlists specific domains.</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">/etc/tinyproxy/tinyproxy.conf</span></code>:</strong></p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">Port 8888</span>
+<span class="na">Listen 127.0.0.1</span>
+
+<span class="c1"># Default deny — only domains in the filter list are allowed</span>
+<span class="na">FilterDefaultDeny Yes</span>
+<span class="na">Filter &quot;/etc/tinyproxy/allow.list&quot;</span>
+</pre></div>
+</div>
+<p><strong><code class="docutils literal notranslate"><span class="pre">/etc/tinyproxy/allow.list</span></code></strong> (regex patterns, one per line):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>^api\.github\.com$
+^github\.com$
+^uploads\.github\.com$
+</pre></div>
+</div>
+<p>Add any other domains Claude needs (e.g., <code class="docutils literal notranslate"><span class="pre">^pypi\.org$</span></code>,
+<code class="docutils literal notranslate"><span class="pre">^files\.pythonhosted\.org$</span></code> for pip installs).</p>
+<p>Start the proxy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tinyproxy<span class="w"> </span>-c<span class="w"> </span>/etc/tinyproxy/tinyproxy.conf
+</pre></div>
+</div>
+</section>
+<section id="connecting-the-container-to-the-proxy">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Connecting the container to the proxy</a><a class="headerlink" href="#connecting-the-container-to-the-proxy" title="Link to this heading">#</a></h3>
+<p>Rootless Podman containers can reach the host via
+<code class="docutils literal notranslate"><span class="pre">host.containers.internal</span></code>. The proxy environment variables in the
+<code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">run</span></code> command above route all HTTP/HTTPS traffic through tinyproxy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-e<span class="w"> </span><span class="nv">HTTPS_PROXY</span><span class="o">=</span>http://host.containers.internal:8888
+-e<span class="w"> </span><span class="nv">HTTP_PROXY</span><span class="o">=</span>http://host.containers.internal:8888
+-e<span class="w"> </span><span class="nv">NO_PROXY</span><span class="o">=</span>localhost,127.0.0.1
+</pre></div>
+</div>
+<p>Any connection attempt to a domain not in the allowlist will be rejected
+by tinyproxy.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="comparison-with-the-interactive-pattern">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Comparison with the interactive pattern</a><a class="headerlink" href="#comparison-with-the-interactive-pattern" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Aspect</p></th>
+<th class="head"><p>Interactive devcontainer</p></th>
+<th class="head"><p>Autonomous container</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Human in the loop</p></td>
+<td><p>Yes — reviews prompts</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Permission model</p></td>
+<td><p>allow/deny/prompt rules</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--dangerously-skip-permissions</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Security boundary</p></td>
+<td><p>Harness rules + scoped PAT</p></td>
+<td><p>Container + network policy</p></td>
+</tr>
+<tr class="row-odd"><td><p>VS Code integration</p></td>
+<td><p>Yes (credential helper present)</p></td>
+<td><p>No (standalone container)</p></td>
+</tr>
+<tr class="row-even"><td><p>Network restriction</p></td>
+<td><p>None (accepted risk)</p></td>
+<td><p>Proxy allowlist</p></td>
+</tr>
+<tr class="row-odd"><td><p>Lifetime</p></td>
+<td><p>Long-lived development session</p></td>
+<td><p>Ephemeral per-task</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<hr class="docutils" />
+<section id="checklist">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Checklist</a><a class="headerlink" href="#checklist" title="Link to this heading">#</a></h2>
+<p>Before running Claude autonomously:</p>
+<ol class="arabic simple">
+<li><p>Fine-grained PAT created and scoped to required repositories only</p></li>
+<li><p>tinyproxy running on host with domain allowlist</p></li>
+<li><p>Container image includes <code class="docutils literal notranslate"><span class="pre">claude</span></code>, <code class="docutils literal notranslate"><span class="pre">gh</span></code>, and project dependencies</p></li>
+<li><p>Branch protection rules enabled on the target repository</p></li>
+<li><p>No SSH keys, Docker sockets, or broad tokens mounted into the container</p></li>
+</ol>
 </section>
 </section>
 
@@ -554,20 +660,20 @@ moving on.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="quick-start.html"
+       href="claude-safety.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Quick start</p>
+        <p class="prev-next-title">Securing Claude Code in Devcontainers</p>
       </div>
     </a>
     <a class="right-next"
-       href="../how-to.html"
+       href="chrome-connector-workflow.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">How-to Guides</p>
+        <p class="prev-next-title">Debugging with the Chrome Connector</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -590,12 +696,16 @@ moving on.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-1-analyze-the-stl-files">Stage 1 – Analyze the STL files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-2-generate-the-urdf">Stage 2 – Generate the URDF</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stage-3-simulate">Stage 3 – Simulate</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-learned">What you learned</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#container-setup">Container setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#restricting-network-access-with-a-filtering-proxy">Restricting network access with a filtering proxy</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-not-iptables">Why not iptables?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tinyproxy-setup">tinyproxy setup</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connecting-the-container-to-the-proxy">Connecting the container to the proxy</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-with-the-interactive-pattern">Comparison with the interactive pattern</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checklist">Checklist</a></li>
 </ul>
   </nav></div>
 
@@ -603,7 +713,7 @@ moving on.</p>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/tutorials/pipeline-walkthrough.md">
+    <a href="https://github.com/gilesknap/robot-arm-sim/edit/main/docs/explanations/claude-autonomous.md">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -619,7 +729,7 @@ moving on.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/tutorials/pipeline-walkthrough.md.txt"
+      <li><a href="../_sources/explanations/claude-autonomous.md.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>
