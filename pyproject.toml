@@ -149,6 +149,21 @@ commands = [
     ],
 ]
 
+[tool.tox.env.docs-autobuild]
+description = "Run docs with autobuild on change"
+commands = [
+    [
+        "sphinx-autobuild",
+        "--show-traceback",
+        "--watch",
+        "README.md",
+        "docs",
+        "build/html",
+        { replace = "posargs", default = [
+        ], extend = true },
+    ],
+]
+
 [tool.ruff]
 src = ["src", "tests"]
 line-length = 88
