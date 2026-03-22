@@ -15,11 +15,15 @@
       "Edit(*.claude/settings.local.json)",
       "Write(*.claude/settings.local.json)",
       "Bash(*settings.json*)",
-      "Bash(*settings.local.json*)"
+      "Bash(*settings.local.json*)",
+      "Bash(git push*)",
+      "Bash(git fetch*)",
+      "Bash(git pull*)",
+      "Bash(git clone*)",
+      "Bash(git remote*)",
+      "Bash(git ls-remote*)"
     ],
     "prompt": [
-      "Bash(git push --force *)",
-      "Bash(git push -f *)",
       "Bash(git reset --hard*)",
       "Bash(ssh *)",
       "Bash(scp *)",

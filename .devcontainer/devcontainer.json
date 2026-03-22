@@ -18,13 +18,7 @@
         "UV_PROJECT_ENVIRONMENT": "/cache/venv-for${localWorkspaceFolder}",
         // Do the equivalent of "activate" the venv so we don't have to "uv run" everything
         "VIRTUAL_ENV": "/cache/venv-for${localWorkspaceFolder}",
-        "PATH": "/cache/venv-for${localWorkspaceFolder}/bin:${containerEnv:PATH}",
-        // Rewrite SSH git URLs to HTTPS without modifying ~/.gitconfig
-        "GIT_CONFIG_COUNT": "2",
-        "GIT_CONFIG_KEY_0": "url.https://github.com/.insteadOf",
-        "GIT_CONFIG_VALUE_0": "git@github.com:",
-        "GIT_CONFIG_KEY_1": "url.https://gitlab.diamond.ac.uk/.insteadOf",
-        "GIT_CONFIG_VALUE_1": "git@gitlab.diamond.ac.uk:"
+        "PATH": "/cache/venv-for${localWorkspaceFolder}/bin:${containerEnv:PATH}"
     },
     "customizations": {
         "vscode": {

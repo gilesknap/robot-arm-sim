@@ -66,7 +66,7 @@ The devcontainer provides:
 - **Read-only mounts** for organisation code that Claude should reference but
   not modify
 - **No Docker socket** — Claude cannot escape to the host via Docker
-- **No raw SSH keys** — see [Layer 4](#layer-4-ssh-agent-and-git-transport)
+- **No raw SSH keys** — see [Layer 4](#layer-4-git-network-operations)
 
 ---
 
@@ -95,22 +95,36 @@ it would cripple Claude's ability to build, test, and run code.
   "Edit(*.claude/settings.local.json)",
   "Write(*.claude/settings.local.json)",
   "Bash(*settings.json*)",
-  "Bash(*settings.local.json*)"
+  "Bash(*settings.local.json*)",
+  "Bash(git push*)",
+  "Bash(git fetch*)",
+  "Bash(git pull*)",
+  "Bash(git clone*)",
+  "Bash(git remote*)",
+  "Bash(git ls-remote*)"
 ]
 ```
 
-**This is critical.** Without deny rules on settings files, a prompt injection
-could edit `.claude/settings.json` to remove all `prompt` rules, then proceed
-unrestricted. The harness checks deny rules *before* executing the tool call
-that would modify them, so this is a bootstrap lock that cannot be
-self-removed.
+**Settings file protection is critical.** Without deny rules on settings
+files, a prompt injection could edit `.claude/settings.json` to remove all
+`prompt` rules, then proceed unrestricted. The harness checks deny rules
+*before* executing the tool call that would modify them, so this is a
+bootstrap lock that cannot be self-removed.
+
+**Git network commands are denied, not prompted.** VS Code's devcontainer
+credential helper injects the host's broad GitHub OAuth token into every
+container. Any `git push/fetch/pull` command authenticates with this token,
+bypassing the scoped PAT in Layer 3. These commands are denied rather than
+prompted because prompt rules offer an "always allow in this project" button
+— users will inevitably click it, silently re-opening the OAuth token leak.
+Claude should use `gh` CLI commands instead (see
+[Layer 4](#layer-4-git-network-operations)), which authenticate with the
+scoped fine-grained PAT.
 
 ### Prompt (require user confirmation)
 
 ```json
 "prompt": [
-  "Bash(git push --force *)",
-  "Bash(git push -f *)",
   "Bash(git reset --hard*)",
   "Bash(ssh *)", "Bash(scp *)", "Bash(rsync *)", "Bash(sftp *)",
   "Bash(telnet *)", "Bash(mail *)", "Bash(sendmail *)",
@@ -129,7 +143,7 @@ can evade pattern matching (e.g., `bash -c "ssh ..."` bypasses
 `Bash(ssh *)`). But they catch accidental misuse and naive injection attempts.
 
 The rules gate:
-- **Destructive git operations** — force push, hard reset
+- **Destructive git operations** — hard reset
 - **Network escape** — SSH, SCP, mail, POST requests
 - **Destructive GitHub operations** — merging PRs, creating gists, raw API calls
 - **Supply chain** — installing arbitrary packages
@@ -178,49 +192,72 @@ container can only access its own repository, not others.
 
 ---
 
-(layer-4-ssh-agent-and-git-transport)=
+(layer-4-git-network-operations)=
 
-## Layer 4: SSH agent and git transport
+## Layer 4: Git network operations — use `gh`, not `git`
 
 ### The problem
 
-VS Code automatically forwards the host's SSH agent into devcontainers. This
-means Claude can use your SSH keys to:
+VS Code devcontainers automatically inject an HTTPS credential helper into
+the container's `~/.gitconfig`. This helper proxies the host's VS Code GitHub
+OAuth token — the same broad token that VS Code uses for PRs, settings sync,
+and other GitHub features. The injection happens at container start and cannot
+be disabled via `devcontainer.json`.
 
-- Push to **any** git repo your keys have access to (bypassing PAT scoping)
-- SSH into **any** remote machine your keys are authorised on
+This means that **any `git push`, `git fetch`, or `git pull` command
+authenticates with the host's full GitHub OAuth token**, which has access to
+all repositories and organisations the user can reach — completely bypassing
+the fine-grained PAT set up in Layer 3.
 
-The keys themselves aren't in the container (agent forwarding means the key
-material stays on the host), so they can't be exfiltrated. But they can be
-**used live** during the session.
+SSH agent forwarding is also disabled (`SSH_AUTH_SOCK: ""`), but the VS Code
+credential helper is the more insidious leak because it is invisible and
+cannot be opted out of.
 
-### The fix
+Overriding the credential helper via gitconfig or env vars is not a reliable
+fix: any file-based config change can be reverted by an attacker from inside
+the container.
 
-Disable SSH agent forwarding and force git to use HTTPS:
+### The compromise
 
-```json
-"remoteEnv": {
-  "SSH_AUTH_SOCK": "",
-  "GIT_CONFIG_COUNT": "2",
-  "GIT_CONFIG_KEY_0": "url.https://github.com/.insteadOf",
-  "GIT_CONFIG_VALUE_0": "git@github.com:",
-  "GIT_CONFIG_KEY_1": "url.https://gitlab.diamond.ac.uk/.insteadOf",
-  "GIT_CONFIG_VALUE_1": "git@gitlab.diamond.ac.uk:"
-}
-```
+Since the VS Code credential helper cannot be removed, we take a different
+approach: **gate all network git operations behind prompt rules** and direct
+Claude to use `gh` CLI commands instead.
 
-The `GIT_CONFIG_COUNT`/`KEY`/`VALUE` environment variables inject git config
-at the environment level without modifying any config file. This is important
-— writing to `~/.gitconfig` (via `--global`) would leak to the host and break
-SSH-based git workflows outside the devcontainer. The env var approach also
-preserves the host's `user.name`, `user.email`, and other global git settings.
+The `gh` CLI authenticates with the fine-grained PAT from `gh auth login`
+(Layer 3), not the VS Code credential helper. Key commands:
 
-This ensures:
-- **No SSH agent** in the container — SSH is simply unavailable
-- **Git uses HTTPS** — authenticated by the scoped PAT, not SSH keys
-- **Config stays in the container** — host git workflows are unaffected
-- **You can still SSH from your host terminal** when needed — outside Claude's
-  reach
+- **Push and create PR:** `gh pr create` (pushes the branch via the GitHub API)
+- **View remote state:** `gh pr list`, `gh pr view`, `gh repo view`
+- **Fetch PR content:** `gh pr checkout`
+
+The deny rules in Layer 2 block `git push`, `git fetch`, `git pull`,
+`git clone`, `git remote`, and `git ls-remote`. Deny was chosen over prompt
+because prompt rules offer an "always allow" button that users will
+inevitably click, silently re-opening the OAuth token leak. Deny rules
+cannot be bypassed through the UI. The pattern matching itself is still
+evadable by a sufficiently crafted bash command — this remains a **speed
+bump, not a hard boundary** — but deny removes the most likely path to
+accidental re-enablement.
+
+### Why we removed the git HTTPS rewrite
+
+Earlier versions of this configuration used `GIT_CONFIG_COUNT` env vars to
+rewrite `git@github.com:` URLs to `https://github.com/`. This was intended to
+force git through the scoped PAT. However, the VS Code credential helper
+means HTTPS git operations still use the broad OAuth token, so the rewrite
+provided no security benefit. Many organisations use `insteadOf` rules in
+their host gitconfig to map HTTPS to SSH for normal development workflows;
+the env var overrides conflicted with these. Removing them simplifies the
+configuration and avoids confusing URL rewrite interactions.
+
+### What remains
+
+- **SSH agent forwarding is disabled** (`SSH_AUTH_SOCK: ""`) — SSH-based
+  access is unavailable
+- **`gh` CLI uses the scoped PAT** — all GitHub operations Claude should
+  perform go through `gh`
+- **`git` network commands require confirmation** — a speed bump that catches
+  accidental use of the broad OAuth token
 
 ---
 
@@ -260,12 +297,7 @@ Combine all layers into your devcontainer configuration:
 ```json
 {
   "remoteEnv": {
-    "SSH_AUTH_SOCK": "",
-    "GIT_CONFIG_COUNT": "2",
-    "GIT_CONFIG_KEY_0": "url.https://github.com/.insteadOf",
-    "GIT_CONFIG_VALUE_0": "git@github.com:",
-    "GIT_CONFIG_KEY_1": "url.https://gitlab.diamond.ac.uk/.insteadOf",
-    "GIT_CONFIG_VALUE_1": "git@gitlab.diamond.ac.uk:"
+    "SSH_AUTH_SOCK": ""
   },
   "mounts": [
     "source=gh-auth-${localWorkspaceFolderBasename},target=/root/.config/gh,type=volume"
@@ -287,4 +319,4 @@ And the `.claude/settings.json` template is in this project's
 | Prompt rules | Accidental destructive commands | Harness (speed bump) |
 | Scoped PAT | Access to unrelated repos/orgs | GitHub/GitLab server-side |
 | No SSH agent | SSH to remote machines, git via SSH | Container config |
-| Git HTTPS rewrite | Bypassing PAT via SSH git remotes | Git config |
+| `gh` over `git` for network ops | VS Code OAuth token leak | Harness (speed bump) + convention |
