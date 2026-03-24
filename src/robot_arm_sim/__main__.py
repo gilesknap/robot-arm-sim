@@ -100,6 +100,44 @@ def generate(
     typer.echo("Done.")
 
 
+@app.command("build-chain")
+def build_chain(
+    robot_dir: Path = typer.Argument(
+        ...,
+        help="Path to robot directory (must contain specs.yaml and analysis/).",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+    output: Path | None = typer.Option(
+        None,
+        help="Output chain.yaml path (default: <robot_dir>/chain.yaml).",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Print diagnostics without writing chain.yaml.",
+    ),
+) -> None:
+    """Build a draft chain.yaml from specs.yaml and analysis data."""
+    from .analyze.chain_builder import build_chain as _build_chain
+
+    typer.echo(f"Building chain for {robot_dir}...")
+    chain, messages = _build_chain(robot_dir)
+    for msg in messages:
+        typer.echo(msg)
+
+    if dry_run:
+        typer.echo("\nDry run — chain.yaml not written.")
+        return
+
+    output_path = output or (robot_dir / "chain.yaml")
+    from .models.models import save_chain_yaml
+
+    save_chain_yaml(chain, output_path)
+    typer.echo(f"\nWrote {output_path}")
+
+
 @app.command()
 def simulate(
     robots_dir: Path = typer.Argument(

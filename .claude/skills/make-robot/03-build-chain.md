@@ -9,115 +9,69 @@ Combine analysis data and manufacturer specs to write `chain.yaml`.
 
 ## Steps
 
-### 1. Read Analysis Data
+### 1. Generate Draft Chain (automated)
 
-1. Read `summary.yaml` for part ordering and assembly hints
-2. Read each `<part>.yaml` for connection points, bore positions, axes
+Run the `build-chain` command to generate a scaffold `chain.yaml`:
 
-### 2. Determine Chain Topology
-
-- Sequential parts (A0, A1, ...) or semantic names (base, shoulder, ...) form a serial chain
-- For semantic names: determine order from geometry (base is flat/short), bounding box sizes, manufacturer docs
-- Combined parts (e.g., A3_4) span multiple joints — create a virtual link with `mesh: null`
-- Connection point axes suggest joint rotation axis at each interface
-
-### 3. Determine Joint Axes from Bore Detection
-
-Each joint's rotation axis comes from the **parent link's distal bore axis** — the
-bore where the child part physically attaches.
-
-1. For each joint, look up the parent link's analysis YAML
-2. Find the `distal` connection point → its `axis` field is the joint axis
-3. Cross-check: the child link's `proximal` bore axis should agree (same physical bore)
-4. If they disagree, prefer the **distal** axis (proximal detection can pick the wrong
-   cylinder on multi-axis parts like wrist segments)
-
-**Example — UR5:**
-| Parent link | Distal bore axis | Joint   | Axis        |
-|------------|-----------------|---------|-------------|
-| base       | [0, 0, 1]       | joint_1 | [0, 0, 1]   |
-| shoulder   | [0, 1, 0]       | joint_2 | [0, 1, 0]   |
-| upperarm   | [0, 1, 0]       | joint_3 | [0, 1, 0]   |
-| forearm    | [0, 1, 0]       | joint_4 | [0, 1, 0]   |
-| wrist1     | [0, 0, 1]       | joint_5 | [0, 0, 1]   |
-| wrist2     | [0, 1, 0]       | joint_6 | [0, 1, 0]   |
-
-### 4. Compute Joint Origins from DH Parameters
-
-**CRITICAL**: ALWAYS use explicit `origin` values from DH params. Bore-detected connection points are for validation only.
-
-#### Simple robots (all DH alpha = 0)
-All joints stack vertically at zero config:
-- joint_1 origin: `[0, 0, d1_base]` (base height in metres)
-- joint_2 origin: `[0, 0, remaining_d1]`
-- Subsequent joints: DH `a` and `d` as Z distances
-
-#### Robots with DH alpha rotations (e.g., UR5)
-Need `origin_rpy` and may have lateral offsets:
-1. Identify which joints have α ≠ 0
-2. For each α = ±π/2: add `origin_rpy` to that joint
-3. Origin values follow URDF convention — DH `a` and `d` go into different components depending on accumulated frame rotation
-
-**UR-family example:**
-```yaml
-# J1: origin [0, 0, d1/1000]
-# J2: origin [0, shoulder_offset/1000, 0], origin_rpy: [0, pi/2, 0]
-# J3: origin [0, elbow_offset/1000, a2/1000]
-# J4: origin [0, 0, a3/1000], origin_rpy: [0, pi/2, 0]
-# J5: origin [0, d4/1000, 0]  # may need origin_rpy if DH alpha5 ≠ 0
-# J6: origin [0, 0, d5/1000]
+```bash
+uv run python -m robot_arm_sim build-chain robots/<name> --dry-run
 ```
 
-### 5. Preserve User-Added Links
+This automates:
+- Part ordering (for numbered names like `link_0`, `link_1`, ...)
+- Joint axes from parent distal bore detection
+- Joint origins from connection points (proximal → distal distances)
+- Joint limits from specs.yaml (deg → rad conversion)
+- DH params dict for reference metadata
+- Cross-validation of distances against DH parameters
+- Preservation of existing user-added links
 
-If `chain.yaml` already exists, read it first and collect any links/joints with
-`user_added: true`.  After building the new chain from manufacturer data,
-**re-append** those user-added links and joints at the end — do not overwrite them.
-This preserves end-effectors and other custom parts across regeneration.
+When satisfied with the dry-run output, run without `--dry-run` to write `chain.yaml`.
 
-### 6. Write chain.yaml
+### 2. Review and Fix (LLM judgment required)
 
-```yaml
-robot_name: <Robot-Name>
-dh_params:  # from manufacturer specs (mm)
-  d1: ...
-  a2: ...
-  # shoulder_offset: ...  # if applicable
-  # elbow_offset: ...     # if applicable
+The `build-chain` output flags items marked **REVIEW** that need manual attention:
 
-links:
-  - name: base_link
-    mesh: <stl_stem>        # matches stl_files/<stem>.stl
-  - name: link_1
-    mesh: <stl_stem>
-  # ... one entry per link
-  # Virtual links: mesh: null
+#### Part ordering for semantic names
+If parts use semantic names (base, shoulder, forearm, ...) instead of numbered
+names, the script cannot auto-order them. Determine order from:
+- Geometry: base is flat/short, bounding box sizes increase along the chain
+- Role hints in `summary.yaml`
+- Manufacturer documentation
 
-joints:
-  - name: joint_1
-    type: revolute
-    parent: base_link
-    child: link_1
-    axis: [0, 0, 1]           # from parent's distal bore axis
-    limits: [-3.054, 3.054]   # from specs.yaml, in radians
-    origin: [0, 0, 0.093]    # ALWAYS explicit from DH params
-    # origin_rpy: [0, 1.5707963, 0]  # if DH alpha ≠ 0
-  - name: joint_2
-    type: revolute
-    parent: link_1
-    child: link_2
-    axis: [0, 1, 0]           # from parent's distal bore axis (pitch)
-    limits: [-3.054, 3.054]
-    origin: [0, 0.136, 0]
-    origin_rpy: [0, 1.5707963, 0]
-  # ... one entry per joint
-```
+#### Joint origins when connection points are missing
+When parts have no detected connection points, the script falls back to
+DH parameters with simple `[a/1000, 0, d/1000]` placement. This assumes
+vertical stacking and will be wrong for robots with DH alpha rotations.
+Fix the origin placement based on the robot's physical zero configuration.
 
-### 6. Cross-Validate
+#### origin_rpy for non-zero DH alpha
+Joints with DH α ≠ 0 need frame rotations. The script flags these but
+does not set `origin_rpy` because the correct mapping depends on the URDF
+frame convention chosen for this robot. Two valid approaches:
 
-Compare chain.yaml origins against bore-detected connection points:
-- If a joint origin differs from the detected bore by >10mm, investigate
-- The DH params should win, but large discrepancies suggest a problem
+1. **Use origin_rpy** (UR5 approach): Set `origin_rpy` on joints with α ≠ 0
+   and keep axes simple. Common pattern: `origin_rpy: [α_rad, 0, 0]`.
+2. **Fold into axes** (FANUC approach): No origin_rpy, but vary axis
+   directions (e.g. `[-1,0,0]`, `[0,-1,0]`) to match accumulated frame
+   rotations.
+
+Pick one approach consistently for the robot.
+
+#### Combined parts spanning multiple joints
+Parts like `A3_4` that span multiple joints need a virtual link with
+`mesh: null` inserted between them.
+
+#### Cross-validation warnings
+The script reports distance discrepancies between connection-point-derived
+origins and DH parameters. Differences >10mm should be investigated —
+the DH params should win, but large discrepancies may indicate wrong
+part ordering or incorrect connection point detection.
+
+### 3. Preserve User-Added Links
+
+The `build-chain` command automatically preserves links/joints with
+`user_added: true` from an existing `chain.yaml`. No manual action needed.
 
 ## Field Reference
 
@@ -144,3 +98,4 @@ Compare chain.yaml origins against bore-detected connection points:
 - All joints have explicit `origin` values
 - All joints have `limits` from manufacturer specs
 - Joint count matches DOF from specs.yaml
+- Cross-validation shows no unexplained >10mm discrepancies
